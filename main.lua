@@ -5,14 +5,19 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.7.5"
+  local VERSION = "0.8.2"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
     maps = { "KC_CONTEST_HALL" },
     tilesets = { "KC_HALL_TILES" },
+    items = { "KC_SPICY_SNACK", "KC_DRY_SNACK", "KC_SWEET_SNACK",
+              "KC_BITTER_SNACK", "KC_SOUR_SNACK" },
+    -- mon fields this mod writes; a decorator may read them, not write them
+    monFields = { "contest", "kcSheen", "contestWins" },
     commands = { "kanto_contests:start_contest", "kanto_contests:base_talk",
-                 "kanto_contests:ribbons_missing" },
+                 "kanto_contests:ribbons_missing", "kanto_contests:snack_mart",
+                 "kanto_contests:appraise" },
   }
 
   -- ------------------------------------------------------------------
@@ -77,12 +82,27 @@ return function(mod)
       { x = 5, y = 7, destMap = "LAST_MAP", destWarp = 99 },
     },
     signs = {},
+    -- Sprites all verified present in BOTH tools/rom_manifest.json and
+    -- rom_manifest_yellow.json -- an unknown sprite id purges the whole
+    -- mod silently. The two new NPCs stand on the floor row (block value
+    -- 1) either side of the entrance, leaving the middle column clear so
+    -- the walk from the warp to the judge is never blocked.
     objects = {
       { index = 1, name = "KC_JUDGE",
-        sprite = "SPRITE_GENTLEMAN",   -- confirmed in R/B and Y manifests
+        sprite = "SPRITE_GENTLEMAN",
         x = 3, y = 2,
         movement = "STAY", range = "DOWN",
         text = "TEXT_KC_JUDGE" },
+      { index = 2, name = "KC_VENDOR",
+        sprite = "SPRITE_CLERK",
+        x = 2, y = 4,
+        movement = "STAY", range = "RIGHT",
+        text = "TEXT_KC_VENDOR" },
+      { index = 3, name = "KC_APPRAISER",
+        sprite = "SPRITE_BEAUTY",
+        x = 5, y = 4,
+        movement = "STAY", range = "LEFT",
+        text = "TEXT_KC_APPRAISER" },
     },
   })
 
@@ -166,6 +186,186 @@ return function(mod)
   mod.exports.opposed = KC_OPPOSED
 
   -- ------------------------------------------------------------------
+  -- CONDITION + SHEEN (PokeSnacks, slice 1)
+  --
+  -- Stored on the mon table: mon.contest = { cool=, beauty=, ... } 0-100
+  -- each, and mon.kcSheen 0-100. Mon tables take arbitrary fields and
+  -- SaveSerializer is a generic recursive dump, so these persist through
+  -- save/load, boxing, evolution and trading the same way mon.contestWins
+  -- does -- the field convention this project already relies on.
+  --
+  -- Sheen is the lifetime limiter: +10 per snack, and at 100 the mon
+  -- refuses. Ten snacks per mon EVER, so a mon can max two categories but
+  -- never all five. That scarcity is the design; don't soften it.
+  -- ------------------------------------------------------------------
+  local KC_SNACK_CONDITION = 20   -- condition gained per snack (cap 100)
+  local KC_SNACK_SHEEN     = 10   -- sheen gained per snack (cap 100)
+  local KC_SNACK_PRICE     = 500  -- TUNABLE: opening guess, see NOTES.md
+
+  -- id -> category. KC_ prefix because item ids are global and permanent:
+  -- nothing in either ROM manifest contains SNACK (verified against
+  -- tools/rom_manifest.json and rom_manifest_yellow.json), but another
+  -- mod could still want a plain SPICY_SNACK one day.
+  local KC_SNACKS = {
+    { id = "KC_SPICY_SNACK",  name = "SPICY SNACK",  flavor = "Spicy",  category = "COOL"   },
+    { id = "KC_DRY_SNACK",    name = "DRY SNACK",    flavor = "Dry",    category = "BEAUTY" },
+    { id = "KC_SWEET_SNACK",  name = "SWEET SNACK",  flavor = "Sweet",  category = "CUTE"   },
+    { id = "KC_BITTER_SNACK", name = "BITTER SNACK", flavor = "Bitter", category = "SMART"  },
+    { id = "KC_SOUR_SNACK",   name = "SOUR SNACK",   flavor = "Sour",   category = "TOUGH"  },
+  }
+  local KC_SNACK_BY_ID = {}
+  for _, s in ipairs(KC_SNACKS) do KC_SNACK_BY_ID[s.id] = s end
+  -- other mods can award snacks; ids are the contract, not the order
+  mod.exports.snacks = {}
+  for _, s in ipairs(KC_SNACKS) do mod.exports.snacks[s.category] = s.id end
+
+  local KC_STAT_KEY = { COOL = "cool", BEAUTY = "beauty", CUTE = "cute",
+                        SMART = "smart", TOUGH = "tough" }
+  -- fixed order so the appraiser always reads them the same way
+  local KC_STAT_ORDER = { "COOL", "BEAUTY", "CUTE", "SMART", "TOUGH" }
+
+  local function kcCondition(mon)
+    if not mon then return nil end
+    local c = mon.contest
+    if type(c) ~= "table" then
+      c = { cool = 0, beauty = 0, cute = 0, smart = 0, tough = 0 }
+      mon.contest = c
+    end
+    for _, k in pairs(KC_STAT_KEY) do c[k] = c[k] or 0 end
+    return c
+  end
+  local function kcSheen(mon) return (mon and mon.kcSheen) or 0 end
+  mod.exports.readCondition = function(mon)
+    return kcCondition(mon), kcSheen(mon)
+  end
+
+  -- ------------------------------------------------------------------
+  -- APPRAISER WORDING -- ALL PROVISIONAL.
+  -- The user explicitly wants to revisit these names; they live in this
+  -- one table so that is a single edit. Thresholds are upper bounds.
+  -- See NOTES.md.
+  -- ------------------------------------------------------------------
+  local KC_TIERS = {
+    { upTo = 20,  word = "dull" },
+    { upTo = 50,  word = "promising" },
+    { upTo = 80,  word = "impressive" },
+    { upTo = 100, word = "radiant" },
+  }
+  -- Whole 2-line pages rather than fragments: the phrasing has to own its
+  -- own line breaks, because 18 glyphs is not enough to paste a variable
+  -- clause into a sentence.
+  --
+  -- These describe how CARED FOR the mon looks, not the texture of its
+  -- coat. "Its coat is matte" was oddly specific about something the
+  -- player never sees, and the top rung now hints at the real mechanic --
+  -- a full mon can't eat again -- so the refusal later isn't a surprise.
+  local KC_SHEEN_LINES = {
+    { upTo = 20,  text = "It could use\nsome pampering." },
+    { upTo = 50,  text = "It is coming\nalong nicely." },
+    { upTo = 80,  text = "It looks well\nlooked after." },
+    { upTo = 100, text = "It is glowing,\nand quite full!" },
+  }
+  local function kcBand(table_, n)
+    for _, row in ipairs(table_) do
+      if n <= row.upTo then return row end
+    end
+    return table_[#table_]
+  end
+
+  -- ------------------------------------------------------------------
+  -- THE SNACK ITEMS, and why they are not wired the documented way.
+  --
+  -- mod.content.item_effects EXISTS and validates (Schemas.lua:750,
+  -- fields use/needsTarget/battle/field) -- but NOTHING IN THE ENGINE
+  -- READS IT. Searched all of 0.1.75: the only references to
+  -- `item_effects` anywhere are that schema entry and a test asserting
+  -- the record merges into data.item_effects. ItemEffects.use never
+  -- consults it, no UI does, and there is no item-use hook in the entire
+  -- hook list. A snack registered as an item_effect would sit in the bag
+  -- and silently do nothing. Same story for the items schema's own
+  -- `needsTarget` field: ItemEffects.needsTarget (ItemEffects.lua:75) is
+  -- a hardcoded id list and only ever reads `itemDef.machine`.
+  --
+  -- So the two functions are replaced instead, stash-originals like every
+  -- other engine wrapper here. Both are plain module-table entries and
+  -- BagMenu calls them as `ItemEffects.use(...)` / `ItemEffects.needsTarget(...)`
+  -- -- runtime table lookups (BagMenu.lua:50, :407), so a replacement is
+  -- seen. Deliberately NOT also registering item_effects records: if a
+  -- later engine wires that registry up, both paths would fire and the
+  -- snack would apply twice.
+  --
+  -- use() returns (result, messages): "consumed" makes BagMenu decrement
+  -- the item and page the messages, "failed" prints without consuming
+  -- (BagMenu.lua:256 and the contract at ItemEffects.lua:5-11).
+  -- ------------------------------------------------------------------
+  for _, s in ipairs(KC_SNACKS) do
+    mod.content.items:register(s.id, {
+      id = s.id, name = s.name, price = KC_SNACK_PRICE, tossable = true,
+      -- no `effect`: it would point at the dead registry. no `index`:
+      -- optional in the schema, and SNAG_BALL ships without one.
+    })
+  end
+
+  local ItemEffectsM = require("src.inventory.ItemEffects")
+  ItemEffectsM._kcOriginals = ItemEffectsM._kcOriginals or {}
+  local IO_ = ItemEffectsM._kcOriginals
+  for _, fn in ipairs({ "use", "needsTarget" }) do
+    IO_[fn] = IO_[fn] or ItemEffectsM[fn]
+  end
+
+  -- Without this the bag would use a snack on nobody: needsTarget is what
+  -- makes BagMenu open the party picker first.
+  ItemEffectsM.needsTarget = function(id, itemDef)
+    if KC_SNACK_BY_ID[id] then return true end
+    return IO_.needsTarget(id, itemDef)
+  end
+
+  ItemEffectsM.use = function(data, save, itemId, target, battle, moveIndex, ow)
+    local snack = KC_SNACK_BY_ID[itemId]
+    if not snack then
+      return IO_.use(data, save, itemId, target, battle, moveIndex, ow)
+    end
+    local ok, result, messages = pcall(function()
+      -- Snacks are a field item. Refusing in battle matches how the
+      -- engine treats vitamins and stones (ItemEffects.lua:153-158).
+      if battle then
+        return "failed", { "Not now! There's\na contest on!" }
+      end
+      if not target then
+        return "failed", { "Feed it to which\nPOKeMON?" }
+      end
+      local name = target.nickname
+                   or (data.pokemon[target.species] and data.pokemon[target.species].name)
+                   or "POKeMON"
+      if kcSheen(target) >= 100 then
+        -- "too sheeny" was the internal name leaking out; nothing in the
+        -- game ever tells the player a number called sheen exists. Say
+        -- what is actually true instead: this one has had its fill, for
+        -- good.
+        return "failed", { ("%s has had\nplenty!"):format(name),
+                           "Any more would\nbe wasted." }
+      end
+      local cond = kcCondition(target)
+      local key = KC_STAT_KEY[snack.category]
+      cond[key] = math.min(100, cond[key] + KC_SNACK_CONDITION)
+      target.kcSheen = math.min(100, kcSheen(target) + KC_SNACK_SHEEN)
+      -- Line budget is 18 glyphs and BOTH substitutions are long: a
+      -- nickname is up to 10 and "BITTER SNACK" is 12, so name and snack
+      -- can never share a line, and the second page drops the name
+      -- entirely (it is on the page before).
+      return "consumed", {
+        ("%s ate the\n%s!"):format(name, snack.name),
+        ("Its %s rose!"):format(snack.category),
+      }
+    end)
+    if not ok then
+      say("KC error (snack):\n" .. tostring(result))
+      return "failed", { "Nothing happened." }
+    end
+    return result, messages
+  end
+
+  -- ------------------------------------------------------------------
   -- the judge: a trainer class that never acts.
   -- brain returning nil is safe end to end: priority(nil)==0 in
   -- TurnOrder and executeAction returns immediately on a nil action.
@@ -206,13 +406,24 @@ return function(mod)
       local b = payload and payload.battle
       if not (b and b.contest) then return end
       b:act(function()
-        -- display is handled by the draw wrappers below; this just keeps
-        -- the underlying flags consistent for anything else that reads them
-        b.showEnemyTrainer = true
+        -- enemyHidden only. Up to 0.7.5 this also pinned
+        -- showEnemyTrainer = true "for anything else that reads it" --
+        -- and something else DOES read it: WideBattle's file-local
+        -- drawHUDs draws the enemy status panel only `if not
+        -- battle.showEnemyTrainer` (WideBattle.lua:131), and unlike the
+        -- classic path there is no mod wrapper in between to flip it
+        -- back, because file-locals are unreachable from a mod. So the
+        -- pinned flag erased the appeal meter in the wide layout.
+        -- The judge does not need it pinned: the drawPicsLayer wrapper
+        -- sets it for the duration of each draw on BOTH layouts (wide
+        -- calls drawPicsLayer through the method table,
+        -- WideBattle.lua:343-345). Wide now shows judge + meter, with
+        -- the classic-only polish (APPEAL label row, hidden level, no
+        -- HP:) simply absent there.
         b.enemyHidden = true
       end)
     end)
-    if not ok then say("KC error (started):\n" .. tostring(err)) end
+    if not ok then say("KC error (start):\n" .. tostring(err)) end
   end)
 
   -- ------------------------------------------------------------------
@@ -692,6 +903,84 @@ return function(mod)
     end,
   })
 
+  -- snack_mart: the vendor opens a REAL mart. 0.8.0 walked the player
+  -- through five yes/no prompts because the script `ask` opcode is yes/no
+  -- only -- one snack per prompt, and you had to scroll past all five to
+  -- leave. ShopMenu is the engine's own mart and gives the whole flow for
+  -- free: every snack visible at once with its price, the BUY/SELL/QUIT
+  -- loop, the 1-99 quantity selector, the money box, the not-enough-money
+  -- line, and the ¥ glyph.
+  --
+  -- ShopMenu.new(game, stock, onQuit) takes stock as a plain array of item
+  -- ids (ShopMenu.lua:152, and buy() reads them with data.items[id]), so
+  -- a mod's own items need nothing special. This is exactly how the engine
+  -- opens a scripted mart -- Commands.open_mart pushes the same screen and
+  -- yields its runner on the same callback (Commands.lua:852-864) -- the
+  -- only difference is that our stock is a literal instead of coming from
+  -- a ROM text entry's `mart` field.
+  --
+  -- SELL comes along with BUY, which is correct rather than incidental:
+  -- snacks are ordinary items and a mart that refuses to take them back
+  -- would be the odd case.
+  local Commands = require("src.script.Commands")
+  local KC_STOCK = {}
+  for _, s in ipairs(KC_SNACKS) do KC_STOCK[#KC_STOCK + 1] = s.id end
+  mod.content.commands:register("kanto_contests:snack_mart", {
+    foreground = true,
+    fn = function(ctx)
+      local runner = ctx.runner
+      local Screens = require("src.ui.Screens")
+      Screens.push(ctx.game, "ShopMenu", KC_STOCK, function()
+        runner:resume()
+      end)
+      runner:yield()
+    end,
+  })
+
+  -- appraise: reads condition in fuzzy tiers, never numbers. Picks the mon
+  -- through the engine's own party picker (pickOnly + onSwitch is
+  -- documented as the "item / script target" mode, PartyMenu.lua:8), so
+  -- any mon can be appraised -- not just the lead, which would be odd
+  -- when the bag lets you feed any of them.
+  mod.content.commands:register("kanto_contests:appraise", {
+    foreground = true,
+    fn = function(ctx)
+      local runner = ctx.runner
+      local Screens = require("src.ui.Screens")
+      local picked
+      Screens.push(ctx.game, "PartyMenu", {
+        pickOnly = true,
+        onSwitch = function(mon) picked = mon; runner:resume() end,
+        onCancel = function() runner:resume() end,
+      })
+      runner:yield()
+      if not picked then return end
+      local cond = kcCondition(picked)
+      local name = picked.nickname
+                   or (ctx.game.data.pokemon[picked.species]
+                       and ctx.game.data.pokemon[picked.species].name)
+                   or "POKeMON"
+      -- Pages of two stat lines each. The nickname is kept OUT of the stat
+      -- lines on purpose: "This <10-char nick>'s BEAUTY" overflows 18
+      -- glyphs, which is the bug this mod already shipped once.
+      local pages = { ("%s, is it?\nLet me look..."):format(name) }
+      local line = {}
+      for _, cat in ipairs(KC_STAT_ORDER) do
+        line[#line + 1] = ("%s: %s"):format(cat,
+          kcBand(KC_TIERS, cond[KC_STAT_KEY[cat]]).word)
+        if #line == 2 then
+          pages[#pages + 1] = table.concat(line, "\n")
+          line = {}
+        end
+      end
+      if #line > 0 then pages[#pages + 1] = table.concat(line, "\n") end
+      pages[#pages + 1] = kcBand(KC_SHEEN_LINES, kcSheen(picked)).text
+      -- show_text blocks on its own; the picker above needed our yield
+      -- because Screens.push does not.
+      Commands.show_text(ctx, table.concat(pages, "\f"))
+    end,
+  })
+
   -- base_talk: preserve a vanilla NPC's own line on gated-off branches
   -- (engine-guide pattern, confirmed working in shipped mods).
   local MapScripts = require("src.script.MapScripts")
@@ -752,6 +1041,29 @@ return function(mod)
   mod.content.map_scripts:register("KC_CONTEST_HALL", {
     priority = 500,
     talk = {
+      -- Our own text keys, so no ROM-constant trap applies to either.
+      TEXT_KC_VENDOR = {
+        { "face_player" },
+        { "show_text", "POKeSNACKS!\fThey raise a\nPOKeMON's contest\fcondition -- but\nonly so far." },
+        { "ask", "Want to see what\nI have?" },
+        { "jump_if_false", "no_sale" },
+        { "kanto_contests:snack_mart" },
+        { "jump", "done" },
+        { "label", "no_sale" },
+        { "show_text", "Come back when\nyou're peckish!" },
+        { "label", "done" },
+      },
+      TEXT_KC_APPRAISER = {
+        { "face_player" },
+        { "show_text", "I can read a\nPOKeMON's contest\fcondition at a\nglance." },
+        { "ask", "Shall I take a\nlook at one?" },
+        { "jump_if_false", "no_thanks" },
+        { "kanto_contests:appraise" },
+        { "jump", "done" },
+        { "label", "no_thanks" },
+        { "show_text", "Any time, dear." },
+        { "label", "done" },
+      },
       TEXT_KC_JUDGE = {
         { "face_player" },
         { "show_text", "Welcome to the\nCONTEST HALL!\fI judge the COOL\ncontest." },

@@ -30,22 +30,53 @@ It is a performance, not a fight: no accuracy rolls, no type chart, no
 side effects (GROWL will not lower anything), no EXP, and no switching or
 items — the POKeMON you walk on stage with performs the whole routine.
 
+## PokeSnacks and condition
+
+Every POKeMON has a hidden **contest condition** in each of the five
+categories, plus a **sheen** value. Feeding a snack raises one condition
+by 20 and sheen by 10.
+
+| Snack  | Raises |
+|---|---|
+| SPICY  | COOL   |
+| DRY    | BEAUTY |
+| SWEET  | CUTE   |
+| BITTER | SMART  |
+| SOUR   | TOUGH  |
+
+**Sheen is a lifetime cap.** At 100 sheen a POKeMON won't eat another
+snack, ever — ten snacks per POKeMON in total. That's enough to max two
+categories and never all five, so a contest POKeMON is a POKeMON you
+chose to specialise.
+
+Two people in the Contest Hall help: a **vendor** sells all five snacks,
+and an **appraiser** will read any POKeMON's condition back to you in
+words rather than numbers.
+
+Condition doesn't affect a contest yet — the Introduction Round that
+spends it is the next slice. Feeding now is not wasted; it's stored on the
+POKeMON.
+
 ## What works today
 
 - The Celadon entrance, the Contest Hall, and the COOL contest end to end
 - All 165 moves carry a contest category
 - Appeal scoring, the five-appeal limit, win/lose/withdraw
+- PokeSnacks, contest condition and sheen, with a vendor and an appraiser
 - Wins recorded on the POKeMON itself, so they survive boxing, evolution
   and trading
 
 ## What isn't there yet
 
 - **Only the COOL contest.** BEAUTY, CUTE, SMART and TOUGH are not in.
-- **No PokeSnacks or condition**, no ranks (Normal/Super/Hyper/Master).
-- **Classic battle layout only.** The contest HUD — the judge staying on
-  screen, the APPEAL meter, the category box — is drawn for the standard
-  layout. In the widescreen battle layout the contest still plays, but it
-  will look like an ordinary battle.
+- **Condition does not affect contests yet** -- the Introduction Round is
+  the next slice. No ranks (Normal/Super/Hyper/Master), no scarves, no
+  rival coordinators.
+- **The contest HUD is polished for the classic battle layout.** In the
+  widescreen layout the judge and the appeal meter both show, but the
+  contest dressing is missing: the meter reads as an ordinary status
+  panel (level and HP label included) and the move list shows types
+  instead of contest categories.
 - Contest categories are best-effort Gen 3 data. If a move feels
   miscategorised, say so — each one is a one-line fix.
 

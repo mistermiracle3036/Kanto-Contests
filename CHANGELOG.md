@@ -1,5 +1,84 @@
 # Changelog
 
+## 0.8.2
+Still an **ALPHA / proof of concept** — one COOL contest, one hall, one
+judge. This release adds the first half of contest condition.
+
+**Updating from 0.7.5?** Everything below is new to you.
+
+- **PokeSnacks.** Every POKeMON now has a hidden contest condition in each
+  of the five categories. Five snacks raise them: SPICY (COOL), DRY
+  (BEAUTY), SWEET (CUTE), BITTER (SMART), SOUR (TOUGH). Use one from the
+  BAG on any POKeMON for +20 to that condition.
+- **Sheen is a lifetime limit.** Each snack also adds 10 sheen, and at 100
+  a POKeMON won't eat another — ten snacks each, ever. Enough to max two
+  categories and never all five, so a contest POKeMON is one you chose to
+  specialise.
+- **A snack stall in the Contest Hall** sells all five at ¥500 each, over
+  a normal shop counter — buy as many as you like, and sell them back.
+- **An appraiser in the hall** reads any POKeMON's condition back to you
+  in words rather than numbers, and comments on how well looked after it
+  is.
+- Condition and sheen live on the POKeMON itself, so they survive boxing,
+  evolution, trading and saving.
+- **Condition does nothing in a contest yet.** The Introduction Round that
+  spends it is the next update — feeding now is not wasted.
+- **Fixed:** in the widescreen battle layout the appeal meter was missing
+  entirely, so there was no way to see how a contest was going. The judge
+  and the meter both show there now. (The contest-specific dressing —
+  the APPEAL label, the hidden level, the category in the move list — is
+  still classic-layout only.)
+
+Behaviour is identical to the 0.8.1 test build; only this changelog
+differs.
+
+## 0.8.1
+- **The snack vendor is a proper shop now.** All five snacks listed at
+  once with their prices, buy as many as you like at a time, and a QUIT
+  option instead of having to say no to every flavour in turn. It's the
+  game's own mart counter, so it behaves exactly like one -- including
+  selling snacks back.
+- Better words in two places. A POKeMON that can't eat any more now says
+  it has had plenty, rather than being "too sheeny" -- nothing in the game
+  ever told you sheen was a thing. And the appraiser describes how well
+  looked after a POKeMON is instead of the texture of its coat, with the
+  top remark hinting that a glowing POKeMON is also a full one.
+
+## 0.8.0
+**PokeSnacks.** Contest condition is now a thing your POKeMON has, and you
+raise it by feeding them.
+
+- Five snacks, one per contest category: SPICY (COOL), DRY (BEAUTY), SWEET
+  (CUTE), BITTER (SMART), SOUR (TOUGH). Use one from the BAG on any
+  POKeMON: **+20 to that condition, +10 sheen.**
+- **Sheen is a lifetime limit.** At 100 the POKeMON refuses to eat any
+  more, so it is ten snacks per POKeMON ever -- enough to max two
+  categories, never all five. Choosing what a POKeMON is *for* is the
+  point.
+- **A snack vendor** in the Contest Hall sells all five at 500 each
+  (tunable -- see NOTES.md).
+- **An appraiser** in the hall reads any POKeMON's condition in words
+  rather than numbers, and describes the shine of its coat. The wording is
+  provisional and kept in one table for easy reassessment.
+- Condition and sheen live on the POKeMON itself, so they survive
+  boxing, evolution, trading and saving, exactly like contest wins.
+- Condition does nothing in a contest **yet** -- the Introduction Round
+  that spends it is the next slice. Feeding now is not wasted.
+- New `NOTES.md` records what is parked, what is provisional, and the
+  engine findings behind this slice.
+
+## 0.7.6
+- The appeal meter now shows in the widescreen battle layout. The mod
+  pinned `showEnemyTrainer` for the whole contest "for anything else that
+  reads it" -- and the widescreen HUD reads exactly that flag to decide
+  whether to draw the enemy panel, with no way for the mod to intervene
+  (its draw functions are file-local, unreachable from a mod). The pin
+  turned out to be unnecessary even on classic: the draw wrapper that
+  keeps the judge on screen sets the flag itself for each frame, on both
+  layouts. Widescreen contests now show the judge and the meter; the
+  classic-only dressing (APPEAL label, hidden level, no HP:) is still
+  absent there, which the README now states accurately.
+
 ## 0.7.5
 **First public release — this is an ALPHA / proof of concept.** One COOL
 contest, one hall, one judge. It is playable and stable, but it is a
