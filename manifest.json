@@ -4,6 +4,7 @@
   "version": "0.5.0",
   "api": 2,
   "entry": "main.lua",
+  "github": "mistermiracle3036/Kanto-Contests",
   "profile": "content",
   "category": "QUEST",
   "game_version": ">=0.1.75 <2.0.0",
