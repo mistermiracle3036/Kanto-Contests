@@ -5,7 +5,7 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.5.0"
+  local VERSION = "0.6.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -290,18 +290,47 @@ return function(mod)
   -- vanilla call only.  The bar keeps its segments and right cap and simply
   -- starts two tiles further left of nothing; if it reads too bare on
   -- device, restoring the 0x62 ":[" arm above puts the bracket back.
+  -- APPEAL sits one row lower than a mon's name would, closing the gap the
+  -- blanked level row left between the label and the meter.  The vanilla
+  -- HUD prints the name at y=0 and <LV>+level at y=8 (BattleState.lua:5482,
+  -- 5486); a contest blanks the level, so row 8 is free and the label drops
+  -- into it.  Done by blanking the name for the vanilla call and reprinting
+  -- it after -- nameX's own centring rule is reproduced so the label lands
+  -- exactly where the engine would have put it, one row down.
+  local function kcNameX(tx, name)
+    local n = #Font.split(name)
+    return tx * 8 + (n <= 2 and 16 or n <= 4 and 8 or 0)
+  end
   BattleStateM.drawHUDs = function(self, slide)
     if not self.contest then return O.drawHUDs(self, slide) end
     local wasShow = self.showEnemyTrainer
     local wasStatus = self.enemy and self.enemy.shownStatus
+    local wasName = self.enemy and self.enemy.name
     self.showEnemyTrainer = false
     if self.enemy and not wasStatus then self.enemy.shownStatus = " " end
+    if self.enemy then self.enemy.name = "" end
     kcHideMeterLabel = true
     local ok, err = pcall(O.drawHUDs, self, slide)
     kcHideMeterLabel = false
     self.showEnemyTrainer = wasShow
-    if self.enemy then self.enemy.shownStatus = wasStatus end
+    if self.enemy then
+      self.enemy.shownStatus = wasStatus
+      self.enemy.name = wasName
+    end
     if not ok then error(err) end
+    -- Reprint only when the vanilla pass actually drew the enemy HUD, or
+    -- the label floats alone over the send-out and the intro ball rows.
+    -- This is BattleState.lua:5471's own predicate minus showEnemyTrainer,
+    -- which the contest arm above forces false for the duration.
+    local drew = self.enemy and not self.enemySendingOut
+                 and not self:growInScale(self.enemy) and slide == 0
+                 and not self.introBalls and not self.enemy.fainted
+    if drew and wasName and wasName ~= "" then
+      pcall(function()
+        love.graphics.setColor(0, 0, 0, 1)
+        Font.draw(wasName, kcNameX(1, wasName), 8)
+      end)
+    end
   end
 
   -- 2b. The move-select info box.  PrintMenuItem's TYPE/PP box sits at
@@ -372,7 +401,11 @@ return function(mod)
   local function contestText(self, text)
     if not (self.contest and type(text) == "string") then return text end
     local kind = tostring(self.contest)
-    if text:find("wants to", 1, true) then
+    -- The intro is Strings("%s wants\nto fight!") (BattleState.lua:726) --
+    -- the line break falls BETWEEN "wants" and "to", so the old
+    -- find("wants to") never matched and the judge has been announcing a
+    -- fight since v0.3.0. Match either side of the break instead.
+    if text:find("wants", 1, true) and text:find("fight", 1, true) then
       return "The " .. kind .. " CONTEST\nis about to begin!"
     end
     if text:find("APPEAL", 1, true) and text:find("sent", 1, true) then
@@ -389,9 +422,34 @@ return function(mod)
     end
     return text
   end
-  BattleStateM.say = function(self, text) return O.say(self, contestText(self, text)) end
+  -- THE PAGE-BREAK TRAP (v0.5.0 shipped straight into it).  A battle
+  -- message is NOT a TextBox.  TextBox pages on "\f" (TextBox.lua:141),
+  -- but BattleState:startMessage splits on "[\n\v]" ONLY
+  -- (BattleState.lua:1037) -- an "\f" is just another glyph in the middle
+  -- of the line, and the box's interior is 18 glyphs wide with NO wrap
+  -- (drawTextArea blits at 8 + (i-1)*8 from a 20-tile box), so the rest is
+  -- silently clipped off the right edge.  That is why v0.5.0's reaction
+  -- and congratulation lines still read as cut off.
+  -- The engine's own convention is to split pages into separate queue rows
+  -- (the trainer-defeat path does exactly this, BattleState.lua:4043), so
+  -- every contest string goes through here and comes out one row per page.
+  -- Consecutive sayNext calls stay in call order: each increments
+  -- nextInsert before inserting.
+  local function sayPages(self, fn, text)
+    if type(text) ~= "string" or not text:find("\f", 1, true) then
+      return fn(self, text)
+    end
+    local last
+    for page in (text .. "\f"):gmatch("(.-)\f") do
+      if page ~= "" then last = fn(self, page) end
+    end
+    return last
+  end
+  BattleStateM.say = function(self, text)
+    return sayPages(self, O.say, contestText(self, text))
+  end
   BattleStateM.sayNext = function(self, text)
-    return O.sayNext(self, contestText(self, text))
+    return sayPages(self, O.sayNext, contestText(self, text))
   end
 
   -- 4. THE APPEAL ROUND.  performMove is the whole player-move pipeline

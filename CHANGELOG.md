@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.0
+- Text no longer runs off the right edge of the box. A battle message is not
+  a dialogue box: it pages on `\v`, not on `\f`, so every `\f` page break
+  this mod wrote was landing mid-line and the rest of the sentence was
+  clipped. Contest text is now split into one message per page, which is
+  what the engine's own trainer-defeat path does.
+- The judge no longer wants to FIGHT you. The intro rewrite has never once
+  fired -- it matched "wants to" and the real line breaks as "wants\nto" --
+  so the COOL CONTEST announcement finally appears.
+- APPEAL sits one row lower, tucked just above the meter instead of
+  floating over the gap the hidden level left behind.
+
 ## 0.5.0
 - The appeal meter is no longer labelled `HP:`. It's an appeal meter.
 - The move list now shows each move's CONTEST CATEGORY where a battle shows
