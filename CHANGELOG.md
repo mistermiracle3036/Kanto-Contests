@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.4
+- The appeal meter loses the leftover `:`. Closing the bar in 0.7.2 meant
+  keeping the tile that carries both the colon and the bar's left cap;
+  the colon half is now painted over, so the cap sits straight against
+  the meter with nothing in front of it.
+- The judge stops mentioning ribbons when Kanto Ribbons isn't installed.
+  Losing or withdrawing still said "not quite ribbon material yet",
+  dangling a prize that doesn't exist in that install -- the same rule his
+  victory line already follows. With the ribbons mod present he says it as
+  before.
+
 ## 0.7.3
 - The judge now promises a COOL RIBBON rather than a "CONTEST RIBBON".
   Kanto Ribbons awards one ribbon per contest category, so the COOL

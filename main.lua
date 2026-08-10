@@ -5,7 +5,7 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.7.3"
+  local VERSION = "0.7.4"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -335,10 +335,23 @@ return function(mod)
     local drew = self.enemy and not self.enemySendingOut
                  and not self:growInScale(self.enemy) and slide == 0
                  and not self.introBalls and not self.enemy.fainted
-    if drew and wasName and wasName ~= "" then
+    if drew then
       pcall(function()
-        love.graphics.setColor(0, 0, 0, 1)
-        Font.draw(wasName, kcNameX(1, wasName), 8)
+        -- Wipe the colon but keep the cap. 0x62 is ":[" drawn at x=24:
+        -- "HP:[" runs H,P in 0x71 then ':' and '[' in 0x62, so the colon
+        -- owns the tile's left half and the bar's left cap the right.
+        -- 0.7.2 kept the whole tile to close the meter and the stray ':'
+        -- was more than the label removal was worth; painting over the
+        -- left 4px drops it and leaves the cap hard against the bar.
+        -- (If the cap ever looks nicked, this width is the dial -- the
+        -- glyph sheet is ROM-extracted at build time, so the exact split
+        -- cannot be read from the repo.)
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.rectangle("fill", 24, 16, 4, 8)
+        if wasName and wasName ~= "" then
+          love.graphics.setColor(0, 0, 0, 1)
+          Font.draw(wasName, kcNameX(1, wasName), 8)
+        end
       end)
     end
   end
@@ -746,7 +759,19 @@ return function(mod)
         { "jump_if_false", "later" },
         { "kanto_contests:start_contest", "COOL" },
         { "jump_if_true", "won" },
-        { "show_text", "Hmm. Not quite\nribbon material\nyet. Practice!" },
+        -- The losing line has to respect the same rule as the winning one:
+        -- with Kanto Ribbons absent there is no ribbon to be short of, so
+        -- "not quite ribbon material" dangles a prize that does not exist
+        -- in this install. Same inverted test as the win branch below, so
+        -- a skipped command still lands on the plain line.
+        -- This covers withdrawing as well as losing: RUN ends the contest
+        -- with result "run", which is not "win", so both arrive here.
+        { "kanto_contests:ribbons_missing" },
+        { "jump_if_true", "lost_plain" },
+        { "show_text", "Hmm. Not quite\nribbon material\fyet. Keep\npracticing!" },
+        { "jump", "done" },
+        { "label", "lost_plain" },
+        { "show_text", "Hmm. Not quite\nCOOL enough yet.\fKeep practicing!" },
         { "jump", "done" },
         { "label", "won" },
         -- The COOL RIBBON is awarded by Kanto Ribbons, not by this mod, so
