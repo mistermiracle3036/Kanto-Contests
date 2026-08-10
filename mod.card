@@ -1,0 +1,11 @@
+return {
+  summary = "R/S-style Pokemon Contests: appeal to a judge in battle-style contests at the new Celadon Contest Hall.",
+  author = "Mister Miracle",
+  tags = { "contests", "quest", "celadon" },
+  differences = {
+    "Adds a Contest Hall map reachable from Celadon City (ask the little girl).",
+    "Adds a contest judge you face in a battle-style appeal round.",
+  },
+  credits = { "Contest design based on Pokemon Ruby/Sapphire." },
+  compat = "Takes over TEXT_CELADONCITY_LITTLE_GIRL (with vanilla fallback on decline)."
+}

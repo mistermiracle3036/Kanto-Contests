@@ -1,0 +1,17 @@
+{
+  "id": "kanto_contests",
+  "name": "Kanto Contests",
+  "version": "0.4.0",
+  "api": 2,
+  "entry": "main.lua",
+  "profile": "content",
+  "category": "QUEST",
+  "game_version": ">=0.1.75 <2.0.0",
+  "priority": 100,
+  "affects_link": false,
+  "permissions": ["engine_internals"],
+  "dependencies": [],
+  "optional_dependencies": [],
+  "conflicts": [],
+  "description": "Ruby/Sapphire-style Pokemon Contests in Kanto. Appeal to a judge in a battle-style contest at the Celadon Contest Hall. v0.1: one COOL contest, proving the hall, the judge, and the judge staying on screen."
+}
