@@ -5,7 +5,7 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.7.4"
+  local VERSION = "0.7.5"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -807,7 +807,10 @@ return function(mod)
       if bannerShown then return end
       if not mod.options:get("show_banner") then return end
       bannerShown = true
-      say("KANTO CONTESTS\nv" .. VERSION .. " ready!")
+      -- "ALPHA" rather than "ready": this is the one status signal that
+      -- reaches someone who installed from a Discord link and never saw
+      -- the release page. 18 glyphs per line, so it has to be this terse.
+      say("KANTO CONTESTS\nv" .. VERSION .. " ALPHA")
     end)
     if not ok then mod.log:warn("banner failed: %s", tostring(err)) end
   end)

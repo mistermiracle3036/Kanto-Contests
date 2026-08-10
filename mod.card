@@ -1,11 +1,14 @@
 return {
-  summary = "R/S-style Pokemon Contests: appeal to a judge in battle-style contests at the new Celadon Contest Hall.",
+  summary = "ALPHA / proof of concept. R/S-style Pokemon Contests: appeal to the judge at the new Celadon Contest Hall, scored by each move's contest category. One COOL contest so far.",
   author = "Mister Miracle",
-  tags = { "contests", "quest", "celadon" },
+  tags = { "contests", "quest", "celadon", "alpha" },
   differences = {
     "Adds a Contest Hall map reachable from Celadon City (ask the little girl).",
-    "Adds a contest judge you face in a battle-style appeal round.",
+    "Adds a COOL contest judge you appeal to in a battle-style round.",
+    "Every move carries a contest category, shown in place of its type during a contest.",
+    "Contests award no EXP and allow no switching or items -- one POKeMON performs the whole routine.",
+    "Records contest wins on the POKeMON so Kanto Ribbons can award a Cool Ribbon.",
   },
   credits = { "Contest design based on Pokemon Ruby/Sapphire." },
-  compat = "Takes over TEXT_CELADONCITY_LITTLE_GIRL (with vanilla fallback on decline)."
+  compat = "Takes over TEXT_CELADONCITY_LITTLE_GIRL (with vanilla fallback on decline). Kanto Ribbons 0.18.0+ optional, for the Cool Ribbon. Contest HUD is drawn for the classic battle layout; the widescreen layout plays but looks like an ordinary battle."
 }

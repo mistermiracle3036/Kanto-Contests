@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.7.5
+**First public release — this is an ALPHA / proof of concept.** One COOL
+contest, one hall, one judge. It is playable and stable, but it is a
+fraction of what Contests should be and things will change between
+versions. Bug reports and "that move is in the wrong category" are exactly
+what this release is for.
+
+- Says so where you'll actually see it: the mod is listed as "Kanto
+  Contests (Alpha)" and the load banner reads ALPHA rather than "ready",
+  for anyone who installs from a link and never sees this page.
+- The launcher can offer in-app updates again now that there is a public
+  repository and a real release for it to point at.
+- README rewritten: how appeals are scored, what works, and what is
+  honestly not there yet -- only the COOL contest, no PokeSnacks, no
+  ranks, and a contest HUD drawn for the classic battle layout only.
+- Kanto Ribbons 0.18.0+ is optional. With it, a COOL win earns the Cool
+  Ribbon; without it contests are unchanged and the judge doesn't mention
+  ribbons. Wins are stored on the POKeMON either way, so installing it
+  later still awards ribbons for contests already won.
+
 ## 0.7.4
 - The appeal meter loses the leftover `:`. Closing the bar in 0.7.2 meant
   keeping the tile that carries both the colon and the bar's left cap;

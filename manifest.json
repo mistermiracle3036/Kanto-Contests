@@ -1,9 +1,10 @@
 {
   "id": "kanto_contests",
-  "name": "Kanto Contests",
-  "version": "0.7.4",
+  "name": "Kanto Contests (Alpha)",
+  "version": "0.7.5",
   "api": 2,
   "entry": "main.lua",
+  "github": "mistermiracle3036/Kanto-Contests",
   "profile": "content",
   "category": "QUEST",
   "game_version": ">=0.1.75 <2.0.0",
@@ -15,5 +16,5 @@
   "dependencies": [],
   "optional_dependencies": [],
   "conflicts": [],
-  "description": "Ruby/Sapphire-style Pokemon Contests in Kanto. Appeal to a judge in a battle-style contest at the Celadon Contest Hall. v0.1: one COOL contest, proving the hall, the judge, and the judge staying on screen."
+  "description": "ALPHA / proof of concept -- playable but unfinished. Ruby/Sapphire-style Pokemon Contests in Kanto: enter the Celadon Contest Hall and appeal to the judge with your POKeMON's moves, scored by each move's contest category. One COOL contest so far; PokeSnacks, the other four types and ranks are still to come. Wins are recorded on the POKeMON, so Kanto Ribbons awards a Cool Ribbon."
 }
