@@ -36,12 +36,28 @@ whoever touches the file next.
 ## Engine findings worth not rediscovering
 
 - **Bag pockets are not the engine's.** The items schema has no `pocket`
-  field and the engine has one flat bag; the pockets seen on device
-  (`OTHER 7/7`) come from the third-party Modern Bag mod, which buckets
-  by its own knowledge of item ids. Snacks land in OTHER because that mod
-  has never heard of them. Moving them would need Modern Bag's
-  cooperation or its classification rules -- not something this mod can
-  set from its own record.
+  field and the engine has one flat bag. The pockets seen on device come
+  from the third-party Modern Bag mod (read v1.5.2 source, 2026-08-10).
+  Its `pocketFor(id, def)` decides, in order: `def.machine` -> TM HM;
+  **`def.ball`** -> BALLS; a hardcoded X-item list -> BATTLE; a hardcoded
+  vanilla-medicine list -> MEDICINE; then for modded records an inference
+  on `def.effect` AS A STRING matching HEAL/REVIVE/MEDIC/VITAMIN/ETHER/
+  ELIX/CANDY/PP_UP -> MEDICINE; `def.keyItem` or `tossable == false` ->
+  KEY ITEMS; else OTHER.
+  - This is why custom BALLS sort correctly with no coordination: they
+    set the real `ball` schema field. Documented in its README too.
+  - Snacks land in OTHER, which is where they belong -- that pocket is
+    defined as "everything not covered above", and snacks are not
+    medicine.
+  - Getting them into MEDICINE would mean setting `effect` to a string
+    containing e.g. VITAMIN. But the engine validates `effect` as
+    `f.id("item_effects")`, so it would ALSO need an item_effects record
+    registered purely to make the reference resolve -- re-entering the
+    dead registry (below) to satisfy another mod's heuristic. Declined
+    deliberately.
+  - Modern Bag exports `pocketFor` read-only. There is no registry for
+    declaring a pocket and no override, so any placement trick is an
+    inference that its next version may change.
 
 - **`mod.content.item_effects` is a dead registry in 0.1.75.** It
   validates and merges into `data.item_effects`, and nothing ever reads
