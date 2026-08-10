@@ -19,11 +19,12 @@ whoever touches the file next.
 
 ## Known rough edges
 
-- **The vendor is an ask-chain**, five yes/no prompts in a row, because
-  the script `ask` opcode is yes/no only. A single list menu would be
-  much less tapping. `ui.list_menu` is a real engine hook and there are
-  menu screens (`BoxMenu`) that could probably back it, but nothing was
-  verified, so it wasn't guessed at.
+- ~~The vendor is an ask-chain~~ **Fixed in 0.8.1**: the vendor pushes
+  the engine's own `ShopMenu` (`ShopMenu.new(game, stock, onQuit)`,
+  ShopMenu.lua:152) with a literal stock array. That is the same screen
+  `Commands.open_mart` opens for ROM marts, so mod items need nothing
+  special and BUY/SELL/QUIT, the quantity selector and the money box all
+  come for free.
 - **Contest HUD is classic-layout only.** The widescreen layout shows the
   judge and the appeal meter but not the contest dressing (APPEAL label
   row, hidden level, no `HP:` label, category box in the move list).
@@ -33,6 +34,14 @@ whoever touches the file next.
   (`BattleState.lua:1833`), so it would mean wrapping `update`.
 
 ## Engine findings worth not rediscovering
+
+- **Bag pockets are not the engine's.** The items schema has no `pocket`
+  field and the engine has one flat bag; the pockets seen on device
+  (`OTHER 7/7`) come from the third-party Modern Bag mod, which buckets
+  by its own knowledge of item ids. Snacks land in OTHER because that mod
+  has never heard of them. Moving them would need Modern Bag's
+  cooperation or its classification rules -- not something this mod can
+  set from its own record.
 
 - **`mod.content.item_effects` is a dead registry in 0.1.75.** It
   validates and merges into `data.item_effects`, and nothing ever reads

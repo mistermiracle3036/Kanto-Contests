@@ -5,7 +5,7 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.8.0"
+  local VERSION = "0.8.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -16,7 +16,7 @@ return function(mod)
     -- mon fields this mod writes; a decorator may read them, not write them
     monFields = { "contest", "kcSheen", "contestWins" },
     commands = { "kanto_contests:start_contest", "kanto_contests:base_talk",
-                 "kanto_contests:ribbons_missing", "kanto_contests:buy_snacks",
+                 "kanto_contests:ribbons_missing", "kanto_contests:snack_mart",
                  "kanto_contests:appraise" },
   }
 
@@ -251,14 +251,19 @@ return function(mod)
     { upTo = 80,  word = "impressive" },
     { upTo = 100, word = "radiant" },
   }
-  -- Whole 2-line pages rather than fragments: "positively dazzling" is 19
-  -- glyphs and the box holds 18, so the phrasing has to own its own line
-  -- breaks instead of being pasted into a sentence.
+  -- Whole 2-line pages rather than fragments: the phrasing has to own its
+  -- own line breaks, because 18 glyphs is not enough to paste a variable
+  -- clause into a sentence.
+  --
+  -- These describe how CARED FOR the mon looks, not the texture of its
+  -- coat. "Its coat is matte" was oddly specific about something the
+  -- player never sees, and the top rung now hints at the real mechanic --
+  -- a full mon can't eat again -- so the refusal later isn't a surprise.
   local KC_SHEEN_LINES = {
-    { upTo = 20,  text = "Its coat is\nmatte." },
-    { upTo = 50,  text = "Its coat has\na soft glow." },
-    { upTo = 80,  text = "Its coat has\na lovely gleam." },
-    { upTo = 100, text = "It is positively\ndazzling!" },
+    { upTo = 20,  text = "It could use\nsome pampering." },
+    { upTo = 50,  text = "It is coming\nalong nicely." },
+    { upTo = 80,  text = "It looks well\nlooked after." },
+    { upTo = 100, text = "It is glowing,\nand quite full!" },
   }
   local function kcBand(table_, n)
     for _, row in ipairs(table_) do
@@ -333,8 +338,12 @@ return function(mod)
                    or (data.pokemon[target.species] and data.pokemon[target.species].name)
                    or "POKeMON"
       if kcSheen(target) >= 100 then
-        return "failed", { ("%s is too\nsheeny!"):format(name),
-                           "No more SNACKS\nfor now." }
+        -- "too sheeny" was the internal name leaking out; nothing in the
+        -- game ever tells the player a number called sheen exists. Say
+        -- what is actually true instead: this one has had its fill, for
+        -- good.
+        return "failed", { ("%s has had\nplenty!"):format(name),
+                           "Any more would\nbe wasted." }
       end
       local cond = kcCondition(target)
       local key = KC_STAT_KEY[snack.category]
@@ -894,42 +903,37 @@ return function(mod)
     end,
   })
 
-  -- buy_snacks: the vendor. An ask-chain rather than a mart UI -- the
-  -- script `ask` opcode is yes/no only, and Commands.ask resumes the
-  -- runner from its choice callback, so each prompt is ask-then-yield.
-  -- Five prompts is a lot of tapping; a real list menu would be nicer and
-  -- is noted in NOTES.md rather than guessed at now.
+  -- snack_mart: the vendor opens a REAL mart. 0.8.0 walked the player
+  -- through five yes/no prompts because the script `ask` opcode is yes/no
+  -- only -- one snack per prompt, and you had to scroll past all five to
+  -- leave. ShopMenu is the engine's own mart and gives the whole flow for
+  -- free: every snack visible at once with its price, the BUY/SELL/QUIT
+  -- loop, the 1-99 quantity selector, the money box, the not-enough-money
+  -- line, and the ¥ glyph.
+  --
+  -- ShopMenu.new(game, stock, onQuit) takes stock as a plain array of item
+  -- ids (ShopMenu.lua:152, and buy() reads them with data.items[id]), so
+  -- a mod's own items need nothing special. This is exactly how the engine
+  -- opens a scripted mart -- Commands.open_mart pushes the same screen and
+  -- yields its runner on the same callback (Commands.lua:852-864) -- the
+  -- only difference is that our stock is a literal instead of coming from
+  -- a ROM text entry's `mart` field.
+  --
+  -- SELL comes along with BUY, which is correct rather than incidental:
+  -- snacks are ordinary items and a mart that refuses to take them back
+  -- would be the odd case.
   local Commands = require("src.script.Commands")
-  local Bag = require("src.inventory.Bag")
-  mod.content.commands:register("kanto_contests:buy_snacks", {
+  local KC_STOCK = {}
+  for _, s in ipairs(KC_SNACKS) do KC_STOCK[#KC_STOCK + 1] = s.id end
+  mod.content.commands:register("kanto_contests:snack_mart", {
     foreground = true,
     fn = function(ctx)
-      -- Both helpers BLOCK on their own: Commands.show_text pushes the box
-      -- and then does runner:yield() itself (Commands.lua:137-141), and
-      -- Commands.ask routes through show_text. Yielding again here would
-      -- park the runner with nothing left to resume it.
-      local function askYN(text)
-        Commands.ask(ctx, text)
-        return ctx.lastCheck == true
-      end
-      local function tell(text)
-        Commands.show_text(ctx, text)
-      end
-      local bought = false
-      for _, s in ipairs(KC_SNACKS) do
-        if askYN(("%s:\n%d. Buy one?"):format(s.name, KC_SNACK_PRICE)) then
-          if (ctx.save.money or 0) < KC_SNACK_PRICE then
-            tell("You don't have\nenough money!")
-          elseif not Bag.add(ctx.save, s.id, 1, ctx.game.data) then
-            tell("Your BAG is\ntoo full!")
-          else
-            Commands.give_money(ctx, -KC_SNACK_PRICE)
-            bought = true
-            tell(("One %s!\fThanks!"):format(s.name))
-          end
-        end
-      end
-      ctx.lastCheck = bought
+      local runner = ctx.runner
+      local Screens = require("src.ui.Screens")
+      Screens.push(ctx.game, "ShopMenu", KC_STOCK, function()
+        runner:resume()
+      end)
+      runner:yield()
     end,
   })
 
@@ -1043,7 +1047,7 @@ return function(mod)
         { "show_text", "POKeSNACKS!\fThey raise a\nPOKeMON's contest\fcondition -- but\nonly so far." },
         { "ask", "Want to see what\nI have?" },
         { "jump_if_false", "no_sale" },
-        { "kanto_contests:buy_snacks" },
+        { "kanto_contests:snack_mart" },
         { "jump", "done" },
         { "label", "no_sale" },
         { "show_text", "Come back when\nyou're peckish!" },

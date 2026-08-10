@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.1
+- **The snack vendor is a proper shop now.** All five snacks listed at
+  once with their prices, buy as many as you like at a time, and a QUIT
+  option instead of having to say no to every flavour in turn. It's the
+  game's own mart counter, so it behaves exactly like one -- including
+  selling snacks back.
+- Better words in two places. A POKeMON that can't eat any more now says
+  it has had plenty, rather than being "too sheeny" -- nothing in the game
+  ever told you sheen was a thing. And the appraiser describes how well
+  looked after a POKeMON is instead of the texture of its coat, with the
+  top remark hinting that a glowing POKeMON is also a full one.
+
 ## 0.8.0
 **PokeSnacks.** Contest condition is now a thing your POKeMON has, and you
 raise it by feeding them.
