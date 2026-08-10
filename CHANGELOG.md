@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.7.2
+- The appeal meter is closed at both ends again. Removing the `HP:` label
+  also removed the bar's left cap -- they share one tile -- which was
+  invisible until the meter drained to empty and the line just stopped. A
+  small `:` sits where the label was; that is how vanilla looks whenever
+  the move-select box covers the `HP`.
+- Contests award no EXP, for real this time. A second guard now blocks the
+  award at the engine function itself rather than only at the hook inside
+  it, so it holds regardless of what else is installed.
+- "A fair appeal" is now "A COOL move, but it works." The old wording read
+  as a verdict rather than the middle rung, so it was impossible to tell
+  whether it meant good or bad. The three outcomes now read as a ladder:
+  delighted for a matching category, a polite nod for an off-category
+  move, a frown for one of the two clashing categories (which scores
+  nothing).
+- The prize line no longer promises a ribbon "in a future update". Ribbons
+  arrived in 0.7.0, and the judge announces one himself a moment later.
+
 ## 0.7.1
 - No more "check failed" in the mod manager. The manifest was pointing the
   launcher's auto-updater at a repository that is still private and has no

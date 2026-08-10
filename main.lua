@@ -5,7 +5,7 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.7.1"
+  local VERSION = "0.7.2"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -225,18 +225,19 @@ return function(mod)
   -- across a hot reload.
   -- ------------------------------------------------------------------
   local BattleStateM = require("src.battle.BattleState")
-  BattleStateM._kcOriginals = BattleStateM._kcOriginals or {
-    drawHUDs = BattleStateM.drawHUDs,
-    drawPicsLayer = BattleStateM.drawPicsLayer,
-    drawTextArea = BattleStateM.drawTextArea,
-    say = BattleStateM.say,
-    sayNext = BattleStateM.sayNext,
-    performMove = BattleStateM.performMove,
-    openParty = BattleStateM.openParty,
-    openItems = BattleStateM.openItems,
-    tryRun = BattleStateM.tryRun,
-  }
+  -- Stashed per KEY rather than as one table literal. A table literal
+  -- behind `or` is only built the FIRST time this mod loads in a process,
+  -- so a version that adds a new entry (0.7.2 adding awardExp) would find
+  -- the older version's table already present and read nil for it -- the
+  -- same staleness the sentinel pattern causes, one level down. Per-key
+  -- `or` backfills the new entries and never re-stashes an existing one.
+  BattleStateM._kcOriginals = BattleStateM._kcOriginals or {}
   local O = BattleStateM._kcOriginals
+  for _, fn in ipairs({ "drawHUDs", "drawPicsLayer", "drawTextArea", "say",
+                        "sayNext", "performMove", "openParty", "openItems",
+                        "tryRun", "awardExp" }) do
+    O[fn] = O[fn] or BattleStateM[fn]
+  end
   local Font = require("src.render.Font")
 
   -- The "HP" + ":[" tiles at the head of the appeal bar.
@@ -253,10 +254,18 @@ return function(mod)
   local HudTilesM = require("src.render.HudTiles")
   HudTilesM._kcOriginals = HudTilesM._kcOriginals or { tile = HudTilesM.tile }
   local hudO = HudTilesM._kcOriginals
+  -- ONLY 0x71 ("HP") is dropped. 0x62 is ":[" -- a colon AND the bar's
+  -- left cap in one tile -- so suppressing it too (0.5.0-0.7.1) left the
+  -- meter open-ended, which is invisible while there is fill to terminate
+  -- the line and obvious the moment it drains to empty. The two glyphs
+  -- can't be separated without editing the sheet, and the sheet is
+  -- ROM-extracted at build time, so it isn't in the repo to edit. Keeping
+  -- the cap costs a small ":" where the label was; that is exactly how
+  -- vanilla renders during move-select, where the TYPE box covers "HP"
+  -- and leaves ":[" showing.
   local kcHideMeterLabel = false
   HudTilesM.tile = function(code, x, y, tint)
-    if kcHideMeterLabel and y == 16
-       and ((code == 0x71 and x == 16) or (code == 0x62 and x == 24)) then
+    if kcHideMeterLabel and code == 0x71 and x == 16 and y == 16 then
       return
     end
     return hudO.tile(code, x, y, tint)
@@ -416,10 +425,13 @@ return function(mod)
       return "The judge is\nfully impressed!"
     end
     if text:find("for winning", 1, true) then
-      -- Two lines per page, <=18 chars each: v0.4 put three lines on the
-      -- first page and the box clipped it to "future update... E".
-      return "The " .. kind .. " RIBBON\nawaits a future"
-             .. "\fupdate! Enjoy\nthe prize money!"
+      -- No longer promises a ribbon "in a future update" -- 0.7.0 made
+      -- ribbons real, and the judge announces one himself right after
+      -- this line when Kanto Ribbons is installed. Two mentions would be
+      -- redundant and the old one was actively wrong, so the prize line
+      -- sticks to the prize.
+      return "A fine " .. kind .. "\nperformance!"
+             .. "\fEnjoy the prize\nmoney!"
     end
     return text
   end
@@ -490,7 +502,13 @@ return function(mod)
       react = "The judge frowns.\fA " .. cat .. " move in\na " .. kind .. " contest?"
     else
       dmg = math.max(1, math.ceil(maxhp * 0.10))
-      react = "The judge nods\npolitely.\fA fair " .. cat .. "\nappeal."
+      -- "A fair appeal" read as a verdict on quality rather than as the
+      -- middle rung of a ladder, so it was impossible to tell whether it
+      -- meant "fine" or "poor". Naming the move's category and saying it
+      -- still works makes the three outcomes legible from the text alone:
+      -- delighted (match) > nods politely (off-category) > frowns
+      -- (opposed, and scores nothing).
+      react = "The judge nods\npolitely.\fA " .. cat .. " move,\nbut it works."
     end
     if dmg > 0 then self:applyDamage(target, dmg) end
     self:sayNext(react)
@@ -534,6 +552,31 @@ return function(mod)
     if b and b.contest then return end
     return next_(ctx)
   end)
+
+  -- ...and the belt to that pair of braces. The hook above demonstrably
+  -- worked on device in 0.5.0 ("No EXP for winning" confirmed) and just as
+  -- demonstrably did not in 0.7.1 (1638 EXP, screenshotted), with nothing
+  -- between those versions touching it. I could not reproduce or explain
+  -- that from the source, so this second guard deliberately does not
+  -- depend on the explanation being right.
+  --
+  -- awardExp is the single funnel: both callers reach EXP through it
+  -- (BattleState.lua:3873 the faint/victory path, :4460 the catch path),
+  -- and the hook lives INSIDE it. Replacing the method covers every way
+  -- the inner hook chain could be bypassed -- another mod wrapping
+  -- exp_award at a higher priority and not calling next, the chain being
+  -- rebuilt, or an engine build where that call site differs.
+  --
+  -- If EXP still appears after this, that is genuinely informative: it
+  -- means something is granting it OUTSIDE awardExp entirely, which is a
+  -- different mod, not this one.
+  BattleStateM.awardExp = function(self)
+    if self.contest then
+      self.participants = {}   -- what vanilla clears on its way out
+      return
+    end
+    return O.awardExp(self)
+  end
 
   -- ------------------------------------------------------------------
   -- commands
