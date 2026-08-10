@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.8.0
+**PokeSnacks.** Contest condition is now a thing your POKeMON has, and you
+raise it by feeding them.
+
+- Five snacks, one per contest category: SPICY (COOL), DRY (BEAUTY), SWEET
+  (CUTE), BITTER (SMART), SOUR (TOUGH). Use one from the BAG on any
+  POKeMON: **+20 to that condition, +10 sheen.**
+- **Sheen is a lifetime limit.** At 100 the POKeMON refuses to eat any
+  more, so it is ten snacks per POKeMON ever -- enough to max two
+  categories, never all five. Choosing what a POKeMON is *for* is the
+  point.
+- **A snack vendor** in the Contest Hall sells all five at 500 each
+  (tunable -- see NOTES.md).
+- **An appraiser** in the hall reads any POKeMON's condition in words
+  rather than numbers, and describes the shine of its coat. The wording is
+  provisional and kept in one table for easy reassessment.
+- Condition and sheen live on the POKeMON itself, so they survive
+  boxing, evolution, trading and saving, exactly like contest wins.
+- Condition does nothing in a contest **yet** -- the Introduction Round
+  that spends it is the next slice. Feeding now is not wasted.
+- New `NOTES.md` records what is parked, what is provisional, and the
+  engine findings behind this slice.
+
 ## 0.7.6
 - The appeal meter now shows in the widescreen battle layout. The mod
   pinned `showEnemyTrainer` for the whole contest "for anything else that
