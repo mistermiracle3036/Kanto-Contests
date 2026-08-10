@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.0
+- The appeal meter is no longer labelled `HP:`. It's an appeal meter.
+- The move list now shows each move's CONTEST CATEGORY where a battle shows
+  its type, so you can pick an appeal without memorising the table.
+- One POKeMON, one routine: PkMn and ITEM are refused during a contest.
+  RUN still works and is now a clean withdrawal from the stage -- vanilla
+  would have told you there's no running from a trainer battle.
+- Contests award no EXP. Winning ran through the ordinary victory path and
+  paid out a full trainer share (1638 EXP off one contest); a contest is a
+  performance, not a fight. Real battles are untouched.
+- The judge's reactions now end on the category line, so it's still on
+  screen while the box waits for you instead of scrolling past.
+- The winner's line no longer overflows the text box.
+
 ## 0.4.0
 - Appeal scoring is in. Every player move in a contest is now a pure appeal:
   no accuracy roll, no type chart, no side effects (Growl no longer lowers the

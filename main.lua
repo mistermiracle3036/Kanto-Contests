@@ -5,7 +5,7 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.4.0"
+  local VERSION = "0.5.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -159,6 +159,10 @@ return function(mod)
     TOUGH  = { COOL = true,   SMART = true },
   }
   local KC_ROUNDS = 5
+  -- published read-only for other mods (and for the move-select box below);
+  -- kanto_contests owns these tables -- decorators should not write them
+  mod.exports.categories = KC_CATEGORY
+  mod.exports.opposed = KC_OPPOSED
 
   -- ------------------------------------------------------------------
   -- the judge: a trainer class that never acts.
@@ -223,11 +227,39 @@ return function(mod)
   BattleStateM._kcOriginals = BattleStateM._kcOriginals or {
     drawHUDs = BattleStateM.drawHUDs,
     drawPicsLayer = BattleStateM.drawPicsLayer,
+    drawTextArea = BattleStateM.drawTextArea,
     say = BattleStateM.say,
     sayNext = BattleStateM.sayNext,
     performMove = BattleStateM.performMove,
+    openParty = BattleStateM.openParty,
+    openItems = BattleStateM.openItems,
+    tryRun = BattleStateM.tryRun,
   }
   local O = BattleStateM._kcOriginals
+  local Font = require("src.render.Font")
+
+  -- The "HP" + ":[" tiles at the head of the appeal bar.
+  -- BattleState captured `hudTile`/`drawHPBar` as file-local upvalues at
+  -- load (BattleState.lua:4738-4739), so replacing HudTiles.tile cannot
+  -- reach BattleState's own chrome calls -- but HudTiles.drawHPBar's body
+  -- calls HudTiles.tile through the MODULE TABLE (HudTiles.lua:147-148,
+  -- 171-173), so a replacement there does reach the bar's own tiles and
+  -- nothing else.  0x71 = "HP", 0x62 = ":[" (home/pokemon.asm DrawHPBar).
+  -- Gated twice over: a flag set only inside the contest arm of drawHUDs
+  -- below, AND the enemy bar's exact pixel origin (drawHPBar(_, 2, 2) ->
+  -- x=16,y=16; the player bar is tx=10,ty=9 -> x=80,y=72), so the party
+  -- menu and status screen bars are untouched.
+  local HudTilesM = require("src.render.HudTiles")
+  HudTilesM._kcOriginals = HudTilesM._kcOriginals or { tile = HudTilesM.tile }
+  local hudO = HudTilesM._kcOriginals
+  local kcHideMeterLabel = false
+  HudTilesM.tile = function(code, x, y, tint)
+    if kcHideMeterLabel and y == 16
+       and ((code == 0x71 and x == 16) or (code == 0x62 and x == 24)) then
+      return
+    end
+    return hudO.tile(code, x, y, tint)
+  end
 
   -- 1. The mon must NEVER be seen.  drawPicsLayer draws the trainer pic
   -- `if showEnemyTrainer`, else the mon.  In a contest force the first
@@ -253,16 +285,85 @@ return function(mod)
   -- the HUD prints <LV>+level ONLY when shownStatus is nil, and
   -- statusLabel returns an unknown status string unchanged -- so a blank
   -- one prints nothing where the level was.
+  -- The `HP:` label goes with it: an appeal meter is not hit points, so
+  -- kcHideMeterLabel drops the two label tiles for the duration of the
+  -- vanilla call only.  The bar keeps its segments and right cap and simply
+  -- starts two tiles further left of nothing; if it reads too bare on
+  -- device, restoring the 0x62 ":[" arm above puts the bracket back.
   BattleStateM.drawHUDs = function(self, slide)
     if not self.contest then return O.drawHUDs(self, slide) end
     local wasShow = self.showEnemyTrainer
     local wasStatus = self.enemy and self.enemy.shownStatus
     self.showEnemyTrainer = false
     if self.enemy and not wasStatus then self.enemy.shownStatus = " " end
+    kcHideMeterLabel = true
     local ok, err = pcall(O.drawHUDs, self, slide)
+    kcHideMeterLabel = false
     self.showEnemyTrainer = wasShow
     if self.enemy then self.enemy.shownStatus = wasStatus end
     if not ok then error(err) end
+  end
+
+  -- 2b. The move-select info box.  PrintMenuItem's TYPE/PP box sits at
+  -- (0,8) 11x5 with "TYPE/" at (1,9), the type at (2,10) and PP at (5,11)
+  -- (BattleState.lua:5649-5695).  A contest has no type chart, so rows 9
+  -- and 10 are repainted with the move's CONTEST CATEGORY instead; the PP
+  -- row is left alone (appeals still spend PP).  Repaint-after rather than
+  -- a replacement of drawTextArea: the vanilla body is 130 lines of other
+  -- phases and re-deriving it would rot on the next engine bump.
+  -- The `disabled!` branch draws at (1,10) instead of the type and is left
+  -- alone -- a disabled move is still disabled in a contest.
+  BattleStateM.drawTextArea = function(self)
+    local ok, err = pcall(O.drawTextArea, self)
+    if not ok then error(err) end
+    if not (self.contest and self.phase == "moveSelect") then return end
+    pcall(function()
+      local moves = self.player and self.player.curMoves
+      local sel = moves and moves[self.moveIndex]
+      if not sel then return end
+      if self.player.disabledSlot == self.moveIndex then return end
+      if not self.data.moves[sel.id] then return end
+      local cat = KC_CATEGORY[sel.id] or "TOUGH"
+      love.graphics.setColor(1, 1, 1, 1)
+      love.graphics.rectangle("fill", 8, 72, 72, 16)
+      love.graphics.setColor(0, 0, 0, 1)
+      Font.draw("CATEGORY", 8, 72)
+      Font.draw(cat, 16, 80)
+    end)
+  end
+
+  -- 2c. One POKeMON, one routine.  A contest entrant performs with the mon
+  -- it walked on stage with, so PkMn and ITEM are refused at the menu.
+  -- openParty/openItems are the only seams the FIGHT/PkMn/ITEM/RUN grid
+  -- reaches them through (BattleState.lua:1963-1966); refusing here mirrors
+  -- their own phase bookkeeping (phase="messages", afterQueue="menu") so
+  -- the menu comes straight back and no turn is spent.
+  -- Post-faint replacement uses openReplacementMenu, and the SHIFT prompt
+  -- pushes PartyMenu directly, so neither is affected by this.
+  BattleStateM.openParty = function(self)
+    if not self.contest then return O.openParty(self) end
+    self.phase = "messages"
+    self.afterQueue = "menu"
+    self:say("No switching\nduring a contest!")
+  end
+
+  BattleStateM.openItems = function(self)
+    if not self.contest then return O.openItems(self) end
+    self.phase = "messages"
+    self.afterQueue = "menu"
+    self:say("No items during\na contest!")
+  end
+
+  -- RUN becomes withdrawing from the contest.  Vanilla would print
+  -- _NoRunningText ("no running from a trainer battle!") because a contest
+  -- is kind == "trainer" (BattleState.lua:4349); `result = "run"` is the
+  -- same clean exit the 5-appeal limit uses -- no blackout, no prize.
+  BattleStateM.tryRun = function(self)
+    if not self.contest then return O.tryRun(self) end
+    self.phase = "messages"
+    self.afterQueue = "finish"
+    self:say("You left the\nstage.\fThe judge looks\ndisappointed.")
+    self.result = "run"
   end
 
   -- 3. Battle language -> contest language.  Every message goes through
@@ -281,7 +382,10 @@ return function(mod)
       return "The judge is\nfully impressed!"
     end
     if text:find("for winning", 1, true) then
-      return "The " .. kind .. " RIBBON\nawaits in a\nfuture update...\fEnjoy the prize\nmoney meanwhile!"
+      -- Two lines per page, <=18 chars each: v0.4 put three lines on the
+      -- first page and the box clipped it to "future update... E".
+      return "The " .. kind .. " RIBBON\nawaits a future"
+             .. "\fupdate! Enjoy\nthe prize money!"
     end
     return text
   end
@@ -315,15 +419,19 @@ return function(mod)
     local kind = tostring(self.contest)
     local maxhp = (target.mon.stats and target.mon.stats.hp) or target.mon.hp
     local dmg, react
+    -- Reaction text is two lines per page, <=18 chars a line, with the
+    -- CATEGORY sentence LAST: the box waits for A on the final page only,
+    -- so anything on an earlier page scrolls past before it can be read
+    -- (v0.4 buried the category on page one and it flew by).
     if cat == kind then
       dmg = math.max(1, math.ceil(maxhp * 0.25))
-      react = "A perfect " .. kind .. "\nappeal! The judge\nis delighted!"
+      react = "The judge is\ndelighted!\fA perfect " .. kind .. "\nappeal!"
     elseif KC_OPPOSED[kind] and KC_OPPOSED[kind][cat] then
       dmg = 0
-      react = "A " .. cat .. " move\nin a " .. kind .. " contest?\nThe judge frowns."
+      react = "The judge frowns.\fA " .. cat .. " move in\na " .. kind .. " contest?"
     else
       dmg = math.max(1, math.ceil(maxhp * 0.10))
-      react = "A fair appeal.\nThe judge nods\npolitely."
+      react = "The judge nods\npolitely.\fA fair " .. cat .. "\nappeal."
     end
     if dmg > 0 then self:applyDamage(target, dmg) end
     self:sayNext(react)
@@ -349,6 +457,24 @@ return function(mod)
     local ok, err = pcall(kcAppeal, self, user, target, moveInst)
     if not ok then say("KC error (appeal):\n" .. tostring(err)) end
   end
+
+  -- ------------------------------------------------------------------
+  -- 5. No EXP from a contest.  Winning routed through the vanilla
+  -- faint/victory path, so awardExp paid out a full trainer-battle share
+  -- (1638 EXP off one COOL contest on device).  awardExp factors the
+  -- payout into a `battle.exp_award` hook explicitly so a mod can replace
+  -- it wholesale (BattleState.lua:3836-3868) -- so this is the engine's
+  -- own seam, not a wrapper: skipping next() skips the whole share,
+  -- which also means no "gained EXP. Points!" line and no level-up flow.
+  -- self.participants is still cleared by the caller afterwards.
+  -- The chain runs for EVERY battle, so a non-contest call MUST fall
+  -- through to next(ctx) untouched.
+  -- ------------------------------------------------------------------
+  mod.hooks:wrap("battle.exp_award", function(next_, ctx)
+    local b = ctx and ctx.battle
+    if b and b.contest then return end
+    return next_(ctx)
+  end)
 
   -- ------------------------------------------------------------------
   -- commands
