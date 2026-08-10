@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.1
+- No more "check failed" in the mod manager. The manifest was pointing the
+  launcher's auto-updater at a repository that is still private and has no
+  published release, so the check could only ever fail -- a red error on a
+  mod that was loading and running perfectly. The pointer comes back when
+  the repo goes public and has a real release to offer.
+
 ## 0.7.0
 - Winning a contest now records the win on the POKeMON that performed, so
   Kanto Ribbons can award it a CONTEST RIBBON. The record lives on the mon
