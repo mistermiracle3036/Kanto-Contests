@@ -5,14 +5,14 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.7.2"
+  local VERSION = "0.7.3"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
     maps = { "KC_CONTEST_HALL" },
     tilesets = { "KC_HALL_TILES" },
     commands = { "kanto_contests:start_contest", "kanto_contests:base_talk",
-                 "kanto_contests:ribbons_installed" },
+                 "kanto_contests:ribbons_missing" },
   }
 
   -- ------------------------------------------------------------------
@@ -656,19 +656,26 @@ return function(mod)
     end,
   })
 
-  -- ribbons_installed: is Kanto Ribbons actually present and running?
-  -- Sets lastCheck for jump_if_false, the same channel start_contest
-  -- uses. Not foreground -- it neither draws nor waits, so it must not
-  -- yield the runner.
+  -- ribbons_missing: is Kanto Ribbons ABSENT? Sets lastCheck for
+  -- jump_if_true, the same channel start_contest uses. Not foreground --
+  -- it neither draws nor waits, so it must not yield the runner.
   --
   -- mod.find(id) returns {id, version, exports} or nil for a mod that is
   -- absent, disabled, failed, OR has not run yet (Loader.lua:725-735),
   -- which is why this is called from the talk script at talk time rather
   -- than resolved once at load.
-  mod.content.commands:register("kanto_contests:ribbons_installed", {
+  --
+  -- Phrased as "missing" rather than "installed" so the FAILURE mode is
+  -- the safe one. ScriptRunner skips an unresolvable command with only a
+  -- log line (ScriptRunner.lua:157) and leaves lastCheck untouched -- and
+  -- at this point in the script lastCheck is still `true` from
+  -- start_contest's win. With the test inverted, a skipped command falls
+  -- to the plain line: the judge under-promises instead of announcing a
+  -- ribbon that was never awarded.
+  mod.content.commands:register("kanto_contests:ribbons_missing", {
     fn = function(ctx)
       local ok, handle = pcall(mod.find, "kanto_ribbons")
-      ctx.lastCheck = ok and handle ~= nil
+      ctx.lastCheck = not (ok and handle ~= nil)
     end,
   })
 
@@ -742,15 +749,16 @@ return function(mod)
         { "show_text", "Hmm. Not quite\nribbon material\nyet. Practice!" },
         { "jump", "done" },
         { "label", "won" },
-        -- The CONTEST RIBBON is awarded by Kanto Ribbons, not by this
-        -- mod, so the judge only promises one when that mod is actually
-        -- installed. Checked at TALK time rather than load time: mod
-        -- .find returns nil for a mod that "has not run yet"
-        -- (Loader.lua:725-735) and neither mod's priority guarantees an
-        -- order, so a load-time check could be wrong in one direction.
-        { "kanto_contests:ribbons_installed" },
-        { "jump_if_false", "won_plain" },
-        { "show_text", "Magnificent!\nTruly COOL!\fA CONTEST RIBBON\nfor your POKeMON!" },
+        -- The COOL RIBBON is awarded by Kanto Ribbons, not by this mod, so
+        -- the judge only promises one when that mod is actually installed.
+        -- Checked at TALK time rather than load time: mod.find returns nil
+        -- for a mod that "has not run yet" (Loader.lua:725-735) and
+        -- neither mod's priority guarantees an order, so a load-time check
+        -- could be wrong in one direction. The test is inverted so that a
+        -- skipped command falls to the plain line -- see ribbons_missing.
+        { "kanto_contests:ribbons_missing" },
+        { "jump_if_true", "won_plain" },
+        { "show_text", "Magnificent!\nTruly COOL!\fA COOL RIBBON\nfor your POKeMON!" },
         { "jump", "done" },
         { "label", "won_plain" },
         { "show_text", "Magnificent!\nTruly COOL!\fA fine COOL\nperformance!" },

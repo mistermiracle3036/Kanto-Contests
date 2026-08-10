@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.3
+- The judge now promises a COOL RIBBON rather than a "CONTEST RIBBON".
+  Kanto Ribbons awards one ribbon per contest category, so the COOL
+  contest earns the Cool Ribbon by name.
+- The check for whether Kanto Ribbons is installed now fails safe. It asks
+  whether the mod is *missing* instead of whether it is present, so if the
+  check itself is ever skipped the judge falls back to the plain
+  compliment. Before, a skipped check left the win flag standing and he
+  would announce a ribbon that was never awarded.
+
 ## 0.7.2
 - The appeal meter is closed at both ends again. Removing the `HP:` label
   also removed the bar's left cap -- they share one tile -- which was
