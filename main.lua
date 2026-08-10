@@ -5,7 +5,7 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.7.5"
+  local VERSION = "0.7.6"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -206,9 +206,20 @@ return function(mod)
       local b = payload and payload.battle
       if not (b and b.contest) then return end
       b:act(function()
-        -- display is handled by the draw wrappers below; this just keeps
-        -- the underlying flags consistent for anything else that reads them
-        b.showEnemyTrainer = true
+        -- enemyHidden only. Up to 0.7.5 this also pinned
+        -- showEnemyTrainer = true "for anything else that reads it" --
+        -- and something else DOES read it: WideBattle's file-local
+        -- drawHUDs draws the enemy status panel only `if not
+        -- battle.showEnemyTrainer` (WideBattle.lua:131), and unlike the
+        -- classic path there is no mod wrapper in between to flip it
+        -- back, because file-locals are unreachable from a mod. So the
+        -- pinned flag erased the appeal meter in the wide layout.
+        -- The judge does not need it pinned: the drawPicsLayer wrapper
+        -- sets it for the duration of each draw on BOTH layouts (wide
+        -- calls drawPicsLayer through the method table,
+        -- WideBattle.lua:343-345). Wide now shows judge + meter, with
+        -- the classic-only polish (APPEAL label row, hidden level, no
+        -- HP:) simply absent there.
         b.enemyHidden = true
       end)
     end)

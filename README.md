@@ -42,10 +42,11 @@ items — the POKeMON you walk on stage with performs the whole routine.
 
 - **Only the COOL contest.** BEAUTY, CUTE, SMART and TOUGH are not in.
 - **No PokeSnacks or condition**, no ranks (Normal/Super/Hyper/Master).
-- **Classic battle layout only.** The contest HUD — the judge staying on
-  screen, the APPEAL meter, the category box — is drawn for the standard
-  layout. In the widescreen battle layout the contest still plays, but it
-  will look like an ordinary battle.
+- **The contest HUD is polished for the classic battle layout.** In the
+  widescreen layout the judge and the appeal meter both show, but the
+  contest dressing is missing: the meter reads as an ordinary status
+  panel (level and HP label included) and the move list shows types
+  instead of contest categories.
 - Contest categories are best-effort Gen 3 data. If a move feels
   miscategorised, say so — each one is a one-line fix.
 

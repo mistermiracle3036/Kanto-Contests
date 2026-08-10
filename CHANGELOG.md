@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.6
+- The appeal meter now shows in the widescreen battle layout. The mod
+  pinned `showEnemyTrainer` for the whole contest "for anything else that
+  reads it" -- and the widescreen HUD reads exactly that flag to decide
+  whether to draw the enemy panel, with no way for the mod to intervene
+  (its draw functions are file-local, unreachable from a mod). The pin
+  turned out to be unnecessary even on classic: the draw wrapper that
+  keeps the judge on screen sets the flag itself for each frame, on both
+  layouts. Widescreen contests now show the judge and the meter; the
+  classic-only dressing (APPEAL label, hidden level, no HP:) is still
+  absent there, which the README now states accurately.
+
 ## 0.7.5
 **First public release — this is an ALPHA / proof of concept.** One COOL
 contest, one hall, one judge. It is playable and stable, but it is a
