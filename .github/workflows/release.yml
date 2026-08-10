@@ -117,7 +117,7 @@ jobs:
           rm -rf build && mkdir -p build/"$MOD_ID"
           for entry in * .[!.]*; do
             case "$entry" in
-              .git|.github|.gitignore|tests|build|notes.md|*.zip) continue ;;
+              .git|.github|.gitignore|tests|build|NOTES.md|notes.md|*.zip) continue ;;
             esac
             [ -e "$entry" ] || continue
             cp -r "$entry" build/"$MOD_ID"/
