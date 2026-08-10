@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0
+- Winning a contest now records the win on the POKeMON that performed, so
+  Kanto Ribbons can award it a CONTEST RIBBON. The record lives on the mon
+  itself, which means it survives boxing, evolution and trading -- and it
+  is kept per category (COOL/BEAUTY/CUTE/SMART/TOUGH), so more contest
+  types and per-category ribbons later need no change to an existing save.
+- The judge no longer says "Ribbons come in the next update!". He promises
+  a CONTEST RIBBON when Kanto Ribbons is installed and gives a plain
+  compliment when it isn't, rather than announcing a ribbon that would
+  never turn up. Checked when you talk to him, not at load, so install
+  order cannot get it wrong.
+
 ## 0.6.0
 - Text no longer runs off the right edge of the box. A battle message is not
   a dialogue box: it pages on `\v`, not on `\f`, so every `\f` page break

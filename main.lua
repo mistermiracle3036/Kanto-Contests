@@ -5,13 +5,14 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.6.0"
+  local VERSION = "0.7.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
     maps = { "KC_CONTEST_HALL" },
     tilesets = { "KC_HALL_TILES" },
-    commands = { "kanto_contests:start_contest", "kanto_contests:base_talk" },
+    commands = { "kanto_contests:start_contest", "kanto_contests:base_talk",
+                 "kanto_contests:ribbons_installed" },
   }
 
   -- ------------------------------------------------------------------
@@ -561,9 +562,36 @@ return function(mod)
         battle.enemy.name = "APPEAL"
       end)
       battle.endBattleText, ctx.endBattleText = ctx.endBattleText, nil
+
+      -- The entrant, captured now rather than at onFinish: this is the
+      -- mon that walked on stage, and "one POKeMON, one routine" (2c
+      -- above) means it is still the performer at the end -- PkMn is
+      -- refused all contest long. makeBattler stores `mon = mon` by
+      -- REFERENCE (BattleState.lua:458-459) and newTrainer sources it
+      -- from Party.firstHealthy(game.save.party) (BattleState.lua:709),
+      -- so this IS the live save party entry. Writing to it persists
+      -- with the save -- confirmed by reading both, not assumed.
+      local entrant = battle.player and battle.player.mon
+
       battle.onFinish = function(result)
         ctx.lastBattleResult = result
         ctx.lastCheck = result == "win"
+        -- Record the win ON THE MON, keyed by category. Per-mon rather
+        -- than in mod.save so it survives boxing, evolution and trading
+        -- (the same reason kanto_ribbons keeps mon.earthWins there), and
+        -- counted per category so a future per-category ribbon or rank
+        -- needs no save migration.
+        --
+        -- This is the whole cross-mod contract with Kanto Ribbons: it
+        -- reads mon.contestWins and awards the Contest Ribbon on its own
+        -- next sync. No hard dependency either way -- with the ribbons
+        -- mod absent this is just an unread field, and a ribbon already
+        -- earned survives this mod being uninstalled.
+        if result == "win" and entrant then
+          local cat = tostring(battle.contest or "COOL")
+          entrant.contestWins = entrant.contestWins or {}
+          entrant.contestWins[cat] = (entrant.contestWins[cat] or 0) + 1
+        end
         if ctx.overworld then
           if result == "win" then
             ctx.afterScript = ctx.afterScript or {}
@@ -582,6 +610,22 @@ return function(mod)
         ctx.game.stack:push(battle)
       end
       runner:yield()
+    end,
+  })
+
+  -- ribbons_installed: is Kanto Ribbons actually present and running?
+  -- Sets lastCheck for jump_if_false, the same channel start_contest
+  -- uses. Not foreground -- it neither draws nor waits, so it must not
+  -- yield the runner.
+  --
+  -- mod.find(id) returns {id, version, exports} or nil for a mod that is
+  -- absent, disabled, failed, OR has not run yet (Loader.lua:725-735),
+  -- which is why this is called from the talk script at talk time rather
+  -- than resolved once at load.
+  mod.content.commands:register("kanto_contests:ribbons_installed", {
+    fn = function(ctx)
+      local ok, handle = pcall(mod.find, "kanto_ribbons")
+      ctx.lastCheck = ok and handle ~= nil
     end,
   })
 
@@ -655,7 +699,18 @@ return function(mod)
         { "show_text", "Hmm. Not quite\nribbon material\nyet. Practice!" },
         { "jump", "done" },
         { "label", "won" },
-        { "show_text", "Magnificent!\nTruly COOL!\fRibbons come in\nthe next update!" },
+        -- The CONTEST RIBBON is awarded by Kanto Ribbons, not by this
+        -- mod, so the judge only promises one when that mod is actually
+        -- installed. Checked at TALK time rather than load time: mod
+        -- .find returns nil for a mod that "has not run yet"
+        -- (Loader.lua:725-735) and neither mod's priority guarantees an
+        -- order, so a load-time check could be wrong in one direction.
+        { "kanto_contests:ribbons_installed" },
+        { "jump_if_false", "won_plain" },
+        { "show_text", "Magnificent!\nTruly COOL!\fA CONTEST RIBBON\nfor your POKeMON!" },
+        { "jump", "done" },
+        { "label", "won_plain" },
+        { "show_text", "Magnificent!\nTruly COOL!\fA fine COOL\nperformance!" },
         { "jump", "done" },
         { "label", "later" },
         { "show_text", "Come back when\nyou feel COOL!" },
