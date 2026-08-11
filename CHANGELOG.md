@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.9.0
+**The Introduction Round.** Condition finally does something: before your
+first appeal, the audience scores your POKeMON on looks alone.
+
+- After the judge takes his seat, the audience holds up **0 to 8 hearts**.
+  The score counts the contest's own condition in full, the two
+  neighbouring conditions at half weight, and half of sheen -- so a
+  specialised POKeMON beats a generalist, but no feeding is wasted.
+- Hearts become a **head start on the appeal meter**, up to 35% of it,
+  drained before your first move so you can watch it happen. A pampered
+  POKeMON needs three matched appeals where an unfed one needs four.
+- An unfed POKeMON gets silence from the audience and no head start.
+  Appeals still decide everything -- that's the design.
+- All four rank threshold rows (Normal/Super/Hyper/Master) ship in the
+  data now, but only Normal is reachable until ranks arrive.
+
 ## 0.8.2
 Still an **ALPHA / proof of concept** — one COOL contest, one hall, one
 judge. This release adds the first half of contest condition.

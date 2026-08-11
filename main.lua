@@ -5,7 +5,7 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.8.2"
+  local VERSION = "0.9.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -273,6 +273,54 @@ return function(mod)
   end
 
   -- ------------------------------------------------------------------
+  -- INTRODUCTION ROUND (slice 2): condition pays off.
+  --
+  -- Before the first appeal the audience scores the entrant on looks
+  -- alone, R/S's stage one:
+  --
+  --   score = primary + 0.5*secondary1 + 0.5*secondary2 + 0.5*sheen
+  --           (+ scarf bonus, slice 3 -- 0 until then)
+  --
+  -- The two secondaries are the contest's OPPOSED-move pair, reused from
+  -- KC_OPPOSED on purpose: R/S's own symmetry is that the categories
+  -- which jam as moves half-count as condition. One table, not two.
+  --
+  -- Score converts to hearts (0-8) at the R/S thresholds. All four rank
+  -- rows ship now so a later rank slice needs no data change, but only
+  -- NORMAL is reachable (b.kcRank is never set yet). Score below the
+  -- first threshold is 0 hearts.
+  --
+  -- Balance (deliberate -- do not "fix" here): unfed mon = 0 hearts and
+  -- needs 4 matched appeals of its 5; a radiant-primary mon reaches 7-8
+  -- hearts and needs 3. Snacks help, appeals decide.
+  -- ------------------------------------------------------------------
+  local KC_INTRO_THRESHOLDS = {
+    NORMAL = {  11,  21,  31,  41,  51,  61,  71,  81 },
+    SUPER  = {  91, 111, 131, 151, 171, 191, 211, 231 },
+    HYPER  = { 171, 201, 231, 261, 291, 321, 351, 381 },
+    MASTER = { 321, 361, 401, 441, 481, 521, 561, 601 },
+  }
+  -- 8 hearts = a head start of this fraction of the meter; hearts scale
+  -- it linearly. 35% means a perfect intro still leaves three matched
+  -- appeals of work.
+  local KC_INTRO_METER_FRACTION = 0.35
+
+  local function kcIntroHearts(mon, kind, rank)
+    local cond = kcCondition(mon)
+    local score = cond[KC_STAT_KEY[kind]] or 0
+    for sec in pairs(KC_OPPOSED[kind] or {}) do
+      score = score + 0.5 * (cond[KC_STAT_KEY[sec]] or 0)
+    end
+    score = score + 0.5 * kcSheen(mon)
+    local hearts = 0
+    for i, need in ipairs(KC_INTRO_THRESHOLDS[rank]
+                          or KC_INTRO_THRESHOLDS.NORMAL) do
+      if score >= need then hearts = i end
+    end
+    return hearts, score
+  end
+
+  -- ------------------------------------------------------------------
   -- THE SNACK ITEMS, and why they are not wired the documented way.
   --
   -- mod.content.item_effects EXISTS and validates (Schemas.lua:750,
@@ -421,6 +469,41 @@ return function(mod)
         -- the classic-only polish (APPEAL label row, hidden level, no
         -- HP:) simply absent there.
         b.enemyHidden = true
+      end)
+      -- THE INTRODUCTION ROUND, as its own queued act so it plays after
+      -- the whole intro (this act is appended behind the send-out rows
+      -- the same way the flag act above is). Rows queued from INSIDE a
+      -- running act insert at nextInsert in call order -- the exact
+      -- pattern kcAppeal already relies on -- so the announcement pages
+      -- land first and the meter drain follows them.
+      b:act(function()
+        local okI, errI = pcall(function()
+          local mon = b.player and b.player.mon
+          local target = b.enemy
+          if not (mon and target and target.mon) then return end
+          local hearts = kcIntroHearts(mon, tostring(b.contest),
+                                       b.kcRank or "NORMAL")
+          b.kcHearts = hearts   -- slice 4's rivals compare against this
+          if hearts <= 0 then
+            -- no drain: silence IS the zero-hearts result, and the bar
+            -- not moving is the visual confirmation
+            b:sayNext("The audience is\nsilent...")
+            return
+          end
+          b:sayNext("The audience\nholds up its\nscore...")
+          -- the number gets its own WAITING page (sayNext, not auto) --
+          -- v0.4's lesson: information on a fast page is never read
+          b:sayNext(("%d %s!"):format(hearts,
+                                      hearts == 1 and "heart" or "hearts"))
+          -- through the engine's own damage call so the bar visibly
+          -- drains, same as every appeal; never set HP silently
+          local maxhp = (target.mon.stats and target.mon.stats.hp)
+                        or target.mon.hp
+          local dmg = math.max(1, math.floor(
+            maxhp * KC_INTRO_METER_FRACTION * hearts / 8))
+          b:applyDamage(target, dmg)
+        end)
+        if not okI then say("KC error (intro):\n" .. tostring(errI)) end
       end)
     end)
     if not ok then say("KC error (start):\n" .. tostring(err)) end

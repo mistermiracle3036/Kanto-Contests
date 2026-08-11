@@ -105,11 +105,10 @@ whoever touches the file next.
 
 Slices agreed with the developer, one release each:
 
-2. **Introduction Round** — audience score
-   `primary + 0.5*(the two opposed categories) + 0.5*sheen + scarfBonus`,
-   converted to 0-8 hearts, giving a meter head start of
-   `hearts/8 x 35%`. Rank thresholds for Normal/Super/Hyper/Master are
-   agreed; only Normal is reachable until the rank slice.
+2. ~~Introduction Round~~ **Shipped in 0.9.0.** `kcIntroHearts` computes
+   the score, `b.kcHearts` carries the result for slice 4's rivals, and
+   the head-start fraction lives in `KC_INTRO_METER_FRACTION`. Scarf
+   bonus is the one missing term (slice 3).
 3. **Scarves** — five worn items setting `mon.kcScarf`, +20 intro points
    when matching. Never sold; granted by other mods through an exported
    `giveScarf`. Needs `mod.exports.scarves` + `giveScarf(save, category)`.

@@ -53,9 +53,15 @@ Two people in the Contest Hall help: a **vendor** sells all five snacks,
 and an **appraiser** will read any POKeMON's condition back to you in
 words rather than numbers.
 
-Condition doesn't affect a contest yet — the Introduction Round that
-spends it is the next slice. Feeding now is not wasted; it's stored on the
-POKeMON.
+Condition pays off in the **Introduction Round**: before your first
+appeal, the audience scores the entrant on looks alone and holds up
+**0–8 hearts**. The score counts the contest's own condition in full,
+the two neighbouring conditions at half weight, and half of sheen — so a
+specialised POKeMON beats a generalist, but nothing is wasted. Hearts
+convert into a head start on the appeal meter, up to 35% of it: a
+pampered POKeMON needs three good appeals where an unfed one needs four.
+The audience stays silent for an unfed entrant — appeals still decide
+everything.
 
 ## What works today
 
@@ -63,15 +69,16 @@ POKeMON.
 - All 165 moves carry a contest category
 - Appeal scoring, the five-appeal limit, win/lose/withdraw
 - PokeSnacks, contest condition and sheen, with a vendor and an appraiser
+- The Introduction Round: condition scored as hearts, cashed in as a
+  head start on the appeal meter
 - Wins recorded on the POKeMON itself, so they survive boxing, evolution
   and trading
 
 ## What isn't there yet
 
 - **Only the COOL contest.** BEAUTY, CUTE, SMART and TOUGH are not in.
-- **Condition does not affect contests yet** -- the Introduction Round is
-  the next slice. No ranks (Normal/Super/Hyper/Master), no scarves, no
-  rival coordinators.
+- No ranks (Normal/Super/Hyper/Master), no scarves, no rival
+  coordinators yet.
 - **The contest HUD is polished for the classic battle layout.** In the
   widescreen layout the judge and the appeal meter both show, but the
   contest dressing is missing: the meter reads as an ordinary status
