@@ -69,9 +69,27 @@ whoever touches the file next.
   - `ItemEffects.needsTarget` (`ItemEffects.lua:75`) is a hardcoded id
     list and ignores the items schema's own `needsTarget` field, so that
     field is dead too.
-  - If a later engine wires the registry up, DO NOT also register
-    `item_effects` records: both paths would fire and snacks would apply
-    twice.
+  - **A later engine WILL likely wire it, and our approach survives that.**
+    zeak6464's Gen1Recomp-Content-Editor fork already does: its
+    `ItemEffects.use` dispatches `data.item_effects[itemDef.effect]` at
+    the TOP of the function, before the stock id tables, calling
+    `effect.use(data, save, itemId, target, battle, moveIndex, ow)` and
+    returning its (result, messages) tuple -- with `effect.battle ==
+    false` / `effect.field == false` as refusal gates. Because that
+    dispatch lives INSIDE `ItemEffects.use`, and our wrapper returns for
+    snack ids without ever calling the original, a wired engine cannot
+    double-apply. The earlier worry was that dispatch might happen
+    OUTSIDE use(); the natural implementation puts it inside.
+  - So if upstream wires it, migrating snacks to the real registry is
+    small: our per-snack logic already returns the right tuple shape.
+    Register the effect, point `items.effect` at it, drop the two
+    wrappers. Do NOT do both at once.
+  - That fork also reads `itemDef.ball` in `ItemEffects.use`, which
+    0.1.75 does not -- 0.1.75 needs the `ItemEffects.BALLS[id] = true`
+    poke that snag_quest does. Another sign it is ahead of 0.1.75.
+  - Caution for the editor's own output: its "Heal HP" and "Status cure"
+    item templates emit `item_effects` records, which do nothing on
+    0.1.75. Editor-authored healing items would not heal for our players.
 - **`Commands.show_text` and `Commands.ask` block on their own** — they
   push the box and call `runner:yield()` internally
   (`Commands.lua:137-141`). Yielding again after them parks the runner
