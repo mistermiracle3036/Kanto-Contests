@@ -140,11 +140,40 @@ Verified blocks:
   ItemEffects.use wrapper does not exist there. Needs its own seam
   audit.
 
-**The open design question (developer's call, asked 2026-08-11, not yet
-answered):** where do Contests live on a Gold boot? Gold's Kanto is
-post-game. Candidates: National Park (Gold's own contest venue,
-mid-game), Celadon post-game, or another Johto city (Goldenrod is the
-R/S-faithful pick). Do not build until answered.
+**Venue decided 2026-08-11: GOLDENROD CITY** (developer's call). The
+0.10.0 spike stands the attendant there.
+
+**0.10.0 spike facts (all source-verified at 0.1.78):**
+- Entry branches on `GameVersion.generation()` BEFORE any Gen 1 require
+  executes -- on Gold an executed require of an unserved Gen 1 module is
+  a loader ERROR, not a silent no-op. The test harness injects
+  loader.generation without setting GameVersion.current, so
+  `tests/gen_gate_test.lua` sets both, the way a real boot does.
+- The judge is a PLAIN TRAINER TABLE handed to `world:startBattle`
+  (Battle.new reads opts.trainer directly, enemyParty from trainer.party;
+  trainer.attributes optional). The table's identity doubles as the
+  contest marker: hooks check `b.trainer.kcContest` -- no registry, no
+  battle.started race.
+- Dialogue: `OverworldController.talkTo` via the facade (backed; a true
+  return suppresses the built-in path). `World:showText(text, cb)` and
+  `World:askYesNo(onChoose)` are the box seams; askYesNo rides the
+  standing box, the Vm's own pattern.
+- Attendant: `mod.world:spawnNpc` works on Gold (WorldAPI gen2:146 ->
+  addRuntimeObject). SPRITE_TEACHER verified in gen2 sources. Her x,y is
+  a TODO/CONFIRM first guess.
+- `battle.damage` hook returns (damage, info); info.effectiveness = 10
+  suppresses effectiveness text. `battle.enemy_action` returning nil is
+  passed through unwrapped (Battle.lua:3870) -- TODO/CONFIRM a nil enemy
+  move resolves as "no action" on a real boot.
+- gen2check still FAILS statically -- it cannot see the runtime branch,
+  so the Gen 1 arm's requires still report. The headless dual-gen load
+  test is the actual gate; a real Gold boot is the remaining one.
+
+**Still deferred on Gold** (engine-blocked or unread seams): vendor (no
+gen2Marts registry), snacks in the bag (no Gold ItemEffects seam),
+appraiser (Gold party-picker unread), custom hall map (mod-map merge into
+gen2Maps unverified), Introduction Round (no pre-battle drain seam read),
+five-appeal limit (no clean loss-exit seam read).
 
 Meanwhile: new Gen 1 slices (scarves, rivals) should reach for
 `mod.game`/`mod.world`/hooks over `require("src.script.Commands")`

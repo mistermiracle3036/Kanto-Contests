@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.10.0
+**First Gold arm — a Goldenrod spike, NOT Gold-tested yet.** The manifest
+now declares `games: ["gen1", "gen2"]`, which is a claim of having been
+tested there; that claim is only true after a real Gold boot passes. **Do
+not merge this to main until the Gold test round comes back clean.**
+
+- On a Gold boot, a Contest attendant stands in **Goldenrod City** (her
+  exact spot is a first guess — moving her is a two-number edit). Talk to
+  her, say yes, and the COOL contest runs as a judge battle: appeals
+  scored by contest category (match 25% / neutral 10% / opposed nothing),
+  the judge never acts, no EXP, and a win records on the POKeMON exactly
+  like Kanto's hall does.
+- Built Gold-first per the standing direction: the Gold arm rides the
+  generation-agnostic battle hooks (`battle.accuracy`, `battle.damage`,
+  `battle.enemy_action`) and `mod.world` seams — no Gen 1 internals.
+- Deliberately not in the spike (engine-blocked or deferred, see
+  NOTES.md): the vendor, snacks in the bag, the appraiser, the custom
+  hall map, the Introduction Round, and the five-appeal limit. On Gold
+  the contest ends by win or by RUN.
+- On Red/Blue/Yellow **nothing changes**: the Gen 1 arm is byte-for-byte
+  the 0.9.1 behaviour, now behind a generation branch. Verified by a new
+  headless test (`tests/gen_gate_test.lua`) that loads the mod under both
+  generations and asserts a clean load on each.
+- Known and accepted: `gen2check` still reports the Gen 1 arm's requires
+  (it is a static scan and cannot see the runtime branch). The headless
+  load test is the truth check.
+
 ## 0.9.1
 Still an **ALPHA / proof of concept** — one COOL contest, one hall, one
 judge.

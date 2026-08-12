@@ -1,11 +1,347 @@
 -- Kanto Contests -- R/S-style Pokemon Contests as judge "battles".
--- v0.1.0: smallest testable slice. One COOL contest, one judge, one hall.
--- Proves: mod map + hall entry, battle vs judge, judge portrait STAYS on
--- screen after the intro, judge takes no actions, win/lose returns to the
--- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
+--
+-- TWO ARMS, ONE FILE. Gold is a parallel engine: a Gold boot never loads
+-- src/battle/BattleState.lua or src/inventory/ItemEffects.lua, so every
+-- Gen 1 wrapper below would land on modules nothing instantiates. The
+-- entry function branches on generation FIRST, before any Gen 1 require
+-- executes -- on Gold, an executed require for an unserved Gen 1 module
+-- is a loader ERROR in the mod manager, not a silent no-op.
+--
+-- File scope carries only pure Lua (contest data + arithmetic), shared by
+-- both arms. The Gen 1 arm is the mod as it has always been. The Gold arm
+-- (kcGold, below the data) is the 0.10.0 spike: Goldenrod attendant,
+-- judge battle, appeal scoring via the generation-agnostic battle hooks.
+
+-- ------------------------------------------------------------------
+-- SHARED CONTEST DATA -- pure Lua, safe at chunk load on any generation.
+-- Gen 3 assigned every Gen 1 move a contest category; this table is that
+-- mapping (best-effort recall -- flavor data, any wrong entry is a cheap
+-- one-line fix; an id miss falls back to TOUGH). Gold movesets can carry
+-- Gen 2 moves this table has never heard of -- same TOUGH fallback.
+-- ------------------------------------------------------------------
+local KC_CATEGORY = {
+  POUND = "TOUGH", KARATE_CHOP = "TOUGH", DOUBLESLAP = "CUTE",
+  COMET_PUNCH = "TOUGH", MEGA_PUNCH = "TOUGH", PAY_DAY = "SMART",
+  FIRE_PUNCH = "BEAUTY", ICE_PUNCH = "BEAUTY", THUNDERPUNCH = "COOL",
+  SCRATCH = "TOUGH", VICEGRIP = "TOUGH", GUILLOTINE = "COOL",
+  RAZOR_WIND = "COOL", SWORDS_DANCE = "BEAUTY", CUT = "COOL",
+  GUST = "SMART", WING_ATTACK = "COOL", WHIRLWIND = "SMART",
+  FLY = "SMART", BIND = "TOUGH", SLAM = "TOUGH",
+  VINE_WHIP = "COOL", STOMP = "TOUGH", DOUBLE_KICK = "COOL",
+  MEGA_KICK = "COOL", JUMP_KICK = "COOL", ROLLING_KICK = "COOL",
+  SAND_ATTACK = "CUTE", HEADBUTT = "TOUGH", HORN_ATTACK = "COOL",
+  FURY_ATTACK = "COOL", HORN_DRILL = "COOL", TACKLE = "TOUGH",
+  BODY_SLAM = "TOUGH", WRAP = "TOUGH", TAKE_DOWN = "TOUGH",
+  THRASH = "TOUGH", DOUBLE_EDGE = "TOUGH", TAIL_WHIP = "CUTE",
+  POISON_STING = "SMART", TWINEEDLE = "COOL", PIN_MISSILE = "COOL",
+  LEER = "COOL", BITE = "TOUGH", GROWL = "CUTE",
+  ROAR = "COOL", SING = "CUTE", SUPERSONIC = "SMART",
+  SONICBOOM = "COOL", DISABLE = "SMART", ACID = "SMART",
+  EMBER = "BEAUTY", FLAMETHROWER = "BEAUTY", MIST = "BEAUTY",
+  WATER_GUN = "CUTE", HYDRO_PUMP = "BEAUTY", SURF = "BEAUTY",
+  ICE_BEAM = "BEAUTY", BLIZZARD = "BEAUTY", PSYBEAM = "BEAUTY",
+  BUBBLEBEAM = "BEAUTY", AURORA_BEAM = "BEAUTY", HYPER_BEAM = "COOL",
+  PECK = "COOL", DRILL_PECK = "COOL", SUBMISSION = "COOL",
+  LOW_KICK = "TOUGH", COUNTER = "TOUGH", SEISMIC_TOSS = "TOUGH",
+  STRENGTH = "TOUGH", ABSORB = "SMART", MEGA_DRAIN = "SMART",
+  LEECH_SEED = "SMART", GROWTH = "BEAUTY", RAZOR_LEAF = "COOL",
+  SOLARBEAM = "COOL", POISONPOWDER = "SMART", STUN_SPORE = "SMART",
+  SLEEP_POWDER = "SMART", PETAL_DANCE = "BEAUTY", STRING_SHOT = "SMART",
+  DRAGON_RAGE = "COOL", FIRE_SPIN = "BEAUTY", THUNDERSHOCK = "COOL",
+  THUNDERBOLT = "COOL", THUNDER_WAVE = "COOL", THUNDER = "COOL",
+  ROCK_THROW = "TOUGH", EARTHQUAKE = "TOUGH", FISSURE = "TOUGH",
+  DIG = "SMART", TOXIC = "SMART", CONFUSION = "SMART",
+  PSYCHIC_M = "SMART", HYPNOSIS = "SMART", MEDITATE = "BEAUTY",
+  AGILITY = "COOL", QUICK_ATTACK = "COOL", RAGE = "COOL",
+  TELEPORT = "COOL", NIGHT_SHADE = "SMART", MIMIC = "CUTE",
+  SCREECH = "SMART", DOUBLE_TEAM = "COOL", RECOVER = "SMART",
+  HARDEN = "TOUGH", MINIMIZE = "CUTE", SMOKESCREEN = "SMART",
+  CONFUSE_RAY = "SMART", WITHDRAW = "CUTE", DEFENSE_CURL = "CUTE",
+  BARRIER = "COOL", LIGHT_SCREEN = "BEAUTY", HAZE = "BEAUTY",
+  REFLECT = "SMART", FOCUS_ENERGY = "COOL", BIDE = "TOUGH",
+  METRONOME = "CUTE", MIRROR_MOVE = "SMART", SELFDESTRUCT = "BEAUTY",
+  EGG_BOMB = "TOUGH", LICK = "CUTE", SMOG = "TOUGH",
+  SLUDGE = "TOUGH", BONE_CLUB = "TOUGH", FIRE_BLAST = "BEAUTY",
+  WATERFALL = "TOUGH", CLAMP = "TOUGH", SWIFT = "COOL",
+  SKULL_BASH = "TOUGH", SPIKE_CANNON = "COOL", CONSTRICT = "TOUGH",
+  AMNESIA = "CUTE", KINESIS = "SMART", SOFTBOILED = "BEAUTY",
+  HI_JUMP_KICK = "COOL", GLARE = "TOUGH", DREAM_EATER = "SMART",
+  POISON_GAS = "SMART", BARRAGE = "TOUGH", LEECH_LIFE = "SMART",
+  LOVELY_KISS = "BEAUTY", SKY_ATTACK = "COOL", TRANSFORM = "SMART",
+  BUBBLE = "CUTE", DIZZY_PUNCH = "SMART", SPORE = "BEAUTY",
+  FLASH = "BEAUTY", PSYWAVE = "SMART", SPLASH = "CUTE",
+  ACID_ARMOR = "TOUGH", CRABHAMMER = "TOUGH", EXPLOSION = "BEAUTY",
+  FURY_SWIPES = "TOUGH", BONEMERANG = "TOUGH", REST = "CUTE",
+  ROCK_SLIDE = "TOUGH", HYPER_FANG = "COOL", SHARPEN = "CUTE",
+  CONVERSION = "BEAUTY", TRI_ATTACK = "BEAUTY", SUPER_FANG = "TOUGH",
+  SLASH = "COOL", SUBSTITUTE = "SMART", STRUGGLE = "TOUGH",
+}
+-- "do not use" pairs per contest, from the R/S rules
+local KC_OPPOSED = {
+  COOL   = { BEAUTY = true, TOUGH = true },
+  BEAUTY = { COOL = true,   CUTE = true },
+  CUTE   = { BEAUTY = true, SMART = true },
+  SMART  = { CUTE = true,   TOUGH = true },
+  TOUGH  = { COOL = true,   SMART = true },
+}
+local KC_ROUNDS = 5
+
+local KC_STAT_KEY = { COOL = "cool", BEAUTY = "beauty", CUTE = "cute",
+                      SMART = "smart", TOUGH = "tough" }
+local KC_STAT_ORDER = { "COOL", "BEAUTY", "CUTE", "SMART", "TOUGH" }
+
+local function kcCondition(mon)
+  if not mon then return nil end
+  local c = mon.contest
+  if type(c) ~= "table" then
+    c = { cool = 0, beauty = 0, cute = 0, smart = 0, tough = 0 }
+    mon.contest = c
+  end
+  for _, k in pairs(KC_STAT_KEY) do c[k] = c[k] or 0 end
+  return c
+end
+local function kcSheen(mon) return (mon and mon.kcSheen) or 0 end
+
+-- APPRAISER WORDING -- ALL PROVISIONAL (see NOTES.md); one table each so
+-- renaming is a single edit. Thresholds are upper bounds.
+local KC_TIERS = {
+  { upTo = 20,  word = "dull" },
+  { upTo = 50,  word = "promising" },
+  { upTo = 80,  word = "impressive" },
+  { upTo = 100, word = "radiant" },
+}
+local KC_SHEEN_LINES = {
+  { upTo = 20,  text = "It could use\nsome pampering." },
+  { upTo = 50,  text = "It is coming\nalong nicely." },
+  { upTo = 80,  text = "It looks well\nlooked after." },
+  { upTo = 100, text = "It is glowing,\nand quite full!" },
+}
+local function kcBand(table_, n)
+  for _, row in ipairs(table_) do
+    if n <= row.upTo then return row end
+  end
+  return table_[#table_]
+end
+
+-- INTRODUCTION ROUND scoring (see the 0.9.0 CHANGELOG for the design):
+-- score = primary + 0.5*each opposed-pair secondary + 0.5*sheen.
+-- All four rank rows ship; only NORMAL is reachable until ranks land.
+local KC_INTRO_THRESHOLDS = {
+  NORMAL = {  11,  21,  31,  41,  51,  61,  71,  81 },
+  SUPER  = {  91, 111, 131, 151, 171, 191, 211, 231 },
+  HYPER  = { 171, 201, 231, 261, 291, 321, 351, 381 },
+  MASTER = { 321, 361, 401, 441, 481, 521, 561, 601 },
+}
+local KC_INTRO_METER_FRACTION = 0.35
+
+local function kcIntroHearts(mon, kind, rank)
+  local cond = kcCondition(mon)
+  local score = cond[KC_STAT_KEY[kind]] or 0
+  for sec in pairs(KC_OPPOSED[kind] or {}) do
+    score = score + 0.5 * (cond[KC_STAT_KEY[sec]] or 0)
+  end
+  score = score + 0.5 * kcSheen(mon)
+  local hearts = 0
+  for i, need in ipairs(KC_INTRO_THRESHOLDS[rank]
+                        or KC_INTRO_THRESHOLDS.NORMAL) do
+    if score >= need then hearts = i end
+  end
+  return hearts, score
+end
+
+-- Snack data. The items themselves are only REGISTERED on Gen 1 (the
+-- registry targets Gen 1 data tables); the definitions are shared so the
+-- Gold arm can grow a delivery route without re-stating them.
+local KC_SNACK_CONDITION = 20
+local KC_SNACK_SHEEN     = 10
+local KC_SNACK_PRICE     = 500  -- TUNABLE, see NOTES.md
+local KC_SNACKS = {
+  { id = "KC_SPICY_SNACK",  name = "SPICY SNACK",  flavor = "Spicy",  category = "COOL"   },
+  { id = "KC_DRY_SNACK",    name = "DRY SNACK",    flavor = "Dry",    category = "BEAUTY" },
+  { id = "KC_SWEET_SNACK",  name = "SWEET SNACK",  flavor = "Sweet",  category = "CUTE"   },
+  { id = "KC_BITTER_SNACK", name = "BITTER SNACK", flavor = "Bitter", category = "SMART"  },
+  { id = "KC_SOUR_SNACK",   name = "SOUR SNACK",   flavor = "Sour",   category = "TOUGH"  },
+}
+local KC_SNACK_BY_ID = {}
+for _, s in ipairs(KC_SNACKS) do KC_SNACK_BY_ID[s.id] = s end
+
+-- ------------------------------------------------------------------
+-- THE GOLD ARM (0.10.0 spike). Goldenrod City gets a Contest attendant;
+-- talking to her starts a COOL contest as a judge battle. Everything here
+-- rides mod.world, events and the generation-agnostic battle hooks --
+-- the only engine require is src.battle.gen2.Mon (the same module the
+-- engine's own scripted-wild verb uses) plus the OverworldController
+-- facade, whose talkTo member is a named, backed seam on Gold.
+--
+-- Deliberately NOT in the spike, all engine-blocked or deferred:
+-- no vendor (gen2Marts has no registry), no snacks in the bag (Gold's
+-- item path has no ItemEffects seam), no appraiser (needs a Gold party
+-- picker audit), no custom hall map (mod-map merge into gen2Maps is
+-- unverified), no intro round (no pre-battle drain seam read yet), no
+-- 5-appeal limit (no clean loss-exit seam read yet). The judge never
+-- acts, so the contest ends by win or by RUN.
+-- ------------------------------------------------------------------
+local function kcGold(mod, VERSION)
+  -- The attendant's spot. Coordinates are a first guess at an open plaza
+  -- cell; TODO/CONFIRM on the first Gold boot -- if she lands on a
+  -- blocked tile the engine just won't path players into her, nothing
+  -- crashes. SPRITE_TEACHER is verified present in Gold (11 uses across
+  -- gen2 sources and tests).
+  local KCG = { map = "GOLDENROD_CITY", x = 14, y = 14,
+                sprite = "SPRITE_TEACHER" }
+
+  -- The judge, as a plain trainer table -- Gold's Battle.new takes
+  -- opts.trainer directly (Battle.lua:222, enemyParty from trainer.party
+  -- at :254), so no registry is involved. THIS TABLE'S IDENTITY IS THE
+  -- CONTEST MARKER: hooks recognise our battle by b.trainer.kcContest,
+  -- which no race can miss because we hand the table in ourselves.
+  -- trainer.attributes is optional (enemyTrySwitchOrItem returns false
+  -- when it is not a table, Battle.lua:3747).
+  local judge = { name = "JUDGE", baseMoney = 20, party = {},
+                  kcContest = "COOL" }
+
+  local function inContest(b)
+    return b and b.trainer and b.trainer.kcContest or nil
+  end
+
+  -- Appeal scoring, as hooks. Gold raises battle.accuracy /
+  -- battle.damage / battle.enemy_action with the same names Gen 1 does;
+  -- every wrapper falls through untouched unless the battle carries our
+  -- trainer table.
+  mod.hooks:wrap("battle.accuracy", function(next_, ctx, ...)
+    if type(ctx) == "table" and inContest(ctx.battle) then return true end
+    return next_(ctx, ...)
+  end)
+
+  mod.hooks:wrap("battle.damage", function(next_, c, ...)
+    if not (type(c) == "table" and inContest(c.battle)) then
+      return next_(c, ...)
+    end
+    local b = c.battle
+    local meter = b.enemyParty and b.enemyParty[1]
+    -- only the player's move at the meter scores; anything else in a
+    -- contest (there should be nothing else) lands as zero
+    if not (meter and c.target == meter) then
+      return 0, { effectiveness = 10 }
+    end
+    local id = c.moveId or (c.move and c.move.id)
+    local cat = KC_CATEGORY[id] or "TOUGH"
+    local kind = b.trainer.kcContest
+    local maxhp = (meter.stats and meter.stats.hp) or meter.hp or 1
+    b.kcRound = (b.kcRound or 0) + 1
+    local dmg
+    if cat == kind then
+      dmg = math.ceil(maxhp * 0.25)
+    elseif KC_OPPOSED[kind] and KC_OPPOSED[kind][cat] then
+      dmg = 0
+    else
+      dmg = math.ceil(maxhp * 0.10)
+    end
+    -- effectiveness 10 is neutral: no "super effective!" line over a
+    -- contest appeal
+    return dmg, { effectiveness = 10 }
+  end)
+
+  -- the judge never acts: nil from battle.enemy_action is the unwrapped
+  -- no-move answer (Battle:enemyMove returns it as-is, Battle.lua:3870).
+  -- TODO/CONFIRM on the first Gold boot that a nil enemy move resolves
+  -- as "no action" rather than erroring downstream.
+  mod.hooks:wrap("battle.enemy_action", function(next_, battle, ...)
+    if inContest(battle) then return nil end
+    return next_(battle, ...)
+  end)
+
+  -- spawn the attendant. Runtime objects are never serialized, so
+  -- respawn on every entry; addRuntimeObject assigns a fresh index each
+  -- time, and the def marker is how the talk seam recognises her.
+  local spawned = false
+  mod.events:on("map.entered", function(ev)
+    local ok, err = pcall(function()
+      local mapId = ev and ev.mapId
+      if mapId ~= KCG.map then spawned = false return end
+      if spawned then return end
+      spawned = true
+      mod.world:spawnNpc(KCG.map, {
+        sprite = KCG.sprite, x = KCG.x, y = KCG.y,
+        movement = "STAY", kcAttendant = true,
+      })
+    end)
+    if not ok then mod.log:warn("kc gold spawn: %s", tostring(err)) end
+  end)
+
+  -- the talk seam: World:interactBody asks the OverworldController
+  -- facade's talkTo once the object is resolved; true suppresses the
+  -- built-in path (Gen2Compat's own coverage note). Chain politely: any
+  -- NPC that is not ours goes to whatever was there before us.
+  local OW = require("src.world.OverworldController")
+  local prevTalk = OW.talkTo
+  OW.talkTo = function(world, npc)
+    if not (npc and npc.def and npc.def.kcAttendant) then
+      if prevTalk then return prevTalk(world, npc) end
+      return nil
+    end
+    local ok, err = pcall(function()
+      -- askYesNo rides the standing text box (the engine's own
+      -- Vm pattern: showText, then the choice over it)
+      world:showText("The GOLDENROD\nCONTEST corner!\nEnter the COOL\ncontest?",
+        function() end)
+      world:askYesNo(function(yes)
+        if not yes then
+          world:showText("Come back when\nyou feel COOL!")
+          return
+        end
+        local game = world.game
+        local Mon = require("src.battle.gen2.Mon")
+        local meter = Mon.new(game.data, "CHANSEY", 30)
+        if not meter then
+          world:showText("KC error: no\nmeter mon")
+          return
+        end
+        meter.nickname = "APPEAL"
+        judge.party = { meter }
+        world:startBattle({ trainer = judge, save = game.save },
+          function(outcome)
+            if outcome ~= "win" then
+              world:showText("Not quite this\ntime. Practice!")
+              return
+            end
+            -- record the win on the entrant, same contract as Gen 1:
+            -- Battle.playerIndex is firstHealthy, so mirror that
+            for _, mon in ipairs((game.save and game.save.party) or {}) do
+              if (mon.hp or 0) > 0 then
+                mon.contestWins = mon.contestWins or {}
+                mon.contestWins.COOL = (mon.contestWins.COOL or 0) + 1
+                break
+              end
+            end
+            world:showText("Magnificent!\nTruly COOL!")
+          end)
+      end)
+    end)
+    if not ok then mod.log:warn("kc gold talk: %s", tostring(err)) end
+    return true
+  end
+
+  -- Gold banner: the Gen 1 say() is a TextBox this boot never loads, so
+  -- the world's own text box is the channel.
+  local bannerShown = false
+  mod.events:on("map.entered", function()
+    if bannerShown then return end
+    if not mod.options:get("show_banner") then return end
+    bannerShown = true
+    pcall(function()
+      local world = mod.world:overworld()
+      if world and world.showText then
+        world:showText(("KANTO CONTESTS\nv%s ALPHA\nGOLD spike"):format(VERSION))
+      end
+    end)
+  end)
+
+  mod.log:info("kanto_contests %s loaded (gold arm)", VERSION)
+end
 
 return function(mod)
-  local VERSION = "0.9.1"
+  local VERSION = "0.10.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -37,6 +373,37 @@ return function(mod)
     { key = "show_banner", type = "toggle",
       label = "Show load banner", default = true },
   })
+
+  -- shared read-only exports, meaningful on both generations
+  mod.exports.categories = KC_CATEGORY
+  mod.exports.opposed = KC_OPPOSED
+  mod.exports.snacks = {}
+  for _, s in ipairs(KC_SNACKS) do mod.exports.snacks[s.category] = s.id end
+  mod.exports.readCondition = function(mon)
+    return kcCondition(mon), kcSheen(mon)
+  end
+
+  -- No EXP from a contest, on either generation: both engines raise
+  -- battle.exp_award with the battle in ctx. Gen 1 marks the battle with
+  -- b.contest, the Gold arm marks it through the judge trainer table --
+  -- accept both spellings. (Gen 1 additionally guards awardExp itself,
+  -- below, because another mod owning this chain already bypassed the
+  -- hook once -- see the 0.7.2 CHANGELOG.)
+  mod.hooks:wrap("battle.exp_award", function(next_, ctx, ...)
+    local b = type(ctx) == "table" and ctx.battle
+    if b and (b.contest or (b.trainer and b.trainer.kcContest)) then return end
+    return next_(ctx, ...)
+  end)
+
+  -- THE GENERATION BRANCH. Everything below this point is Gen 1 code:
+  -- registrations into Gen 1 data tables, requires of Gen 1 modules,
+  -- wrappers on classes a Gold boot never instantiates. On Gold, an
+  -- executed require for an unserved Gen 1 module is a loader ERROR, so
+  -- the branch must come before the first one runs.
+  local GameVersion = require("src.core.GameVersion")
+  if GameVersion.generation() >= 2 then
+    return kcGold(mod, VERSION)
+  end
 
   -- ------------------------------------------------------------------
   -- tileset + contest hall map
@@ -105,220 +472,6 @@ return function(mod)
         text = "TEXT_KC_APPRAISER" },
     },
   })
-
-  -- ------------------------------------------------------------------
-  -- appeal scoring data
-  -- Gen 3 assigned every Gen 1 move a contest category; this table is
-  -- that mapping (best-effort recall -- flavor data, so any single wrong
-  -- entry is a cheap one-line fix, and an id miss falls back to TOUGH).
-  -- Keys validated against the manifest's canonical moveOrder at build
-  -- time so no key can silently fail to match.
-  -- ------------------------------------------------------------------
-  local KC_CATEGORY = {
-    POUND = "TOUGH", KARATE_CHOP = "TOUGH", DOUBLESLAP = "CUTE",
-    COMET_PUNCH = "TOUGH", MEGA_PUNCH = "TOUGH", PAY_DAY = "SMART",
-    FIRE_PUNCH = "BEAUTY", ICE_PUNCH = "BEAUTY", THUNDERPUNCH = "COOL",
-    SCRATCH = "TOUGH", VICEGRIP = "TOUGH", GUILLOTINE = "COOL",
-    RAZOR_WIND = "COOL", SWORDS_DANCE = "BEAUTY", CUT = "COOL",
-    GUST = "SMART", WING_ATTACK = "COOL", WHIRLWIND = "SMART",
-    FLY = "SMART", BIND = "TOUGH", SLAM = "TOUGH",
-    VINE_WHIP = "COOL", STOMP = "TOUGH", DOUBLE_KICK = "COOL",
-    MEGA_KICK = "COOL", JUMP_KICK = "COOL", ROLLING_KICK = "COOL",
-    SAND_ATTACK = "CUTE", HEADBUTT = "TOUGH", HORN_ATTACK = "COOL",
-    FURY_ATTACK = "COOL", HORN_DRILL = "COOL", TACKLE = "TOUGH",
-    BODY_SLAM = "TOUGH", WRAP = "TOUGH", TAKE_DOWN = "TOUGH",
-    THRASH = "TOUGH", DOUBLE_EDGE = "TOUGH", TAIL_WHIP = "CUTE",
-    POISON_STING = "SMART", TWINEEDLE = "COOL", PIN_MISSILE = "COOL",
-    LEER = "COOL", BITE = "TOUGH", GROWL = "CUTE",
-    ROAR = "COOL", SING = "CUTE", SUPERSONIC = "SMART",
-    SONICBOOM = "COOL", DISABLE = "SMART", ACID = "SMART",
-    EMBER = "BEAUTY", FLAMETHROWER = "BEAUTY", MIST = "BEAUTY",
-    WATER_GUN = "CUTE", HYDRO_PUMP = "BEAUTY", SURF = "BEAUTY",
-    ICE_BEAM = "BEAUTY", BLIZZARD = "BEAUTY", PSYBEAM = "BEAUTY",
-    BUBBLEBEAM = "BEAUTY", AURORA_BEAM = "BEAUTY", HYPER_BEAM = "COOL",
-    PECK = "COOL", DRILL_PECK = "COOL", SUBMISSION = "COOL",
-    LOW_KICK = "TOUGH", COUNTER = "TOUGH", SEISMIC_TOSS = "TOUGH",
-    STRENGTH = "TOUGH", ABSORB = "SMART", MEGA_DRAIN = "SMART",
-    LEECH_SEED = "SMART", GROWTH = "BEAUTY", RAZOR_LEAF = "COOL",
-    SOLARBEAM = "COOL", POISONPOWDER = "SMART", STUN_SPORE = "SMART",
-    SLEEP_POWDER = "SMART", PETAL_DANCE = "BEAUTY", STRING_SHOT = "SMART",
-    DRAGON_RAGE = "COOL", FIRE_SPIN = "BEAUTY", THUNDERSHOCK = "COOL",
-    THUNDERBOLT = "COOL", THUNDER_WAVE = "COOL", THUNDER = "COOL",
-    ROCK_THROW = "TOUGH", EARTHQUAKE = "TOUGH", FISSURE = "TOUGH",
-    DIG = "SMART", TOXIC = "SMART", CONFUSION = "SMART",
-    PSYCHIC_M = "SMART", HYPNOSIS = "SMART", MEDITATE = "BEAUTY",
-    AGILITY = "COOL", QUICK_ATTACK = "COOL", RAGE = "COOL",
-    TELEPORT = "COOL", NIGHT_SHADE = "SMART", MIMIC = "CUTE",
-    SCREECH = "SMART", DOUBLE_TEAM = "COOL", RECOVER = "SMART",
-    HARDEN = "TOUGH", MINIMIZE = "CUTE", SMOKESCREEN = "SMART",
-    CONFUSE_RAY = "SMART", WITHDRAW = "CUTE", DEFENSE_CURL = "CUTE",
-    BARRIER = "COOL", LIGHT_SCREEN = "BEAUTY", HAZE = "BEAUTY",
-    REFLECT = "SMART", FOCUS_ENERGY = "COOL", BIDE = "TOUGH",
-    METRONOME = "CUTE", MIRROR_MOVE = "SMART", SELFDESTRUCT = "BEAUTY",
-    EGG_BOMB = "TOUGH", LICK = "CUTE", SMOG = "TOUGH",
-    SLUDGE = "TOUGH", BONE_CLUB = "TOUGH", FIRE_BLAST = "BEAUTY",
-    WATERFALL = "TOUGH", CLAMP = "TOUGH", SWIFT = "COOL",
-    SKULL_BASH = "TOUGH", SPIKE_CANNON = "COOL", CONSTRICT = "TOUGH",
-    AMNESIA = "CUTE", KINESIS = "SMART", SOFTBOILED = "BEAUTY",
-    HI_JUMP_KICK = "COOL", GLARE = "TOUGH", DREAM_EATER = "SMART",
-    POISON_GAS = "SMART", BARRAGE = "TOUGH", LEECH_LIFE = "SMART",
-    LOVELY_KISS = "BEAUTY", SKY_ATTACK = "COOL", TRANSFORM = "SMART",
-    BUBBLE = "CUTE", DIZZY_PUNCH = "SMART", SPORE = "BEAUTY",
-    FLASH = "BEAUTY", PSYWAVE = "SMART", SPLASH = "CUTE",
-    ACID_ARMOR = "TOUGH", CRABHAMMER = "TOUGH", EXPLOSION = "BEAUTY",
-    FURY_SWIPES = "TOUGH", BONEMERANG = "TOUGH", REST = "CUTE",
-    ROCK_SLIDE = "TOUGH", HYPER_FANG = "COOL", SHARPEN = "CUTE",
-    CONVERSION = "BEAUTY", TRI_ATTACK = "BEAUTY", SUPER_FANG = "TOUGH",
-    SLASH = "COOL", SUBSTITUTE = "SMART", STRUGGLE = "TOUGH",
-  }
-  -- "do not use" pairs per contest, from the R/S rules
-  local KC_OPPOSED = {
-    COOL   = { BEAUTY = true, TOUGH = true },
-    BEAUTY = { COOL = true,   CUTE = true },
-    CUTE   = { BEAUTY = true, SMART = true },
-    SMART  = { CUTE = true,   TOUGH = true },
-    TOUGH  = { COOL = true,   SMART = true },
-  }
-  local KC_ROUNDS = 5
-  -- published read-only for other mods (and for the move-select box below);
-  -- kanto_contests owns these tables -- decorators should not write them
-  mod.exports.categories = KC_CATEGORY
-  mod.exports.opposed = KC_OPPOSED
-
-  -- ------------------------------------------------------------------
-  -- CONDITION + SHEEN (PokeSnacks, slice 1)
-  --
-  -- Stored on the mon table: mon.contest = { cool=, beauty=, ... } 0-100
-  -- each, and mon.kcSheen 0-100. Mon tables take arbitrary fields and
-  -- SaveSerializer is a generic recursive dump, so these persist through
-  -- save/load, boxing, evolution and trading the same way mon.contestWins
-  -- does -- the field convention this project already relies on.
-  --
-  -- Sheen is the lifetime limiter: +10 per snack, and at 100 the mon
-  -- refuses. Ten snacks per mon EVER, so a mon can max two categories but
-  -- never all five. That scarcity is the design; don't soften it.
-  -- ------------------------------------------------------------------
-  local KC_SNACK_CONDITION = 20   -- condition gained per snack (cap 100)
-  local KC_SNACK_SHEEN     = 10   -- sheen gained per snack (cap 100)
-  local KC_SNACK_PRICE     = 500  -- TUNABLE: opening guess, see NOTES.md
-
-  -- id -> category. KC_ prefix because item ids are global and permanent:
-  -- nothing in either ROM manifest contains SNACK (verified against
-  -- tools/rom_manifest.json and rom_manifest_yellow.json), but another
-  -- mod could still want a plain SPICY_SNACK one day.
-  local KC_SNACKS = {
-    { id = "KC_SPICY_SNACK",  name = "SPICY SNACK",  flavor = "Spicy",  category = "COOL"   },
-    { id = "KC_DRY_SNACK",    name = "DRY SNACK",    flavor = "Dry",    category = "BEAUTY" },
-    { id = "KC_SWEET_SNACK",  name = "SWEET SNACK",  flavor = "Sweet",  category = "CUTE"   },
-    { id = "KC_BITTER_SNACK", name = "BITTER SNACK", flavor = "Bitter", category = "SMART"  },
-    { id = "KC_SOUR_SNACK",   name = "SOUR SNACK",   flavor = "Sour",   category = "TOUGH"  },
-  }
-  local KC_SNACK_BY_ID = {}
-  for _, s in ipairs(KC_SNACKS) do KC_SNACK_BY_ID[s.id] = s end
-  -- other mods can award snacks; ids are the contract, not the order
-  mod.exports.snacks = {}
-  for _, s in ipairs(KC_SNACKS) do mod.exports.snacks[s.category] = s.id end
-
-  local KC_STAT_KEY = { COOL = "cool", BEAUTY = "beauty", CUTE = "cute",
-                        SMART = "smart", TOUGH = "tough" }
-  -- fixed order so the appraiser always reads them the same way
-  local KC_STAT_ORDER = { "COOL", "BEAUTY", "CUTE", "SMART", "TOUGH" }
-
-  local function kcCondition(mon)
-    if not mon then return nil end
-    local c = mon.contest
-    if type(c) ~= "table" then
-      c = { cool = 0, beauty = 0, cute = 0, smart = 0, tough = 0 }
-      mon.contest = c
-    end
-    for _, k in pairs(KC_STAT_KEY) do c[k] = c[k] or 0 end
-    return c
-  end
-  local function kcSheen(mon) return (mon and mon.kcSheen) or 0 end
-  mod.exports.readCondition = function(mon)
-    return kcCondition(mon), kcSheen(mon)
-  end
-
-  -- ------------------------------------------------------------------
-  -- APPRAISER WORDING -- ALL PROVISIONAL.
-  -- The user explicitly wants to revisit these names; they live in this
-  -- one table so that is a single edit. Thresholds are upper bounds.
-  -- See NOTES.md.
-  -- ------------------------------------------------------------------
-  local KC_TIERS = {
-    { upTo = 20,  word = "dull" },
-    { upTo = 50,  word = "promising" },
-    { upTo = 80,  word = "impressive" },
-    { upTo = 100, word = "radiant" },
-  }
-  -- Whole 2-line pages rather than fragments: the phrasing has to own its
-  -- own line breaks, because 18 glyphs is not enough to paste a variable
-  -- clause into a sentence.
-  --
-  -- These describe how CARED FOR the mon looks, not the texture of its
-  -- coat. "Its coat is matte" was oddly specific about something the
-  -- player never sees, and the top rung now hints at the real mechanic --
-  -- a full mon can't eat again -- so the refusal later isn't a surprise.
-  local KC_SHEEN_LINES = {
-    { upTo = 20,  text = "It could use\nsome pampering." },
-    { upTo = 50,  text = "It is coming\nalong nicely." },
-    { upTo = 80,  text = "It looks well\nlooked after." },
-    { upTo = 100, text = "It is glowing,\nand quite full!" },
-  }
-  local function kcBand(table_, n)
-    for _, row in ipairs(table_) do
-      if n <= row.upTo then return row end
-    end
-    return table_[#table_]
-  end
-
-  -- ------------------------------------------------------------------
-  -- INTRODUCTION ROUND (slice 2): condition pays off.
-  --
-  -- Before the first appeal the audience scores the entrant on looks
-  -- alone, R/S's stage one:
-  --
-  --   score = primary + 0.5*secondary1 + 0.5*secondary2 + 0.5*sheen
-  --           (+ scarf bonus, slice 3 -- 0 until then)
-  --
-  -- The two secondaries are the contest's OPPOSED-move pair, reused from
-  -- KC_OPPOSED on purpose: R/S's own symmetry is that the categories
-  -- which jam as moves half-count as condition. One table, not two.
-  --
-  -- Score converts to hearts (0-8) at the R/S thresholds. All four rank
-  -- rows ship now so a later rank slice needs no data change, but only
-  -- NORMAL is reachable (b.kcRank is never set yet). Score below the
-  -- first threshold is 0 hearts.
-  --
-  -- Balance (deliberate -- do not "fix" here): unfed mon = 0 hearts and
-  -- needs 4 matched appeals of its 5; a radiant-primary mon reaches 7-8
-  -- hearts and needs 3. Snacks help, appeals decide.
-  -- ------------------------------------------------------------------
-  local KC_INTRO_THRESHOLDS = {
-    NORMAL = {  11,  21,  31,  41,  51,  61,  71,  81 },
-    SUPER  = {  91, 111, 131, 151, 171, 191, 211, 231 },
-    HYPER  = { 171, 201, 231, 261, 291, 321, 351, 381 },
-    MASTER = { 321, 361, 401, 441, 481, 521, 561, 601 },
-  }
-  -- 8 hearts = a head start of this fraction of the meter; hearts scale
-  -- it linearly. 35% means a perfect intro still leaves three matched
-  -- appeals of work.
-  local KC_INTRO_METER_FRACTION = 0.35
-
-  local function kcIntroHearts(mon, kind, rank)
-    local cond = kcCondition(mon)
-    local score = cond[KC_STAT_KEY[kind]] or 0
-    for sec in pairs(KC_OPPOSED[kind] or {}) do
-      score = score + 0.5 * (cond[KC_STAT_KEY[sec]] or 0)
-    end
-    score = score + 0.5 * kcSheen(mon)
-    local hearts = 0
-    for i, need in ipairs(KC_INTRO_THRESHOLDS[rank]
-                          or KC_INTRO_THRESHOLDS.NORMAL) do
-      if score >= need then hearts = i end
-    end
-    return hearts, score
-  end
 
   -- ------------------------------------------------------------------
   -- THE SNACK ITEMS, and why they are not wired the documented way.
@@ -847,24 +1000,10 @@ return function(mod)
   end
 
   -- ------------------------------------------------------------------
-  -- 5. No EXP from a contest.  Winning routed through the vanilla
-  -- faint/victory path, so awardExp paid out a full trainer-battle share
-  -- (1638 EXP off one COOL contest on device).  awardExp factors the
-  -- payout into a `battle.exp_award` hook explicitly so a mod can replace
-  -- it wholesale (BattleState.lua:3836-3868) -- so this is the engine's
-  -- own seam, not a wrapper: skipping next() skips the whole share,
-  -- which also means no "gained EXP. Points!" line and no level-up flow.
-  -- self.participants is still cleared by the caller afterwards.
-  -- The chain runs for EVERY battle, so a non-contest call MUST fall
-  -- through to next(ctx) untouched.
-  -- ------------------------------------------------------------------
-  mod.hooks:wrap("battle.exp_award", function(next_, ctx)
-    local b = ctx and ctx.battle
-    if b and b.contest then return end
-    return next_(ctx)
-  end)
-
-  -- ...and the belt to that pair of braces. The hook above demonstrably
+  -- 5. No EXP from a contest. The battle.exp_award hook is registered
+  -- once, in the shared section above the generation branch (both
+  -- engines raise it with the battle in ctx). What follows is the Gen 1
+  -- belt on top of that hook. The hook above demonstrably
   -- worked on device in 0.5.0 ("No EXP for winning" confirmed) and just as
   -- demonstrably did not in 0.7.1 (1638 EXP, screenshotted), with nothing
   -- between those versions touching it. I could not reproduce or explain
