@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.9.1
+Still an **ALPHA / proof of concept** — one COOL contest, one hall, one
+judge.
+
+**Updating from 0.8.2?** The headline is the Introduction Round (0.9.0,
+below): before your first appeal the audience now scores your POKeMON's
+condition as **0-8 hearts**, and hearts become a head start of up to 35%
+of the appeal meter. Feeding snacks finally pays off in the contest
+itself. This release adds housekeeping on top:
+
+- The mod now carries a proper **MIT licence** (`LICENSE`), a
+  `THIRD_PARTY_NOTICES.md` stating what is original and what is
+  inspired-by, and a Credits section in the README. To be explicit about
+  the one binary this mod ships: `assets/contest_tiles.png` is three
+  8x8 flat-colour tiles drawn programmatically for the Contest Hall —
+  original to this mod, covered by the MIT licence.
+- Fixed a squeezed line when feeding a snack: "ate the" ran into the
+  snack's name across the line break. The article moved down a line, so
+  it now reads "ELECTABUZZ ate / the SPICY SNACK!".
+
 ## 0.9.0
 **The Introduction Round.** Condition finally does something: before your
 first appeal, the audience scores your POKeMON on looks alone.

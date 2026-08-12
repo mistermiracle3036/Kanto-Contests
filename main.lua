@@ -5,7 +5,7 @@
 -- talk script. Appeal scoring, PokeSnacks, condition, ranks: later slices.
 
 return function(mod)
-  local VERSION = "0.9.0"
+  local VERSION = "0.9.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -402,7 +402,11 @@ return function(mod)
       -- can never share a line, and the second page drops the name
       -- entirely (it is on the page before).
       return "consumed", {
-        ("%s ate the\n%s!"):format(name, snack.name),
+        -- "the" moved DOWN a line: ending line 1 with "the" and opening
+        -- line 2 with the snack name rendered close enough to read as
+        -- one word on device ("ate theSPICY..."). Worst case now is
+        -- "the BITTER SNACK!" = 17 glyphs, inside the 18 budget.
+        ("%s ate\nthe %s!"):format(name, snack.name),
         ("Its %s rose!"):format(snack.category),
       }
     end)

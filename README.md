@@ -104,5 +104,15 @@ namespaced. No other mod's territory is touched.
 
 ## Credits
 
-Contest design based on Pokemon Ruby/Sapphire. Built for
-[gen1recomp](https://github.com/bryanthaboi/gen1recomp).
+- Contest design based on the Generation III Contests of Pokemon
+  Ruby/Sapphire; no assets or data from those games are included.
+- All tile art (`assets/contest_tiles.png`) is original to this mod.
+- Built for [gen1recomp](https://github.com/bryanthaboi/gen1recomp) by
+  bryanthaboi.
+- [Kanto Ribbons](https://github.com/mistermiracle3036/kanto_ribbons)
+  integration: this mod records wins on the Pokémon; that mod awards the
+  ribbons.
+- Released under the MIT licence (see `LICENSE`); scope details in
+  `THIRD_PARTY_NOTICES.md`.
+- Pokémon and all related names are trademarks of Nintendo / Creatures
+  Inc. / GAME FREAK inc. This is a fan-made mod containing no ROM data.
