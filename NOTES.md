@@ -169,6 +169,30 @@ Verified blocks:
   so the Gen 1 arm's requires still report. The headless dual-gen load
   test is the actual gate; a real Gold boot is the remaining one.
 
+**A building on Gold -- assessed 2026-08-11, seams verified at 0.1.78:**
+- `WorldAPI:warpTo(mapId,x,y,facing)` warps into ANY map in world.maps
+  (gen2/WorldAPI.lua:55). Borrowing an existing Goldenrod interior is
+  therefore viable today: attendant dialogue -> warpTo -> dress the room
+  with runtime NPCs; the house's own door exits back into Goldenrod.
+  GOLDENROD_PP_SPEECH_HOUSE (4x4, a nothing house) is the candidate;
+  avoid HAPPINESS_RATER (a beloved NPC lives there). Hiding vanilla
+  occupants via toggleObject is PERSISTENT (visibility IS the event
+  flag) -- prefer leaving them be or picking an empty room.
+- `world.maps` is one mutable table per run (addRuntimeObject already
+  appends into defs), so CLONING an interior def under a new key and
+  warping to it looks possible: same tileset/palette/blockdata pointers,
+  own objects, exit warp rewritten to a Goldenrod door cell. Warp-dest
+  field shape still unread -- one contract to verify before building.
+- An EXTERIOR building can in principle be painted: `changeBlock` is the
+  CUT/WHIRLPOOL buffer edit, undone on every map reload (World.lua:2014)
+  so it re-applies on map.entered like runtime NPCs; block ids can be
+  read off a real Goldenrod building at runtime (Map:blockId) and
+  stamped elsewhere, bringing that block's own collision. The door needs
+  a def.warps row PLUS a poke into the live map's _warpAt index -- it is
+  built once at Map.new (Map.lua:34-37) and never re-read.
+Recommended order: borrow (A) -> prove the loop -> then exterior paint +
+cloned interior (C+B) as the owned hall.
+
 **Still deferred on Gold** (engine-blocked or unread seams): vendor (no
 gen2Marts registry), snacks in the bag (no Gold ItemEffects seam),
 appraiser (Gold party-picker unread), custom hall map (mod-map merge into
