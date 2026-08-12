@@ -101,6 +101,55 @@ whoever touches the file next.
   `scratchpad/textcheck.py`-style auditing caught two real overflows in
   this slice.
 
+## Gen 2 / Gold assessment (2026-08-11, engine 0.1.78)
+
+The standing direction is Gold-first with Red backfill, so this is where
+the next big feature gets designed. Findings from gen2check + reading the
+Gold source; per-file line refs are to the 0.1.78 tree.
+
+**This is a parallel implementation, not a port.** A Gold boot never
+loads `src/battle/BattleState.lua` or `src/inventory/ItemEffects.lua`, so
+every wrapper this mod is built from lands on modules nothing
+instantiates -- silently absent, not broken. gen2check findings (MK402
+Commands, MK404 newTrainer, MK409 'PartyMenu', MK405 tryRun) are the
+visible tip of that.
+
+Verified seams a Gold build CAN use:
+- `World:startBattle(opts)` (gen2/World.lua:5776) -- takes
+  `trainer`/`wild`/`battleType`, pushes `Gen2BattleState`. A judge battle
+  is constructible. The instrumentation (appeal scoring, meter, no-EXP)
+  must be rebuilt against `src/battle/gen2/Battle.lua` +
+  `src/ui/gen2/BattleState.lua`.
+- `world.interacted` event exists on Gold (gen2/World.lua:7273); the
+  kind="none" fall-through is the dialogue route -- the Gen 1
+  map_scripts talk pattern is dead there.
+- Gold has a native `BATTLETYPE_CONTEST` -- the National Park
+  Bug-Catching Contest (`World:tryContestEncounter`,
+  gen2/World.lua:4124). Different mechanic (catch-and-judge), but it
+  makes the Park the natural Johto venue candidate.
+
+Verified blocks:
+- **Vendor:** `gen2Marts` has no mod-facing registry and `ShopMenu` is a
+  Gen 1 screen. Blocked on the engine; watch each release for a marts
+  registry.
+- **Custom maps:** registry targets are Gen 1 data tables;
+  Gen2Compat's DATA_RENAMES routes *reads* (maps -> gen2Maps) but whether
+  mod-registered maps MERGE into gen2Maps is unverified. Verify before
+  planning a Gold hall map.
+- **Snacks on Gold:** Gen 2 has its own pack/item path; the
+  ItemEffects.use wrapper does not exist there. Needs its own seam
+  audit.
+
+**The open design question (developer's call, asked 2026-08-11, not yet
+answered):** where do Contests live on a Gold boot? Gold's Kanto is
+post-game. Candidates: National Park (Gold's own contest venue,
+mid-game), Celadon post-game, or another Johto city (Goldenrod is the
+R/S-faithful pick). Do not build until answered.
+
+Meanwhile: new Gen 1 slices (scarves, rivals) should reach for
+`mod.game`/`mod.world`/hooks over `require("src.script.Commands")`
+wherever a seam exists, so they don't deepen the MK402 debt.
+
 ## Roadmap after slice 1
 
 Slices agreed with the developer, one release each:
