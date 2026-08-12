@@ -199,6 +199,22 @@ appraiser (Gold party-picker unread), custom hall map (mod-map merge into
 gen2Maps unverified), Introduction Round (no pre-battle drain seam read),
 five-appeal limit (no clean loss-exit seam read).
 
+**0.1.79 re-check (2026-08-12):** every seam above and in the building
+assessment re-verified against the new tree -- warpTo/replaceBlock/
+spawnNpc, changeBlock, addRuntimeObject, _warpAt, startBattle, askYesNo,
+showText, talkToWrapper all present; the dual-gen load test passes
+unchanged. Two openings from the engine brief worth acting on later:
+- **The Gold vendor may be un-blockable without waiting for a registry:**
+  Too Many Balls stocks Gold shelves by appending directly to
+  `data.gen2Marts` at game.ready, and the checker verified all four facts
+  that workaround rests on still hold at 0.1.79. For snacks the extra
+  question is whether MOD-REGISTERED ITEMS exist on a Gold boot at all
+  (the items registry's gen2 target is unread) -- investigate that
+  before copying the pattern.
+- **`mod.datetime` is new** (read-only, option-formatted date/time).
+  Gold is time-of-day driven; contest flavor (evening contests, a
+  day-limited schedule) becomes possible without touching internals.
+
 Meanwhile: new Gen 1 slices (scarves, rivals) should reach for
 `mod.game`/`mod.world`/hooks over `require("src.script.Commands")`
 wherever a seam exists, so they don't deepen the MK402 debt.
