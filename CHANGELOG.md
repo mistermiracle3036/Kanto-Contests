@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.10.1
+Gold spike round two, from the first Gold test report. Still **not
+Gold-verified** -- do not merge until a Gold round passes.
+
+- **The judge reacts on Gold now.** The first test read as "nobody can
+  damage anybody", and half of that was working-as-designed but mute: an
+  opposed-category move (TACKLE is TOUGH, and TOUGH clashes with COOL)
+  scores zero on purpose, but Gold had no reaction text saying so. The
+  judge now comments on every appeal -- delighted / polite nod / frown --
+  and counts appeals, through the battle's own message channel.
+- **The five-appeal limit works on Gold**: after the fifth appeal the
+  judge shakes his head and the contest ends cleanly, no blackout. This
+  also caps the known rough edge of the meter mon Struggling on its turn
+  (harmless -- it deals and takes nothing -- but noisy; the engine
+  substitutes STRUGGLE for an empty enemy action and there is no skip
+  seam yet).
+- **Desktop diagnostics**: every scored appeal logs one line (move,
+  category, score) so a PC Gold run shows exactly what each appeal did.
+- Verified headlessly by driving the real mod through Gold's real battle
+  logic: a COOL move drains 25%, an opposed move scores 0 with the frown
+  line, five appeals end in a clean "run" exit. Known real gap on Gold:
+  **status moves never reach the damage seam**, so they silently score
+  nothing -- listed in NOTES.md for the polish pass.
+
 ## 0.10.0
 **First Gold arm — a Goldenrod spike, NOT Gold-tested yet.** The manifest
 now declares `games: ["gen1", "gen2"]`, which is a claim of having been

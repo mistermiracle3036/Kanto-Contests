@@ -196,8 +196,26 @@ cloned interior (C+B) as the owned hall.
 **Still deferred on Gold** (engine-blocked or unread seams): vendor (no
 gen2Marts registry), snacks in the bag (no Gold ItemEffects seam),
 appraiser (Gold party-picker unread), custom hall map (mod-map merge into
-gen2Maps unverified), Introduction Round (no pre-battle drain seam read),
-five-appeal limit (no clean loss-exit seam read).
+gen2Maps unverified), Introduction Round (no pre-battle drain seam read).
+
+**0.10.1 findings (first Gold test round + headless repro):**
+- The engine substitutes STRUGGLE for a nil enemy action
+  (Battle.lua:4144, the cart's dry-mon rule) -- the judge WILL act each
+  turn and there is no skip seam. Harmless (our damage hook zeroes both
+  directions) but noisy; capped at five by the appeal limit. A message/
+  skip seam is the polish-pass want.
+- `Battle:emit({kind="message", text=...})` (Battle.lua:365) is the Gold
+  message channel a hook can reach -- the judge's reactions ride it.
+- Five-appeal limit: `Battle:endBattle("run")` from a battle.turn_ended
+  listener is the clean loss exit; verified headlessly.
+- **Status moves never reach battle.damage on Gold** -- they execute
+  their real effect and score nothing, silently. Gen 1 converts every
+  move at performMove; Gold has no equivalent seam read yet. Real gap,
+  polish pass.
+- The headless repro (scratchpad kc_gold_battle_repro.lua pattern:
+  fixtures cribbed from tests/gen2_battle_end_test.lua, real mod loaded
+  via T.sdk.loadMod, real Battle driven with takeTurn) proved scoring
+  correct before any device round -- keep using it.
 
 **0.1.79 re-check (2026-08-12):** every seam above and in the building
 assessment re-verified against the new tree -- warpTo/replaceBlock/

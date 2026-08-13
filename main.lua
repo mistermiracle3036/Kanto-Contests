@@ -237,9 +237,61 @@ local function kcGold(mod, VERSION)
     else
       dmg = math.ceil(maxhp * 0.10)
     end
+    -- PC-visible diagnostics (the log does not exist on iOS, but the Gold
+    -- test loop runs on desktop): one line per scored appeal, so a boot
+    -- where appeals stop scoring says exactly which arm went wrong.
+    mod.log:info("contest appeal %d: %s (%s) in %s -> %d of %d",
+                 b.kcRound, tostring(id), cat, kind, dmg, maxhp)
+    -- THE JUDGE'S REACTION -- the piece whose absence made the first Gold
+    -- test read as broken: an opposed move scoring zero with no comment is
+    -- indistinguishable from a dead battle. Battle:emit is the engine's
+    -- own message channel (Battle.lua:365; the recharge/flinch lines use
+    -- it), and an emit here lands after this move's damage event, so the
+    -- comment follows the bar drain the way Gen 1's reaction pages do.
+    pcall(function()
+      if cat == kind then
+        b:emit({ kind = "message",
+                 text = ("A perfect %s appeal! The judge is delighted!"):format(kind) })
+      elseif dmg == 0 then
+        b:emit({ kind = "message",
+                 text = ("A %s move in a %s contest? The judge frowns."):format(cat, kind) })
+      else
+        b:emit({ kind = "message",
+                 text = ("The judge nods politely. A %s move, but it works."):format(cat) })
+      end
+      if b.kcRound < KC_ROUNDS then
+        b:emit({ kind = "message",
+                 text = ("The judge has seen %d of %d appeals."):format(b.kcRound, KC_ROUNDS) })
+      end
+    end)
     -- effectiveness 10 is neutral: no "super effective!" line over a
     -- contest appeal
     return dmg, { effectiveness = 10 }
+  end)
+
+  -- THE FIVE-APPEAL LIMIT, at the turn seam. endBattle("run") is the
+  -- engine's own clean exit (Battle.lua:384, outcome vocabulary at :231)
+  -- -- same "no blackout, no prize" shape as Gen 1's result = "run" --
+  -- and turn_ended is the safe moment: the turn's own events are done.
+  -- Known spike rough edge, deliberately tolerated because this limit
+  -- caps it at five: the judge's meter mon Struggles on its turn (a nil
+  -- enemy_action is substituted with STRUGGLE at Battle.lua:4144 -- the
+  -- cart's own dry-mon rule -- and there is no skip seam). The damage
+  -- hook zeroes it both ways, so it is noise, not behaviour.
+  mod.events:on("battle.turn_ended", function(ev)
+    local ok, err = pcall(function()
+      local b = ev and ev.battle
+      if not (b and inContest(b)) then return end
+      if b.over then return end
+      if (b.kcRound or 0) >= KC_ROUNDS then
+        mod.log:info("contest over: %d appeals, meter %d left",
+                     b.kcRound, (b.enemy and b.enemy.hp) or -1)
+        b:emit({ kind = "message",
+                 text = "The routine is over... The judge shakes his head. Not quite this time!" })
+        b:endBattle("run")
+      end
+    end)
+    if not ok then mod.log:warn("kc gold limit: %s", tostring(err)) end
   end)
 
   -- the judge never acts: nil from battle.enemy_action is the unwrapped
@@ -341,7 +393,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.10.0"
+  local VERSION = "0.10.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
