@@ -28,6 +28,18 @@ local function realErrors(run)
   return out
 end
 
+-- Engine 0.1.85 (Loader.lua's GEN1_ONLY_MODULES + scanRequire) files a
+-- PLAYER-VISIBLE boot error when a mod requires a Gen 1-only module the
+-- adapter cannot serve. `src.script.Commands` is on that list and the Gen 1
+-- arm below the generation branch requires it -- so this asserts the branch
+-- actually returns first. A static reader (gen2check, or a human reading
+-- the sites) cannot see that; only executing the load can.
+--
+-- Note `src.battle.BattleState` is ALSO on the GEN1_ONLY list but IS served
+-- by Gen2Compat, so it would never file this error either way. Commands is
+-- the one that would, which makes it the honest canary.
+local GEN1_ONLY_LEAK = "src.script.Commands"
+
 for _, case in ipairs({ { gen = 1, version = "red" },
                         { gen = 2, version = "gold" } }) do
   GameVersion.current = case.version
@@ -39,6 +51,17 @@ for _, case in ipairs({ { gen = 1, version = "red" },
   local errs = realErrors(run)
   T.eq(#errs, 0, ("gen %d: no boot errors (first: %s)"):format(
     case.gen, tostring(errs[1])))
+
+  if case.gen == 2 then
+    local leaked = false
+    for _, msg in ipairs(errs) do
+      if msg:find(GEN1_ONLY_LEAK, 1, true) then leaked = true end
+    end
+    T.eq(leaked, false,
+      "gen 2: the Gen 1 arm never runs, so " .. GEN1_ONLY_LEAK ..
+      " is never required")
+  end
   if run.release then run.release() end
 end
 print("BOTH GENERATIONS LOAD CLEAN")
+print("gen 2: no Gen 1-only require leaked past the generation branch")

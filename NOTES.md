@@ -237,6 +237,40 @@ Meanwhile: new Gen 1 slices (scarves, rivals) should reach for
 `mod.game`/`mod.world`/hooks over `require("src.script.Commands")`
 wherever a seam exists, so they don't deepen the MK402 debt.
 
+## For future audits: the four "Gen 1 sites on Gold" are behind a branch
+
+A checker brief (2026-08-14, engine 0.1.85) reported four sites taking the
+Gen 1 path on Gold: `BattleState.newTrainer` (~:1091), the
+`src.script.Commands` require (~:1203), the `"PartyMenu"` screen id
+(~:1229) and the `tryRun` override (~:916). **All four are below the
+generation branch at ~:456 and never execute on a Gold boot.** The brief
+said plainly it read the sites without tracing control flow; `gen2check`
+has the same blind spot, being a static scan.
+
+Verified, not asserted: `tests/gen_gate_test.lua` loads the mod through
+the production loader on BOTH generations and asserts zero boot errors,
+plus an explicit assertion that `src.script.Commands` never leaks past the
+branch. That assertion was negative-controlled -- injecting a require
+above the branch makes it fail with exactly the engine's message
+("requires src.script.Commands, which a Gen 2 game never runs"), so it is
+detecting the real condition rather than passing vacuously.
+
+Why `src.script.Commands` is the canary specifically: engine 0.1.85's
+`GEN1_ONLY_MODULES` (Loader.lua) also lists `src.battle.BattleState`, but
+Gen2Compat SERVES that one, so it could never file the error either way.
+Commands is served by nothing, so it is the honest test.
+
+**What the brief got right and still stands:** 0.1.85 made this class of
+failure player-visible (boot error feed, not a log line), which matters
+because iOS has no log; and declaring `games: gen1+gen2` while the Gold
+path is unverified is the real risk. That risk is about DEVICE testing,
+not these four sites.
+
+**Open Gold question the brief raised that is genuinely unanswered:**
+whether `"ShopMenu"` resolves on Gold. Moot today -- that push is in the
+Gen 1 arm -- but it becomes real the moment the Gold vendor is built, so
+check it then rather than trusting gen2check's silence.
+
 ## Roadmap after slice 1
 
 Slices agreed with the developer, one release each:
