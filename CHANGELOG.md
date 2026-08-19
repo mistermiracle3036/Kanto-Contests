@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.10.2
+Gold spike round three. Still **not Gold-verified** end to end -- do not
+merge until a Gold round passes.
+
+- **The Contest attendant can be reached now.** She was standing inside a
+  wall: the cell 0.10.0 guessed for her is solid, so the player could
+  never face her and the "talk to her" step was unreachable. She now
+  stands on the main street with her back to a building, on a cell
+  measured against the game's own map data rather than guessed.
+- **She also stands still properly.** Her movement was written in Gen 1's
+  vocabulary, which means nothing on Gold; it is Gold's now.
+- If her spot is ever blocked, she steps to the nearest free one instead
+  of vanishing -- and the game log always names the cell she actually
+  took, so a misplacement can never hide again.
+- Re-entering Goldenrod no longer risks stacking a second attendant on
+  the same spot.
+
 ## 0.10.1
 Gold spike round two, from the first Gold test report. Still **not
 Gold-verified** -- do not merge until a Gold round passes.

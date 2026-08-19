@@ -182,13 +182,58 @@ for _, s in ipairs(KC_SNACKS) do KC_SNACK_BY_ID[s.id] = s end
 -- acts, so the contest ends by win or by RUN.
 -- ------------------------------------------------------------------
 local function kcGold(mod, VERSION)
-  -- The attendant's spot. Coordinates are a first guess at an open plaza
-  -- cell; TODO/CONFIRM on the first Gold boot -- if she lands on a
-  -- blocked tile the engine just won't path players into her, nothing
-  -- crashes. SPRITE_TEACHER is verified present in Gold (11 uses across
-  -- gen2 sources and tests).
-  local KCG = { map = "GOLDENROD_CITY", x = 14, y = 14,
-                sprite = "SPRITE_TEACHER" }
+  -- The attendant's spot.
+  --
+  -- 0.10.0 guessed (14,14) and the first Gold test found her unreachable.
+  -- She was standing INSIDE A WALL: resolving that cell through the
+  -- player's own imported Gold cache and the engine's Permissions module
+  -- gives collision byte 0x07, which `isWalkable` rejects. Nothing
+  -- crashes when a runtime object lands in a wall -- the player simply
+  -- can never face it, so the talk seam is never reached. That is the
+  -- whole "judge is unreachable" report; the talk wiring was fine.
+  --
+  -- (22,8) is measured, not guessed: walkable, on the main east-west
+  -- street, three open sides with a wall to the north so she stands with
+  -- her back to a building rather than in the middle of traffic, no
+  -- vanilla object on it (Goldenrod has 14, none within a cell of here),
+  -- and not a warp tile.
+  --
+  -- movement is NUMERIC on Gen 2 -- 6 = STANDING_DOWN (Npc.lua's MOVE
+  -- table). 0.10.0 passed the Gen 1 string "STAY", which means nothing
+  -- here; every vanilla Goldenrod object uses a number (7, 2, 8, 5, ...).
+  local KCG = { map = "GOLDENROD_CITY", x = 22, y = 8,
+                sprite = "SPRITE_TEACHER", movement = 6 }
+
+  -- Never trust a hardcoded cell again: check it at runtime and, if it is
+  -- unusable, walk outward for the nearest cell that is. ALWAYS report the
+  -- cell finally used -- a silent fallback is how a mod ends up asserting
+  -- a spot that never worked (kanto_rocks shipped an actor one cell off
+  -- its designed tile and only the placement log revealed it).
+  local function pickCell(world)
+    local map = world and world.map
+    if not (map and map.isWalkableCell) then return KCG.x, KCG.y, "unchecked" end
+    local occupied = {}
+    for _, npc in ipairs(world.npcs or {}) do
+      if npc.cellX and npc.cellY then
+        occupied[npc.cellY * 1000 + npc.cellX] = true
+      end
+    end
+    local function usable(x, y)
+      return map:isWalkableCell(x, y) and not occupied[y * 1000 + x]
+    end
+    if usable(KCG.x, KCG.y) then return KCG.x, KCG.y, "designed" end
+    for r = 1, 4 do
+      for dy = -r, r do
+        for dx = -r, r do
+          if math.max(math.abs(dx), math.abs(dy)) == r then
+            local x, y = KCG.x + dx, KCG.y + dy
+            if usable(x, y) then return x, y, ("fallback r=%d"):format(r) end
+          end
+        end
+      end
+    end
+    return nil, nil, "no walkable cell within 4"
+  end
 
   -- The judge, as a plain trainer table -- Gold's Battle.new takes
   -- opts.trainer directly (Battle.lua:222, enemyParty from trainer.party
@@ -306,17 +351,35 @@ local function kcGold(mod, VERSION)
   -- spawn the attendant. Runtime objects are never serialized, so
   -- respawn on every entry; addRuntimeObject assigns a fresh index each
   -- time, and the def marker is how the talk seam recognises her.
+  --
+  -- Guarded against stacking: addRuntimeObject appends to a run-lifetime
+  -- table, so re-entering the map without this check would leave a queue
+  -- of attendants standing on one cell.
   local spawned = false
   mod.events:on("map.entered", function(ev)
     local ok, err = pcall(function()
       local mapId = ev and ev.mapId
       if mapId ~= KCG.map then spawned = false return end
       if spawned then return end
+      local world = mod.world:overworld()
+      -- already there from an earlier entry this run? don't add a second
+      for _, npc in ipairs((world and world.npcs) or {}) do
+        if npc.def and npc.def.kcAttendant then spawned = true return end
+      end
+      local x, y, how = pickCell(world)
+      if not x then
+        mod.log:warn("contest attendant NOT placed: %s", how)
+        return
+      end
       spawned = true
-      mod.world:spawnNpc(KCG.map, {
-        sprite = KCG.sprite, x = KCG.x, y = KCG.y,
-        movement = "STAY", kcAttendant = true,
+      local id, err2 = mod.world:spawnNpc(KCG.map, {
+        sprite = KCG.sprite, x = x, y = y,
+        movement = KCG.movement, kcAttendant = true,
       })
+      -- the placement line the next debugging round will want
+      mod.log:info("contest attendant at %s %d,%d (%s) id=%s%s",
+                   KCG.map, x, y, how, tostring(id),
+                   err2 and (" err=" .. tostring(err2)) or "")
     end)
     if not ok then mod.log:warn("kc gold spawn: %s", tostring(err)) end
   end)
@@ -393,7 +456,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.10.1"
+  local VERSION = "0.10.2"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

@@ -237,6 +237,46 @@ Meanwhile: new Gen 1 slices (scarves, rivals) should reach for
 `mod.game`/`mod.world`/hooks over `require("src.script.Commands")`
 wherever a seam exists, so they don't deepen the MK402 debt.
 
+## Verifying a Gold spawn cell WITHOUT a device round trip
+
+0.10.0 guessed the attendant's cell and shipped her inside a wall; the
+Gold test could only report "unreachable". The cell is checkable from
+here, and this is the procedure:
+
+```lua
+-- from the engine checkout, luajit:
+local Perm = require("src.world.gen2.Permissions")
+local D = [[C:/Users/dwitt/AppData/Roaming/pokemon-love2d/gold/data/generated/]]
+local maps, tilesets = dofile(D.."maps.lua"), dofile(D.."tilesets.lua")
+local m, ts = maps["GOLDENROD_CITY"], nil
+ts = tilesets[m.tileset]
+-- cell -> block -> quad
+local b = m.blocks[math.floor(cy/2)*m.width + math.floor(cx/2) + 1]
+local byte = ts.collision[b+1][(cy%2)*2 + (cx%2) + 1]
+Perm.isWalkable(byte)   -- 0x00 walkable, 0x07 wall
+```
+
+Measured facts for GOLDENROD_CITY: 20x18 blocks = 40x36 cells, 14 vanilla
+objects, 15 warps. **(14,14) is 0x07, a wall** -- that was the bug.
+**(22,8) is 0x00**, three approach tiles (S/W/E) with a wall north, no
+vanilla object or warp within a cell: the attendant's home.
+
+Two more Gold NPC facts confirmed the same pass:
+- **`movement` is NUMERIC on Gen 2**, not Gen 1's "STAY" string --
+  `Npc.lua`'s MOVE table, `STANDING_DOWN = 6`. Every vanilla Goldenrod
+  object uses a number (7, 2, 8, 5, ...).
+- **The `talkTo` seam DOES work for a mod-spawned NPC.** Assigning
+  `OverworldController.talkTo` on Gold lands on the Gen2Compat facade and
+  `Gen2Compat.talkToWrapper()` returns it, so `World:interactBody`
+  dispatches into the mod -- verified by loading the mod headlessly and
+  reading the wrapper back. The `world.interacted` kind="none"
+  fall-through is a valid alternative, not the only route; the Gen 1
+  `map_scripts`/`text = TEXT_*` pattern remains dead.
+
+Always report the cell finally used (`mod.log:info` on desktop, or the
+[ERRS] screen on iOS): a silent fallback is how a mod ends up documenting
+a spot that never worked.
+
 ## For future audits: the four "Gen 1 sites on Gold" are behind a branch
 
 A checker brief (2026-08-14, engine 0.1.85) reported four sites taking the
