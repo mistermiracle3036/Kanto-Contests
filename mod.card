@@ -6,6 +6,7 @@ return {
     "Adds a Contest Hall map reachable from Celadon City (ask the little girl).",
     "Adds a COOL contest judge you appeal to in a battle-style round.",
     "Every move carries a contest category, shown in place of its type during a contest.",
+    "Adds five earned contest scarves that boost matching Introduction scores.",
     "Contests award no EXP and allow no switching or items -- one POKeMON performs the whole routine.",
     "Records contest wins on the POKeMON so Kanto Ribbons can award a Cool Ribbon.",
   },

@@ -17,7 +17,8 @@
 -- Gen 3 assigned every Gen 1 move a contest category; this table is that
 -- mapping (best-effort recall -- flavor data, any wrong entry is a cheap
 -- one-line fix; an id miss falls back to TOUGH). Gold movesets can carry
--- Gen 2 moves this table has never heard of -- same TOUGH fallback.
+-- Gen 2 moves this table has never heard of -- same TOUGH fallback until
+-- their categories are added deliberately.
 -- ------------------------------------------------------------------
 local KC_CATEGORY = {
   POUND = "TOUGH", KARATE_CHOP = "TOUGH", DOUBLESLAP = "CUTE",
@@ -134,6 +135,59 @@ local KC_INTRO_THRESHOLDS = {
 }
 local KC_INTRO_METER_FRACTION = 0.35
 
+-- The five Gen 3 scarves. Crystal can equip these through its real held-item
+-- menu (`mon.item`); Gen 1 has no held items, so using one records the worn
+-- category on `mon.kcScarf`. Contest scoring accepts either representation.
+local KC_SCARF_BONUS = 20
+local KC_SCARVES = {
+  { id = "KC_RED_SCARF",    name = "RED SCARF",    label = "RED",    category = "COOL" },
+  { id = "KC_BLUE_SCARF",   name = "BLUE SCARF",   label = "BLUE",   category = "BEAUTY" },
+  { id = "KC_PINK_SCARF",   name = "PINK SCARF",   label = "PINK",   category = "CUTE" },
+  { id = "KC_GREEN_SCARF",  name = "GREEN SCARF",  label = "GREEN",  category = "SMART" },
+  { id = "KC_YELLOW_SCARF", name = "YELLOW SCARF", label = "YELLOW", category = "TOUGH" },
+}
+local KC_SCARF_BY_ID, KC_SCARF_BY_CATEGORY = {}, {}
+for _, row in ipairs(KC_SCARVES) do
+  KC_SCARF_BY_ID[row.id] = row
+  KC_SCARF_BY_CATEGORY[row.category] = row
+end
+
+local function kcScarfCategory(mon)
+  if not mon then return nil end
+  local held = KC_SCARF_BY_ID[mon.item]
+  if held then return held.category end
+  local worn = mon.kcScarf
+  if KC_SCARF_BY_ID[worn] then return KC_SCARF_BY_ID[worn].category end
+  return KC_SCARF_BY_CATEGORY[worn] and worn or nil
+end
+
+local function kcHasScarf(save, row)
+  if not (save and row) then return false end
+  if save.inventory and (save.inventory[row.id] or 0) > 0 then return true end
+  local function wears(mon)
+    return mon and (mon.item == row.id
+      or kcScarfCategory(mon) == row.category)
+  end
+  for _, mon in ipairs(save.party or {}) do
+    if wears(mon) then return true end
+  end
+  for _, box in pairs(save.boxes or {}) do
+    for _, mon in ipairs(box or {}) do
+      if wears(mon) then return true end
+    end
+  end
+  return false
+end
+
+local function kcEligibleScarf(save, mon)
+  local cond = kcCondition(mon)
+  for _, row in ipairs(KC_SCARVES) do
+    if (cond[KC_STAT_KEY[row.category]] or 0) >= 100
+        and not kcHasScarf(save, row) then return row end
+  end
+  return nil
+end
+
 local function kcIntroHearts(mon, kind, rank)
   local cond = kcCondition(mon)
   local score = cond[KC_STAT_KEY[kind]] or 0
@@ -141,6 +195,7 @@ local function kcIntroHearts(mon, kind, rank)
     score = score + 0.5 * (cond[KC_STAT_KEY[sec]] or 0)
   end
   score = score + 0.5 * kcSheen(mon)
+  if kcScarfCategory(mon) == kind then score = score + KC_SCARF_BONUS end
   local hearts = 0
   for i, need in ipairs(KC_INTRO_THRESHOLDS[rank]
                         or KC_INTRO_THRESHOLDS.NORMAL) do
@@ -166,22 +221,71 @@ local KC_SNACK_BY_ID = {}
 for _, s in ipairs(KC_SNACKS) do KC_SNACK_BY_ID[s.id] = s end
 
 -- ------------------------------------------------------------------
--- THE GOLD ARM (0.10.0 spike). Goldenrod City gets a Contest attendant;
--- talking to her starts a COOL contest as a judge battle. Everything here
--- rides mod.world, events and the generation-agnostic battle hooks --
--- the only engine require is src.battle.gen2.Mon (the same module the
--- engine's own scripted-wild verb uses) plus the OverworldController
--- facade, whose talkTo member is a named, backed seam on Gold.
+-- THE GOLD ARM. Goldenrod City gets a Contest attendant who leads into a
+-- private Contest Hall; its judge starts a COOL contest as a judge battle.
+-- Most of this arm rides mod.world, events and generation-agnostic battle
+-- hooks. Gold has no hook that can
+-- REPLACE a move before its effect runs, however, so the core appeal
+-- conversion wraps src.battle.gen2.Battle:useMove directly; the contract is
+-- source-verified in both 0.1.79 and 0.2.4.
 --
--- Deliberately NOT in the spike, all engine-blocked or deferred:
--- no vendor (gen2Marts has no registry), no snacks in the bag (Gold's
--- item path has no ItemEffects seam), no appraiser (needs a Gold party
--- picker audit), no custom hall map (mod-map merge into gen2Maps is
--- unverified), no intro round (no pre-battle drain seam read yet), no
--- 5-appeal limit (no clean loss-exit seam read yet). The judge never
--- acts, so the contest ends by win or by RUN.
+-- Gold's hall vendor feeds snacks on the spot instead of putting them in the
+-- bag: Gold's item path still has no ItemEffects seam. The custom map and
+-- party picker follow the source-verified Hidden Grottos 0.1.3 and
+-- SelectMonFromParty patterns.
 -- ------------------------------------------------------------------
 local function kcGold(mod, VERSION)
+  local HALL = "KC_JOHTO_CONTEST_HALL"
+  local HALL_TILES = "KC_JOHTO_HALL_TILES"
+  local HALL_ARRIVAL_X, HALL_ARRIVAL_Y = 4, 8
+
+  -- Hidden Grottos 0.1.3 proved the Gold mod-map route: private Gen 2 map,
+  -- private tileset, explicit four-cell collision per block, empty extracted
+  -- event tables, and runtime actors re-created on map.entered.
+  local function goldFill(tile)
+    local out = {}
+    for i = 1, 16 do out[i] = tile end
+    return out
+  end
+
+  mod.content.tilesets:register(HALL_TILES, {
+    id = HALL_TILES,
+    image = mod.path .. "/assets/contest_tiles.png",
+    imageWidth = 24, imageHeight = 8, tilesPerRow = 3,
+    blocks = { goldFill(0), goldFill(1), goldFill(2) },
+    collision = {
+      { 7, 7, 7, 7 }, -- wall
+      { 0, 0, 0, 0 }, -- floor
+      { 0, 0, 0, 0 }, -- stage rug
+    },
+    trueColor = true,
+  })
+
+  mod.content.maps:register(HALL, {
+    id = HALL,
+    label = "GOLDENROD CONTEST HALL",
+    generation = 2,
+    tileset = HALL_TILES,
+    width = 5, height = 5,
+    blocks = {
+      0, 0, 0, 0, 0,
+      0, 2, 2, 2, 0,
+      0, 1, 1, 1, 0,
+      0, 1, 1, 1, 0,
+      0, 1, 1, 1, 0,
+    },
+    borderBlock = 0,
+    palette = "PALETTE_AUTO",
+    environment = "INDOOR",
+    phoneService = false,
+    objects = {}, warps = {}, signs = {}, connections = {},
+    callbacks = {}, sceneScripts = {}, bgEvents = {}, coordEvents = {},
+  })
+
+  local goldData = mod.game and mod.game.data
+  local hallSong = goldData and goldData.audio and goldData.audio.mapSongs
+    and goldData.audio.mapSongs.GOLDENROD_CITY
+  if hallSong then mod.content.map_songs:register(HALL, hallSong) end
   -- The attendant's spot.
   --
   -- 0.10.0 guessed (14,14) and the first Gold test found her unreachable.
@@ -242,37 +346,113 @@ local function kcGold(mod, VERSION)
   -- which no race can miss because we hand the table in ourselves.
   -- trainer.attributes is optional (enemyTrySwitchOrItem returns false
   -- when it is not a table, Battle.lua:3747).
-  local judge = { name = "JUDGE", baseMoney = 20, party = {},
-                  kcContest = "COOL" }
+  -- Crystal's native GENTLEMAN front is the direct Gen 2 counterpart to the
+  -- Gentleman used for Red's contest judge. It is also Gentleman Preston's
+  -- class in Olivine Lighthouse (the trainer with two Growlithe), so the hall
+  -- and battle portraits now agree without shipping replacement artwork.
+  local judge = { name = "JUDGE", class = "GENTLEMAN",
+                  baseMoney = 0, party = {}, kcContest = "COOL" }
 
   local function inContest(b)
     return b and b.trainer and b.trainer.kcContest or nil
   end
 
-  -- Appeal scoring, as hooks. Gold raises battle.accuracy /
-  -- battle.damage / battle.enemy_action with the same names Gen 1 does;
-  -- every wrapper falls through untouched unless the battle carries our
-  -- trainer table.
-  mod.hooks:wrap("battle.accuracy", function(next_, ctx, ...)
-    if type(ctx) == "table" and inContest(ctx.battle) then return true end
-    return next_(ctx, ...)
-  end)
+  -- Gold's battle.damage seam only runs for damaging moves. Status moves
+  -- therefore executed their real effects and scored nothing in 0.10.0-
+  -- 0.10.2. battle.move_used is observational and cannot suppress an effect;
+  -- Battle:useMove is the source-verified funnel for every Gold move, so the
+  -- contest arm replaces it just as the Gen 1 arm replaces performMove.
+  --
+  -- Stash the engine original once and always rebuild from it. Module tables
+  -- survive hot reload, so a sentinel-only wrapper would keep old code alive.
+  local GoldBattle = require("src.battle.gen2.Battle")
+  local GoldBattleUI = require("src.ui.gen2.BattleState")
+  local Runtime = require("src.mods.Runtime")
+  GoldBattle._kcOriginals = GoldBattle._kcOriginals or {}
+  GoldBattle._kcOriginals.useMove = GoldBattle._kcOriginals.useMove
+    or GoldBattle.useMove
+  GoldBattle._kcOriginals.tryRun = GoldBattle._kcOriginals.tryRun
+    or GoldBattle.tryRun
+  local vanillaGoldUseMove = GoldBattle._kcOriginals.useMove
+  local vanillaGoldTryRun = GoldBattle._kcOriginals.tryRun
 
-  mod.hooks:wrap("battle.damage", function(next_, c, ...)
-    if not (type(c) == "table" and inContest(c.battle)) then
-      return next_(c, ...)
+  -- Gold's UI is a method table too. Stash each original separately so a
+  -- 0.10.3 -> 0.10.4 hot reload can add these wrappers even though the Battle
+  -- module already carries its older _kcOriginals table.
+  GoldBattleUI._kcOriginals = GoldBattleUI._kcOriginals or {}
+  local UIO = GoldBattleUI._kcOriginals
+  UIO.new = UIO.new or GoldBattleUI.new
+  UIO.statusTag = UIO.statusTag or GoldBattleUI.statusTag
+  UIO.genderSymbol = UIO.genderSymbol or GoldBattleUI.genderSymbol
+  UIO.chooseMenu = UIO.chooseMenu or GoldBattleUI.chooseMenu
+
+  -- The same Introduction Round Kanto runs after its send-outs. On the real
+  -- UI path this is queued by GoldBattleUI.new, after the HUD has captured the
+  -- meter's full HP, so the opening head start visibly drains. goldAppeal calls
+  -- it as a fallback for headless drivers and any alternate battle screen.
+  local function applyGoldIntro(b)
+    if not inContest(b) or b.kcIntroDone then return end
+    b.kcIntroDone = true
+    local entrant, meter = b.player, b.enemy
+    if not (entrant and meter) then return end
+
+    local kind = tostring(inContest(b))
+    local hearts = kcIntroHearts(entrant, kind, b.kcRank or "NORMAL")
+    b.kcHearts = hearts
+    local scarf = KC_SCARF_BY_CATEGORY[kcScarfCategory(entrant)]
+    if scarf and scarf.category == kind then
+      b:emit({ kind = "message",
+        text = ("%s\nshines!\fThe audience\ntakes notice!"):format(scarf.name) })
     end
-    local b = c.battle
-    local meter = b.enemyParty and b.enemyParty[1]
-    -- only the player's move at the meter scores; anything else in a
-    -- contest (there should be nothing else) lands as zero
-    if not (meter and c.target == meter) then
-      return 0, { effectiveness = 10 }
+    if hearts <= 0 then
+      b:emit({ kind = "message", text = "The audience is silent..." })
+      return
     end
-    local id = c.moveId or (c.move and c.move.id)
-    local cat = KC_CATEGORY[id] or "TOUGH"
-    local kind = b.trainer.kcContest
-    local maxhp = (meter.stats and meter.stats.hp) or meter.hp or 1
+
+    b:emit({ kind = "message",
+             text = "The audience holds up its score..." })
+    b:emit({ kind = "message",
+             text = ("%d %s!"):format(hearts,
+               hearts == 1 and "heart" or "hearts") })
+    local maxhp = meter.maxHp or (meter.stats and meter.stats.hp)
+                  or meter.hp or 1
+    local dmg = math.max(1, math.floor(
+      maxhp * KC_INTRO_METER_FRACTION * hearts / 8))
+    b:dealDamage(entrant, meter, dmg, { effectiveness = 10 })
+  end
+
+  local function goldAppeal(b, attacker, meter, moveId)
+    applyGoldIntro(b)
+    local move = b:findMove(attacker, moveId)
+    local def = b:moveDef(moveId)
+    local name = b:monName(attacker)
+    if not def then
+      b:emit({ kind = "message", text = name .. " has no move to use!" })
+      return
+    end
+    if move and (move.pp or 0) <= 0 then
+      b:emit({ kind = "message", text = "No PP left for this move!" })
+      return
+    end
+    if move then move.pp = (move.pp or 1) - 1 end
+
+    -- Preserve Gold's normal move announcement and the public event, but stop
+    -- before the move's effect list. Growl cannot lower a stat, Thunder Wave
+    -- cannot paralyze, and damaging moves cannot hit on top of their appeal.
+    b.moveEvent = b:emit({ kind = "move", side = b:sideOf(attacker),
+      move = moveId,
+      text = ("%s\nused %s!"):format(name, def.name or moveId) })
+    if Runtime.wants("battle.move_used") then
+      Runtime.emit("battle.move_used", {
+        battle = b, user = attacker, target = meter, move = def,
+        moveId = moveId, side = b:sideOf(attacker), isCalled = false,
+      })
+    end
+
+    local cat = KC_CATEGORY[moveId] or "TOUGH"
+    local kind = inContest(b)
+    local maxhp = meter.maxHp or (meter.stats and meter.stats.hp)
+                  or meter.hp or 1
     b.kcRound = (b.kcRound or 0) + 1
     local dmg
     if cat == kind then
@@ -282,47 +462,166 @@ local function kcGold(mod, VERSION)
     else
       dmg = math.ceil(maxhp * 0.10)
     end
-    -- PC-visible diagnostics (the log does not exist on iOS, but the Gold
-    -- test loop runs on desktop): one line per scored appeal, so a boot
-    -- where appeals stop scoring says exactly which arm went wrong.
+
     mod.log:info("contest appeal %d: %s (%s) in %s -> %d of %d",
-                 b.kcRound, tostring(id), cat, kind, dmg, maxhp)
-    -- THE JUDGE'S REACTION -- the piece whose absence made the first Gold
-    -- test read as broken: an opposed move scoring zero with no comment is
-    -- indistinguishable from a dead battle. Battle:emit is the engine's
-    -- own message channel (Battle.lua:365; the recharge/flinch lines use
-    -- it), and an emit here lands after this move's damage event, so the
-    -- comment follows the bar drain the way Gen 1's reaction pages do.
-    pcall(function()
-      if cat == kind then
-        b:emit({ kind = "message",
-                 text = ("A perfect %s appeal! The judge is delighted!"):format(kind) })
-      elseif dmg == 0 then
-        b:emit({ kind = "message",
-                 text = ("A %s move in a %s contest? The judge frowns."):format(cat, kind) })
-      else
-        b:emit({ kind = "message",
-                 text = ("The judge nods politely. A %s move, but it works."):format(cat) })
+                 b.kcRound, tostring(moveId), cat, kind, dmg, maxhp)
+    if dmg > 0 then
+      b:dealDamage(attacker, meter, dmg, {
+        effectiveness = 10, move = def, moveId = moveId,
+      })
+    end
+    if cat == kind then
+      b:emit({ kind = "message",
+               text = ("A perfect %s appeal! The judge is delighted!"):format(kind) })
+    elseif dmg == 0 then
+      b:emit({ kind = "message",
+               text = ("A %s move in a %s contest? The judge frowns."):format(cat, kind) })
+    else
+      b:emit({ kind = "message",
+               text = ("The judge nods politely. A %s move, but it works."):format(cat) })
+    end
+    if (meter.hp or 0) <= 0 then
+      -- Stop before runTurn reaches resolveFaints. That vanilla path would
+      -- faint the hidden Chansey, print a trainer defeat and award money.
+      -- The captured damage event still animates the APPEAL bar to zero; the
+      -- live stand-in is restored to 1 HP as a belt against later sweep calls.
+      b.kcMeterComplete = true
+      meter.hp = 1
+      b:emit({ kind = "message",
+               text = "The APPEAL meter is full! The judge declares a winner!" })
+      b:endBattle("win")
+      return
+    end
+    if b.kcRound < KC_ROUNDS then
+      b:emit({ kind = "message",
+               text = ("The judge has seen %d of %d appeals."):format(
+                 b.kcRound, KC_ROUNDS) })
+    end
+  end
+
+  GoldBattle.useMove = function(self, attacker, defender, moveId)
+    if not inContest(self) then
+      return vanillaGoldUseMove(self, attacker, defender, moveId)
+    end
+    -- Gold forces a dry opponent to Struggle after enemy_action returns nil.
+    -- Swallow the meter mon here so the judge is idle in presentation too.
+    if attacker ~= self.player then return end
+    local ok, err = pcall(goldAppeal, self, attacker, defender, moveId)
+    if not ok then
+      mod.log:warn("kc gold appeal: %s", tostring(err))
+      pcall(function()
+        self:emit({ kind = "message", text = "KC error: appeal failed" })
+      end)
+    end
+  end
+
+  -- RUN is withdrawing, never the trainer-battle refusal. This direct funnel
+  -- is earlier than battle.run (which Gold only calls after the trainer gate),
+  -- so the contest must own tryRun itself.
+  GoldBattle.tryRun = function(self, ...)
+    if not inContest(self) then return vanillaGoldTryRun(self, ...) end
+    self:emit({ kind = "run",
+      text = "You left the stage. The judge looks disappointed." })
+    self:endBattle("run")
+    return true
+  end
+
+  -- Gen 2 contest presentation. The judge asks the engine for Crystal's own
+  -- GENTLEMAN class front. The stand-in Chansey remains the appeal meter, but
+  -- the native judge portrait owns the enemy picture box for the whole contest.
+  GoldBattleUI.new = function(game, opts)
+    local state = UIO.new(game, opts)
+    local b = state and state.battle
+    if not inContest(b) then return state end
+
+    if state.ballRows then state.ballRows.enemy = false end
+    state.showEnemyHud = true
+    if not state.enemyTrainerImage then
+      mod.log:warn("kc gen2 judge art: native GENTLEMAN front missing")
+      b:emit({ kind = "message", text = "KC error: native judge art missing" })
+    end
+    local contestQueue = {}
+    for _, ev in ipairs(state.queue or {}) do
+      if ev.kind == "message" and type(ev.text) == "string"
+          and ev.text:find("wants to battle!", 1, true) then
+        ev.text = ("The %s contest is beginning!"):format(inContest(b))
+      elseif ev.kind == "trainer-slide" then
+        -- A normal trainer front leaves before the opponent is sent out.
+        -- There is no opponent here: keep the judge in the picture box.
+        ev = nil
+      elseif ev.kind == "send" and ev.side == "enemy" then
+        -- A contest has no opponent send-out. Turning this into a plain
+        -- message keeps the judge portrait in place, skips Chansey's ball
+        -- animation and cry, and leaves the APPEAL HUD visible.
+        ev.kind, ev.side, ev.mon = "message", nil, nil
+        ev.text = "The judge takes his place!"
+      elseif ev.kind == "sendout" and b.player then
+        ev.text = state:name(b.player) .. " takes the stage!"
       end
-      if b.kcRound < KC_ROUNDS then
-        b:emit({ kind = "message",
-                 text = ("The judge has seen %d of %d appeals."):format(b.kcRound, KC_ROUNDS) })
+      if ev then contestQueue[#contestQueue + 1] = ev end
+    end
+    state.queue = contestQueue
+
+    local ok, err = pcall(applyGoldIntro, b)
+    if not ok then
+      mod.log:warn("kc gold intro: %s", tostring(err))
+      b:emit({ kind = "message", text = "KC error: intro failed" })
+    end
+    state:pushAll(b:takeEvents())
+    return state
+  end
+
+  -- PlaceNonFaintStatus suppresses the level when statusTag returns any
+  -- string. A single blank is therefore the narrow, display-only override;
+  -- the judge cannot receive a real status because every move is an appeal.
+  GoldBattleUI.statusTag = function(self, mon, side)
+    if side == "enemy" and inContest(self and self.battle) then return " " end
+    return UIO.statusTag(self, mon, side)
+  end
+
+  GoldBattleUI.genderSymbol = function(self, mon)
+    if inContest(self and self.battle)
+        and mon == self:activeMon("enemy") then return nil end
+    return UIO.genderSymbol(self, mon)
+  end
+
+  local function refuseGoldMenu(state, text)
+    state.phase = "resolving"
+    state:push({ kind = "message", text = text })
+    state:advanceQueue()
+    return true
+  end
+
+  GoldBattleUI.chooseMenu = function(self, choice)
+    if inContest(self and self.battle) and self.phase == "menu" then
+      if choice == "party" then
+        return refuseGoldMenu(self, "No switching during a contest!")
+      elseif choice == "item" then
+        return refuseGoldMenu(self, "No items during a contest!")
       end
-    end)
-    -- effectiveness 10 is neutral: no "super effective!" line over a
-    -- contest appeal
-    return dmg, { effectiveness = 10 }
+    end
+    return UIO.chooseMenu(self, choice)
+  end
+
+  -- Belts around any engine-owned auxiliary path; goldAppeal bypasses both.
+  mod.hooks:wrap("battle.accuracy", function(next_, ctx, ...)
+    if type(ctx) == "table" and inContest(ctx.battle) then return true end
+    return next_(ctx, ...)
+  end)
+
+  mod.hooks:wrap("battle.damage", function(next_, c, ...)
+    if not (type(c) == "table" and inContest(c.battle)) then
+      return next_(c, ...)
+    end
+    return 0, { effectiveness = 10 }
   end)
 
   -- THE FIVE-APPEAL LIMIT, at the turn seam. endBattle("run") is the
   -- engine's own clean exit (Battle.lua:384, outcome vocabulary at :231)
   -- -- same "no blackout, no prize" shape as Gen 1's result = "run" --
   -- and turn_ended is the safe moment: the turn's own events are done.
-  -- Known spike rough edge, deliberately tolerated because this limit
-  -- caps it at five: the judge's meter mon Struggles on its turn (a nil
-  -- enemy_action is substituted with STRUGGLE at Battle.lua:4144 -- the
-  -- cart's own dry-mon rule -- and there is no skip seam). The damage
-  -- hook zeroes it both ways, so it is noise, not behaviour.
+  -- The useMove wrapper above swallows the meter mon's forced Struggle, so
+  -- each round contains only the entrant's appeal and the judge's reaction.
   mod.events:on("battle.turn_ended", function(ev)
     local ok, err = pcall(function()
       local b = ev and ev.battle
@@ -339,101 +638,291 @@ local function kcGold(mod, VERSION)
     if not ok then mod.log:warn("kc gold limit: %s", tostring(err)) end
   end)
 
-  -- the judge never acts: nil from battle.enemy_action is the unwrapped
-  -- no-move answer (Battle:enemyMove returns it as-is, Battle.lua:3870).
-  -- TODO/CONFIRM on the first Gold boot that a nil enemy move resolves
-  -- as "no action" rather than erroring downstream.
+  -- Ask for no enemy move. Gold's dry-mon fallback substitutes STRUGGLE, and
+  -- the contest-only useMove wrapper above suppresses that final fallback.
   mod.hooks:wrap("battle.enemy_action", function(next_, battle, ...)
     if inContest(battle) then return nil end
     return next_(battle, ...)
   end)
 
-  -- spawn the attendant. Runtime objects are never serialized, so
-  -- respawn on every entry; addRuntimeObject assigns a fresh index each
-  -- time, and the def marker is how the talk seam recognises her.
-  --
-  -- Guarded against stacking: addRuntimeObject appends to a run-lifetime
-  -- table, so re-entering the map without this check would leave a queue
-  -- of attendants standing on one cell.
-  local spawned = false
+  -- Runtime actors are the same private-map pattern Hidden Grottos uses:
+  -- the map record owns geometry; map.entered repopulates transient people.
+  local hallReturn
+  local entranceCell = { x = KCG.x, y = KCG.y }
+  local HALL_ACTORS = {
+    { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
+      sprite = "SPRITE_GENTLEMAN", x = 4, y = 3, movement = 6 },
+    { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
+      sprite = "SPRITE_TEACHER", x = 2, y = 6, movement = 6 },
+    { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
+      sprite = "SPRITE_BEAUTY", x = 7, y = 6, movement = 6 },
+    { name = "KC_HALL_EXIT", marker = "kcHallExit",
+      sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 4, y = 9, movement = 6 },
+  }
+
+  local function markerExists(world, marker)
+    for _, actor in ipairs((world and world.npcs) or {}) do
+      if actor.def and actor.def[marker] then return true end
+    end
+    return false
+  end
+
+  local function spawnMarked(mapId, def, marker)
+    local actor = {}
+    for key, value in pairs(def) do actor[key] = value end
+    actor[marker] = true
+    local id, err = mod.world:spawnNpc(mapId, actor)
+    if not id then
+      mod.log:warn("contest actor %s failed: %s",
+                   tostring(def.name), tostring(err))
+      return false
+    end
+    return true
+  end
+
+  local function ensureGoldenrodAttendant(world)
+    if markerExists(world, "kcAttendant") then return end
+    local x, y, how = pickCell(world)
+    if not x then
+      mod.log:warn("contest attendant NOT placed: %s", how)
+      return
+    end
+    entranceCell.x, entranceCell.y = x, y
+    local def = {
+      name = "KC_GOLDENROD_ATTENDANT",
+      sprite = KCG.sprite, x = x, y = y,
+      movement = KCG.movement,
+    }
+    local ok = spawnMarked(KCG.map, def, "kcAttendant")
+    mod.log:info("contest attendant at %s %d,%d (%s) placed=%s",
+                 KCG.map, x, y, how, tostring(ok))
+  end
+
+  local function ensureHallActors(world)
+    for _, row in ipairs(HALL_ACTORS) do
+      if not markerExists(world, row.marker) then
+        spawnMarked(HALL, row, row.marker)
+      end
+    end
+  end
+
   mod.events:on("map.entered", function(ev)
     local ok, err = pcall(function()
       local mapId = ev and ev.mapId
-      if mapId ~= KCG.map then spawned = false return end
-      if spawned then return end
       local world = mod.world:overworld()
-      -- already there from an earlier entry this run? don't add a second
-      for _, npc in ipairs((world and world.npcs) or {}) do
-        if npc.def and npc.def.kcAttendant then spawned = true return end
+      if mapId == KCG.map then
+        ensureGoldenrodAttendant(world)
+      elseif mapId == HALL then
+        ensureHallActors(world)
       end
-      local x, y, how = pickCell(world)
-      if not x then
-        mod.log:warn("contest attendant NOT placed: %s", how)
-        return
-      end
-      spawned = true
-      local id, err2 = mod.world:spawnNpc(KCG.map, {
-        sprite = KCG.sprite, x = x, y = y,
-        movement = KCG.movement, kcAttendant = true,
-      })
-      -- the placement line the next debugging round will want
-      mod.log:info("contest attendant at %s %d,%d (%s) id=%s%s",
-                   KCG.map, x, y, how, tostring(id),
-                   err2 and (" err=" .. tostring(err2)) or "")
     end)
     if not ok then mod.log:warn("kc gold spawn: %s", tostring(err)) end
   end)
 
-  -- the talk seam: World:interactBody asks the OverworldController
-  -- facade's talkTo once the object is resolved; true suppresses the
-  -- built-in path (Gen2Compat's own coverage note). Chain politely: any
-  -- NPC that is not ours goes to whatever was there before us.
-  local OW = require("src.world.OverworldController")
-  local prevTalk = OW.talkTo
-  OW.talkTo = function(world, npc)
-    if not (npc and npc.def and npc.def.kcAttendant) then
-      if prevTalk then return prevTalk(world, npc) end
-      return nil
+  local function nameOf(game, mon)
+    return (mon and mon.nickname)
+      or (mon and game.data.pokemon[mon.species]
+          and game.data.pokemon[mon.species].name)
+      or "POKeMON"
+  end
+
+  local function enterHall(world)
+    hallReturn = mod.world:current()
+    local ok, err = mod.world:warpTo(
+      HALL, HALL_ARRIVAL_X, HALL_ARRIVAL_Y, "up")
+    if not ok then
+      mod.log:warn("contest hall warp failed: %s", tostring(err))
+      world:showText("KC error: hall\nentrance failed")
     end
-    local ok, err = pcall(function()
-      -- askYesNo rides the standing text box (the engine's own
-      -- Vm pattern: showText, then the choice over it)
-      world:showText("The GOLDENROD\nCONTEST corner!\nEnter the COOL\ncontest?",
-        function() end)
-      world:askYesNo(function(yes)
-        if not yes then
-          world:showText("Come back when\nyou feel COOL!")
+  end
+
+  local function leaveHall(world)
+    local target = hallReturn or {
+      mapId = KCG.map,
+      x = entranceCell.x,
+      y = entranceCell.y + 1,
+      facing = "down",
+    }
+    local ok, err = mod.world:warpTo(
+      target.mapId, target.x, target.y, target.facing or "down")
+    if not ok then
+      mod.log:warn("contest hall exit failed: %s", tostring(err))
+      world:showText("KC error: hall\nexit failed")
+    end
+  end
+
+  local function visitHall(world)
+    world:showText(
+      "The GOLDENROD\nCONTEST HALL!\nWould you like\nto go inside?",
+      function() end)
+    world:askYesNo(function(yes)
+      if yes then enterHall(world)
+      else world:showText("Come back when\nyou feel COOL!") end
+    end)
+  end
+
+  local function startGoldContest(world)
+    world:showText(
+      "Welcome to the\nCONTEST HALL!\nEnter the COOL\ncontest?",
+      function() end)
+    world:askYesNo(function(yes)
+      if not yes then
+        world:showText("Take your time.\nThe stage is ready!")
+        return
+      end
+      local game = world.game
+      local Mon = require("src.battle.gen2.Mon")
+      local meter = Mon.new(game.data, "CHANSEY", 30)
+      if not meter then
+        world:showText("KC error: no\nmeter mon")
+        return
+      end
+      meter.nickname = "APPEAL"
+      judge.party = { meter }
+      world:startBattle({ trainer = judge, save = game.save },
+        function(outcome)
+          if outcome ~= "win" then
+            world:showText("Not quite this\ntime. Practice!")
+            return
+          end
+          -- Battle.playerIndex is firstHealthy, so mirror it when recording
+          -- the win on the entrant after the contest screen closes.
+          for _, mon in ipairs((game.save and game.save.party) or {}) do
+            if not mon.isEgg and (mon.hp or 0) > 0 then
+              mon.contestWins = mon.contestWins or {}
+              mon.contestWins.COOL = (mon.contestWins.COOL or 0) + 1
+              break
+            end
+          end
+          world:showText("Magnificent!\nTruly COOL!")
+        end)
+    end)
+  end
+
+  local SNACK_MENU = {
+    top = 1, left = 3, bottom = 14, right = 17,
+    dataFlags = 0xc0, cursor = 1,
+    items = { "SPICY  500", "DRY    500", "SWEET  500",
+              "BITTER 500", "SOUR   500", "CANCEL" },
+  }
+
+  local function feedSnack(world, snack)
+    local game, save = world.game, world.game and world.game.save
+    local player = save and save.player
+    if not (game and save and player) then
+      world:showText("KC error: no\ntrainer data")
+      return
+    end
+    if (player.money or 0) < KC_SNACK_PRICE then
+      world:showText("You don't have\nenough money.")
+      return
+    end
+    world:selectPartyMon("Choose a POKeMON.", function(_, mon)
+      if not mon then return end
+      if mon.isEgg then
+        world:showText("An EGG can't eat\na POKeSNACK.")
+        return
+      end
+      if kcSheen(mon) >= 100 then
+        world:showText(("%s has had\nplenty!\fAny more would\nbe wasted.")
+          :format(nameOf(game, mon)))
+        return
+      end
+      player.money = math.max(0, (player.money or 0) - KC_SNACK_PRICE)
+      local cond = kcCondition(mon)
+      local key = KC_STAT_KEY[snack.category]
+      cond[key] = math.min(100, cond[key] + KC_SNACK_CONDITION)
+      mon.kcSheen = math.min(100, kcSheen(mon) + KC_SNACK_SHEEN)
+      world:showText(("%s ate the\n%s!\fIts %s rose!")
+        :format(nameOf(game, mon), snack.name, snack.category))
+    end)
+  end
+
+  local function offerSnack(world, snack)
+    world:showText(("A %s\ncosts %d.\fFeed it now?")
+      :format(snack.name, KC_SNACK_PRICE), function() end)
+    world:askYesNo(function(yes)
+      if yes then feedSnack(world, snack) end
+    end)
+  end
+
+  local function openSnackVendor(world)
+    world:showText(
+      "POKeSNACKS!\nFive flavors.\fThey raise contest\ncondition.",
+      function()
+        world:openScriptMenu(SNACK_MENU, "vertical", function(choice)
+          local snack = KC_SNACKS[tonumber(choice) or 0]
+          if snack then offerSnack(world, snack) end
+        end)
+      end)
+  end
+
+  local function appraiseGold(world)
+    local game = world.game
+    world:showText("I can read contest\ncondition.\fWhich POKeMON?", function()
+      world:selectPartyMon("Choose a POKeMON.", function(_, mon)
+        if not mon then return end
+        if mon.isEgg then
+          world:showText("An EGG has no\ncontest condition.")
           return
         end
-        local game = world.game
-        local Mon = require("src.battle.gen2.Mon")
-        local meter = Mon.new(game.data, "CHANSEY", 30)
-        if not meter then
-          world:showText("KC error: no\nmeter mon")
-          return
+        local cond = kcCondition(mon)
+        local pages = { ("%s, is it?\nLet me look..."):format(nameOf(game, mon)) }
+        local rows = {}
+        for _, cat in ipairs(KC_STAT_ORDER) do
+          rows[#rows + 1] = ("%s: %s"):format(cat,
+            kcBand(KC_TIERS, cond[KC_STAT_KEY[cat]]).word)
+          if #rows == 2 then
+            pages[#pages + 1] = table.concat(rows, "\n")
+            rows = {}
+          end
         end
-        meter.nickname = "APPEAL"
-        judge.party = { meter }
-        world:startBattle({ trainer = judge, save = game.save },
-          function(outcome)
-            if outcome ~= "win" then
-              world:showText("Not quite this\ntime. Practice!")
-              return
-            end
-            -- record the win on the entrant, same contract as Gen 1:
-            -- Battle.playerIndex is firstHealthy, so mirror that
-            for _, mon in ipairs((game.save and game.save.party) or {}) do
-              if (mon.hp or 0) > 0 then
-                mon.contestWins = mon.contestWins or {}
-                mon.contestWins.COOL = (mon.contestWins.COOL or 0) + 1
-                break
-              end
-            end
-            world:showText("Magnificent!\nTruly COOL!")
-          end)
+        if #rows > 0 then pages[#pages + 1] = table.concat(rows, "\n") end
+        pages[#pages + 1] =
+          kcBand(KC_SHEEN_LINES, kcSheen(mon)).text
+        local worn = KC_SCARF_BY_CATEGORY[kcScarfCategory(mon)]
+        if worn then
+          pages[#pages + 1] = ("It is wearing a\n%s."):format(worn.name)
+        end
+        local earned = kcEligibleScarf(game.save, mon)
+        if earned then
+          local ok, _, why = mod.exports.giveScarf(game.save, earned.category)
+          if ok and why == "given" then
+            pages[#pages + 1] = ("You earned the\n%s!"):format(earned.name)
+            pages[#pages + 1] = "Give it to a\nPOKeMON to wear."
+          elseif not ok then
+            pages[#pages + 1] = ("A %s is\nyours..."):format(earned.name)
+            pages[#pages + 1] = "But your PACK is\nfull. Come back!"
+          end
+        end
+        world:showText(table.concat(pages, "\f"))
       end)
     end)
-    if not ok then mod.log:warn("kc gold talk: %s", tostring(err)) end
+  end
+
+  -- World:interactBody asks this facade's talkTo after resolving an NPC.
+  -- Own only the four marker fields above and chain every other actor.
+  local OW = require("src.world.OverworldController")
+  OW._kcOriginals = OW._kcOriginals or { talkTo = OW.talkTo }
+  local baseTalk = OW._kcOriginals.talkTo
+  OW.talkTo = function(world, npc)
+    local def = npc and npc.def
+    local handler = def and (
+      (def.kcAttendant and visitHall)
+      or (def.kcHallJudge and startGoldContest)
+      or (def.kcHallVendor and openSnackVendor)
+      or (def.kcHallAppraiser and appraiseGold)
+      or (def.kcHallExit and leaveHall)
+    )
+    if not handler then
+      if baseTalk then return baseTalk(world, npc) end
+      return nil
+    end
+    local ok, err = pcall(handler, world)
+    if not ok then
+      mod.log:warn("kc gold talk: %s", tostring(err))
+      pcall(function() world:showText("KC error: hall\ninteraction failed") end)
+    end
     return true
   end
 
@@ -447,25 +936,27 @@ local function kcGold(mod, VERSION)
     pcall(function()
       local world = mod.world:overworld()
       if world and world.showText then
-        world:showText(("KANTO CONTESTS\nv%s ALPHA\nGOLD spike"):format(VERSION))
+        world:showText(("KANTO CONTESTS\nv%s ALPHA\nJOHTO preview"):format(VERSION))
       end
     end)
   end)
 
-  mod.log:info("kanto_contests %s loaded (gold arm)", VERSION)
+  mod.log:info("kanto_contests %s loaded (gen 2 arm)", VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.10.2"
+  local VERSION = "0.10.9"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
-    maps = { "KC_CONTEST_HALL" },
-    tilesets = { "KC_HALL_TILES" },
+    maps = { "KC_CONTEST_HALL", "KC_JOHTO_CONTEST_HALL" },
+    tilesets = { "KC_HALL_TILES", "KC_JOHTO_HALL_TILES" },
     items = { "KC_SPICY_SNACK", "KC_DRY_SNACK", "KC_SWEET_SNACK",
-              "KC_BITTER_SNACK", "KC_SOUR_SNACK" },
+              "KC_BITTER_SNACK", "KC_SOUR_SNACK", "KC_RED_SCARF",
+              "KC_BLUE_SCARF", "KC_PINK_SCARF", "KC_GREEN_SCARF",
+              "KC_YELLOW_SCARF" },
     -- mon fields this mod writes; a decorator may read them, not write them
-    monFields = { "contest", "kcSheen", "contestWins" },
+    monFields = { "contest", "kcSheen", "kcScarf", "contestWins" },
     commands = { "kanto_contests:start_contest", "kanto_contests:base_talk",
                  "kanto_contests:ribbons_missing", "kanto_contests:snack_mart",
                  "kanto_contests:appraise" },
@@ -494,8 +985,33 @@ return function(mod)
   mod.exports.opposed = KC_OPPOSED
   mod.exports.snacks = {}
   for _, s in ipairs(KC_SNACKS) do mod.exports.snacks[s.category] = s.id end
+  mod.exports.scarves = {}
+  for _, s in ipairs(KC_SCARVES) do mod.exports.scarves[s.category] = s.id end
+  mod.exports.wornScarf = kcScarfCategory
   mod.exports.readCondition = function(mon)
     return kcCondition(mon), kcSheen(mon)
+  end
+
+  local Bag = require("src.inventory.Bag")
+  mod.exports.giveScarf = function(save, category)
+    local row = KC_SCARF_BY_CATEGORY[tostring(category or ""):upper()]
+    if not (save and row) then return false, nil, "bad_category" end
+    save.inventory = save.inventory or {}
+    if kcHasScarf(save, row) then return true, row.id, "owned" end
+    local data = mod.game and mod.game.data
+    if not Bag.add(save, row.id, 1, data) then
+      return false, row.id, "bag_full"
+    end
+    return true, row.id, "given"
+  end
+
+  -- Shared item records: Crystal treats them as ordinary holdable ITEM-pocket
+  -- accessories; Gen 1's field-use wrapper below supplies its equip action.
+  for _, row in ipairs(KC_SCARVES) do
+    mod.content.items:register(row.id, {
+      id = row.id, name = row.name, price = 0, tossable = true,
+      needsTarget = true,
+    })
   end
 
   -- No EXP from a contest, on either generation: both engines raise
@@ -632,14 +1148,31 @@ return function(mod)
   -- Without this the bag would use a snack on nobody: needsTarget is what
   -- makes BagMenu open the party picker first.
   ItemEffectsM.needsTarget = function(id, itemDef)
-    if KC_SNACK_BY_ID[id] then return true end
+    if KC_SNACK_BY_ID[id] or KC_SCARF_BY_ID[id] then return true end
     return IO_.needsTarget(id, itemDef)
   end
 
   ItemEffectsM.use = function(data, save, itemId, target, battle, moveIndex, ow)
     local snack = KC_SNACK_BY_ID[itemId]
-    if not snack then
+    local scarf = KC_SCARF_BY_ID[itemId]
+    if not snack and not scarf then
       return IO_.use(data, save, itemId, target, battle, moveIndex, ow)
+    end
+    if scarf then
+      if battle then return "failed", { "Not during a\ncontest!" } end
+      if not target then return "failed", { "Wear it on which\nPOKeMON?" } end
+      local name = target.nickname
+                   or (data.pokemon[target.species]
+                       and data.pokemon[target.species].name)
+                   or "POKeMON"
+      if kcScarfCategory(target) == scarf.category then
+        return "kept", { ("%s already\nwears that scarf."):format(name) }
+      end
+      target.kcScarf = scarf.category
+      return "kept", {
+        ("%s put on\n%s!"):format(name, scarf.name),
+        ("It adds flair to\n%s contests!"):format(scarf.category),
+      }
     end
     local ok, result, messages = pcall(function()
       -- Snacks are a field item. Refusing in battle matches how the
@@ -756,6 +1289,10 @@ return function(mod)
           local hearts = kcIntroHearts(mon, tostring(b.contest),
                                        b.kcRank or "NORMAL")
           b.kcHearts = hearts   -- slice 4's rivals compare against this
+          local scarf = KC_SCARF_BY_CATEGORY[kcScarfCategory(mon)]
+          if scarf and scarf.category == tostring(b.contest) then
+            b:sayNext(("%s\nshines!\fThe audience\ntakes notice!"):format(scarf.name))
+          end
           if hearts <= 0 then
             -- no drain: silence IS the zero-hearts result, and the bar
             -- not moving is the visual confirmation
@@ -1316,6 +1853,22 @@ return function(mod)
       end
       if #line > 0 then pages[#pages + 1] = table.concat(line, "\n") end
       pages[#pages + 1] = kcBand(KC_SHEEN_LINES, kcSheen(picked)).text
+      local worn = KC_SCARF_BY_CATEGORY[kcScarfCategory(picked)]
+      if worn then
+        pages[#pages + 1] = ("It is wearing a\n%s."):format(worn.name)
+      end
+      local earned = kcEligibleScarf(ctx.game.save, picked)
+      if earned then
+        local ok, _, why =
+          mod.exports.giveScarf(ctx.game.save, earned.category)
+        if ok and why == "given" then
+          pages[#pages + 1] = ("You earned the\n%s!"):format(earned.name)
+          pages[#pages + 1] = "Use it on a\nPOKeMON to wear."
+        elseif not ok then
+          pages[#pages + 1] = ("A %s is\nyours..."):format(earned.name)
+          pages[#pages + 1] = "But your BAG is\nfull. Come back!"
+        end
+      end
       -- show_text blocks on its own; the picker above needed our yield
       -- because Screens.push does not.
       Commands.show_text(ctx, table.concat(pages, "\f"))

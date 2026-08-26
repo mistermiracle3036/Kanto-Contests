@@ -63,12 +63,49 @@ pampered POKeMON needs three good appeals where an unfed one needs four.
 The audience stays silent for an unfed entrant — appeals still decide
 everything.
 
+## Contest scarves
+
+The appraiser awards a scarf after seeing a Pokemon with a condition category
+maxed at 100. Each matching scarf adds 20 points before the audience converts
+condition into Introduction hearts.
+
+| Scarf | Contest |
+|---|---|
+| RED SCARF | COOL |
+| BLUE SCARF | BEAUTY |
+| PINK SCARF | CUTE |
+| GREEN SCARF | SMART |
+| YELLOW SCARF | TOUGH |
+
+In Crystal, give the scarf to a Pokemon with the normal party **ITEM** menu.
+In Kanto, use the scarf from the bag and choose the Pokemon that will wear it.
+
+## Crystal development preview
+
+The current test build has an early Crystal development path. A Contest
+attendant stands in Goldenrod City and leads into the mod's own Contest Hall.
+Inside, the judge runs the COOL contest; a vendor sells all five PokeSnack
+flavors and feeds the chosen Pokemon immediately, and an appraiser reads
+condition and fullness.
+
+Version 0.10.4 adds the Kanto Introduction Round, contest-specific opening
+language, a hidden judge level, and the same no-switching/no-items routine.
+Version 0.10.7 also gives Gen 2 a clean contest victory: completing the APPEAL
+meter ends the performance without fainting the hidden stand-in or awarding
+trainer prize money.
+
+Version 0.10.8 replaces the temporary custom portrait with Crystal's native
+**Gentleman** battle front. It is the direct Gen 2 equivalent of Red's
+Gentleman judge and matches Gentleman Preston, the Olivine Lighthouse trainer
+with two Growlithe.
+
 ## What works today
 
 - The Celadon entrance, the Contest Hall, and the COOL contest end to end
 - All 165 moves carry a contest category
 - Appeal scoring, the five-appeal limit, win/lose/withdraw
 - PokeSnacks, contest condition and sheen, with a vendor and an appraiser
+- Five earned contest scarves and their Introduction-round bonus
 - The Introduction Round: condition scored as hearts, cashed in as a
   head start on the appeal meter
 - Wins recorded on the POKeMON itself, so they survive boxing, evolution
@@ -77,8 +114,7 @@ everything.
 ## What isn't there yet
 
 - **Only the COOL contest.** BEAUTY, CUTE, SMART and TOUGH are not in.
-- No ranks (Normal/Super/Hyper/Master), no scarves, no rival
-  coordinators yet.
+- No ranks (Normal/Super/Hyper/Master) or rival coordinators yet.
 - **The contest HUD is polished for the classic battle layout.** In the
   widescreen layout the judge and the appeal meter both show, but the
   contest dressing is missing: the meter reads as an ordinary status
@@ -107,6 +143,7 @@ namespaced. No other mod's territory is touched.
 - Contest design based on the Generation III Contests of Pokemon
   Ruby/Sapphire; no assets or data from those games are included.
 - All tile art (`assets/contest_tiles.png`) is original to this mod.
+
 - Built for [gen1recomp](https://github.com/bryanthaboi/gen1recomp) by
   bryanthaboi.
 - [Kanto Ribbons](https://github.com/mistermiracle3036/kanto_ribbons)

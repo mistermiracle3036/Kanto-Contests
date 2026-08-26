@@ -40,17 +40,26 @@ end
 -- the one that would, which makes it the honest canary.
 local GEN1_ONLY_LEAK = "src.script.Commands"
 
+-- The manifest says games: ["gen1", "gen2"], and ModTargets.expand("gen2")
+-- resolves that to EVERY generation-2 version id -- gold, silver AND crystal
+-- (src/mods/ModTargets.lua). So the claim being made is three Gen 2 games,
+-- not one, and testing only Gold left two of them asserted but unexercised.
+-- Crystal matters most: it is the one Gen 2 version on its own engine branch
+-- (GameVersion.engine -> "crystal" where Gold and Silver share "gs").
 for _, case in ipairs({ { gen = 1, version = "red" },
-                        { gen = 2, version = "gold" } }) do
+                        { gen = 1, version = "yellow" },
+                        { gen = 2, version = "gold" },
+                        { gen = 2, version = "silver" },
+                        { gen = 2, version = "crystal" } }) do
   GameVersion.current = case.version
   local run = T.sdk.loadMod("../Kanto-Contests", { generation = case.gen })
   local mod = run.mod
   T.eq(mod and mod.state, "loaded",
-    ("gen %d: state is loaded (skipReason=%s)"):format(
-      case.gen, tostring(mod and mod.skipReason)))
+    ("%s: state is loaded (skipReason=%s)"):format(
+      case.version, tostring(mod and mod.skipReason)))
   local errs = realErrors(run)
-  T.eq(#errs, 0, ("gen %d: no boot errors (first: %s)"):format(
-    case.gen, tostring(errs[1])))
+  T.eq(#errs, 0, ("%s: no boot errors (first: %s)"):format(
+    case.version, tostring(errs[1])))
 
   if case.gen == 2 then
     local leaked = false
@@ -58,10 +67,10 @@ for _, case in ipairs({ { gen = 1, version = "red" },
       if msg:find(GEN1_ONLY_LEAK, 1, true) then leaked = true end
     end
     T.eq(leaked, false,
-      "gen 2: the Gen 1 arm never runs, so " .. GEN1_ONLY_LEAK ..
+      case.version .. ": the Gen 1 arm never runs, so " .. GEN1_ONLY_LEAK ..
       " is never required")
   end
   if run.release then run.release() end
 end
-print("BOTH GENERATIONS LOAD CLEAN")
+print("ALL TARGETED GAMES LOAD CLEAN: red, yellow, gold, silver, crystal")
 print("gen 2: no Gen 1-only require leaked past the generation branch")

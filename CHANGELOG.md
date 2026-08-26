@@ -1,5 +1,99 @@
 # Changelog
 
+## 0.10.9
+Contest scarves, moved ahead of coordinator opponents.
+
+- Added RED, BLUE, PINK, GREEN and YELLOW SCARVES for COOL, BEAUTY, CUTE,
+  SMART and TOUGH. A matching scarf adds 20 points to the Introduction Round.
+- The appraiser awards a category's scarf when shown a Pokemon with that
+  condition maxed at 100. Scarves are earned, never sold.
+- Crystal uses its native held-item flow: give the scarf to a Pokemon through
+  the party ITEM menu. Gen 1 has no held items, so using a scarf from the bag
+  records it as that Pokemon's worn contest accessory.
+- Published `scarves`, `wornScarf` and `giveScarf(save, category)` exports
+  so future coordinator and reward mods can share the same accessories safely.
+
+## 0.10.8
+Crystal-native judge portrait.
+
+- Replaced the temporary Vest + Glasses portrait with Crystal's native
+  **GENTLEMAN** battle front. This is the direct Gen 2 counterpart to Red's
+  Gentleman contest judge and the class used by Gentleman Preston in Olivine
+  Lighthouse, whose party is two Growlithe.
+- The native judge remains in the opponent picture box for the whole routine;
+  Crystal's ordinary trainer-slide event is suppressed only for contests.
+- Removed the rejected custom portrait from the mod package and its active
+  documentation. The historical 0.10.5/0.10.6 notes remain below.
+
+## 0.10.7
+Johto Contest Hall and clean contest victory.
+
+- Filling the Gold APPEAL meter now ends the contest before Gold's normal
+  faint resolver. The hidden Chansey stand-in no longer faints, the judge is
+  never announced as defeated, and no trainer prize money is awarded.
+- Goldenrod's outdoor attendant now leads into an owned indoor Contest Hall,
+  built through the private Gen 2 map/tileset/runtime-object pattern proven by
+  Hidden Grottos 0.1.3. The hall has its own judge and exit attendant.
+- A hall vendor sells all five PokeSnack flavors for 500 and feeds the chosen
+  Pokemon immediately. A hall appraiser reads all five condition categories
+  and fullness using the same wording and saved fields as Kanto.
+
+## 0.10.6
+Updated Gold judge portrait.
+
+- Replaced the temporary Indigo Conference 1.1.26 portrait with the corrected
+  **Vest + Glasses** battle front from Indigo Plateau Conference 1.1.27. The
+  detached palette-reference block is gone; the 56x56 portrait itself is not
+  clipped or resized.
+- Recorded the recovered source and permission: battle portrait by
+  **JustinNuggets (Substitube)**, free to use with credit. The judge art is no
+  longer blocked by missing attribution.
+
+## 0.10.5
+Private Gold judge-art test.
+
+- Replaced Chansey's visible battle sprite with Indigo Conference 1.1.26's
+  **Vest + Glasses** portrait. The proven Conference pattern changes only the
+  already-created contest UI, so no shared Gold trainer class or ordinary
+  battle is repainted; Chansey remains invisibly behind the appeal meter.
+- The opponent send-out is now a judge entrance: no Chansey ball animation or
+  cry. Judge presentation and withdrawal text refer to the judge throughout.
+  Missing art produces a visible `KC error` line instead of silently falling
+  back.
+- **Private test restriction:** Indigo Conference records this probe portrait
+  as missing durable artist/source attribution. It must be replaced or have
+  its credits recovered before any public Kanto Contests release.
+
+## 0.10.4
+Gold contest-flow parity pass, following the first successful full device
+round on 0.10.3.
+
+- **Chansey is the visible judge, not a levelled opponent.** Its level and
+  gender are hidden, the lone trainer-party ball row is removed, and the
+  opening now says that the contest is beginning and the entrant is taking
+  the stage instead of challenging the player to a battle.
+- **The Introduction Round now runs on Gold.** The entrant's condition and
+  sheen use the same Kanto scoring table, announce 0-8 audience hearts, and
+  visibly convert into up to a 35% head start on the appeal meter.
+- **One POKeMON, one routine now holds on Gold:** POKeMON and ITEM are refused
+  without spending a turn. RUN explicitly withdraws with contest language
+  before Gold's normal trainer-battle escape refusal can fire.
+- Expanded the ROM-free Gold regression test to cover the Introduction Round,
+  hidden judge level/gender, menu refusals, and clean withdrawal.
+
+## 0.10.3
+Gold core-rules pass, now device-verified end to end on Gold.
+
+- **Status moves are appeals now.** Every move selected by the entrant goes
+  through the same contest-only path before Gold can run its battle effect:
+  THUNDER WAVE can fill the COOL meter but cannot paralyze the judge, GROWL
+  can appeal but cannot lower a stat, and damaging moves cannot hit twice.
+- **The judge no longer uses STRUGGLE between appeals.** Gold substitutes
+  STRUGGLE when an opponent has no usable move even after the mod requests no
+  enemy action; the contest path now suppresses that fallback cleanly.
+- Added a ROM-free Gold battle regression test for effect suppression, meter
+  scoring, PP use, judge reactions and the silent judge turn.
+
 ## 0.10.2
 Gold spike round three. Still **not Gold-verified** end to end -- do not
 merge until a Gold round passes.

@@ -1,7 +1,7 @@
 {
   "id": "kanto_contests",
   "name": "Kanto Contests (Alpha)",
-  "version": "0.10.2",
+  "version": "0.10.9",
   "api": 2,
   "games": [
     "gen1",
@@ -20,5 +20,5 @@
   "dependencies": [],
   "optional_dependencies": [],
   "conflicts": [],
-  "description": "ALPHA / proof of concept -- playable but unfinished. Ruby/Sapphire-style Pokemon Contests in Kanto: enter the Celadon Contest Hall and appeal to the judge with your POKeMON's moves, scored by each move's contest category. One COOL contest so far; PokeSnacks, the other four types and ranks are still to come. Wins are recorded on the POKeMON, so Kanto Ribbons awards a Cool Ribbon."
+  "description": "ALPHA / proof of concept -- playable but unfinished. Ruby/Sapphire-style Pokemon Contests in Kanto and Johto: raise condition with PokeSnacks, earn and wear contest scarves, then appeal with move categories. One COOL contest so far; coordinators, the other four types and ranks are still to come."
 }
