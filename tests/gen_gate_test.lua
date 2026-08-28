@@ -9,11 +9,16 @@ package.path = "./?.lua;./?/init.lua;" .. package.path
 local T = require("tests.modkit")
 local GameVersion = require("src.core.GameVersion")
 
--- these two are the sandbox's own gaps (no ROM content loaded), the same
--- pair modkit validate reports; they are not mod defects
+-- these are the sandbox's own gaps (no ROM content loaded), the same set
+-- modkit validate reports; they are not mod defects. The tileset row: the
+-- Johto hall reads the vanilla TILESET_TRADITIONAL_HOUSE, which lives in
+-- the imported game cache, not in any mod -- verified present on both the
+-- gold and crystal caches by scratchpad/verify_hall.lua alongside the
+-- hall's full walk geometry.
 local KNOWN = {
   ['unresolved reference to trainers "OPP_GENTLEMAN"'] = true,
   ['unresolved reference to pokemon "CHANSEY"'] = true,
+  ['unresolved reference to tilesets "TILESET_TRADITIONAL_HOUSE"'] = true,
 }
 local function realErrors(run)
   local out = {}

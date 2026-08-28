@@ -462,3 +462,16 @@ the block ids collide with another mod, or (b) keeping the street
 attendant as the entrance and accepting no facade. Option (a) is real
 work with a real blast radius; decide with the developer before starting
 it.
+
+## 0.13.1 correction: vanilla tiles only for the hall
+
+The 0.13.0 generated-art tileset was rejected on sight ("ugly, didn't
+translate at all to gen 2 style"). Standing rule from it: reference
+screenshots from other generations are LAYOUT direction, never art
+direction -- build rooms from vanilla Gen 2 blocks, and reach for custom
+tiles only when the developer asks for custom art in so many words. The
+cross-reference of a mod map onto a vanilla tileset works exactly as the
+superseded theatre draft measured: `tileset = "TILESET_TRADITIONAL_HOUSE"`
+resolves through the merged gen2 table at runtime, shows as a KNOWN
+unresolved reference in the ROM-free sandbox, and the id + full geometry
+are verified against both imported caches by scratchpad/verify_hall.lua.

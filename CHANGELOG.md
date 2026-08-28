@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.13.1
+The hall keeps the Emerald layout but wears Gold's own tiles.
+
+0.13.0 drew its own Emerald-palette tile art and it didn't belong in a
+Gen 2 game -- the Emerald screenshots were layout inspiration, not an art
+direction. The room is now built entirely from the Ecruteak Dance
+Theatre's vanilla tiles: the scroll-hung back wall, the dark stage boards
+with a stair at each end, tatami floor with cushion seating, and the
+proper doorway. What stays from Emerald is the blocking -- the judge on
+stage, the audience watching from the floor, the coordinator line at the
+floor's edge with the fourth place open for you, and the theatre's
+performance music.
+
+Everything in 0.13.0's entry below otherwise stands.
+
 ## 0.13.0
 The Johto hall becomes the Emerald stage room.
 
