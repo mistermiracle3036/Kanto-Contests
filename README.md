@@ -1,6 +1,6 @@
 # Kanto Contests
 
-> **ALPHA — proof of concept.** One contest type, one hall, one judge.
+> **ALPHA — proof of concept.** Five contests, two halls, no ranks yet.
 > It is playable and it is stable, but it is a fraction of what Contests
 > should be, and things will change between versions. Feedback and bug
 > reports are the point of releasing it this early.
@@ -8,9 +8,9 @@
 Ruby/Sapphire-style Pokemon Contests, rebuilt for Kanto on gen1recomp.
 
 Talk to the little girl in Celadon City and she'll show you the way to the
-new Contest Hall. Inside, the judge runs a COOL contest: you have five
-appeals to fill his meter, and every move is scored on its **contest
-category** rather than its damage.
+new Contest Hall. Inside, the judge runs all five contests: pick the one
+you want to enter, then use five appeals to fill his meter. Every move is
+scored on its **contest category** rather than its damage.
 
 ## How a contest works
 
@@ -84,7 +84,7 @@ In Kanto, use the scarf from the bag and choose the Pokemon that will wear it.
 
 The current test build has an early Crystal development path. A Contest
 attendant stands in Goldenrod City and leads into the mod's own Contest Hall.
-Inside, the judge runs the COOL contest; a vendor sells all five PokeSnack
+Inside, the judge runs all five contests; a vendor sells all five PokeSnack
 flavors and feeds the chosen Pokemon immediately, and an appraiser reads
 condition and fullness.
 
@@ -101,7 +101,7 @@ with two Growlithe.
 
 ## What works today
 
-- The Celadon entrance, the Contest Hall, and the COOL contest end to end
+- The Celadon entrance, the Contest Hall, and all five contests end to end
 - All 165 moves carry a contest category
 - Appeal scoring, the five-appeal limit, win/lose/withdraw
 - PokeSnacks, contest condition and sheen, with a vendor and an appraiser
@@ -113,8 +113,12 @@ with two Growlithe.
 
 ## What isn't there yet
 
-- **Only the COOL contest.** BEAUTY, CUTE, SMART and TOUGH are not in.
-- No ranks (Normal/Super/Hyper/Master) or rival coordinators yet.
+- No ranks (Normal/Super/Hyper/Master) or rival coordinators yet. Every
+  contest is the same difficulty whichever category you pick.
+- **Only the Cool Ribbon exists to be won.** All five contests record their
+  win, but Kanto Ribbons has artwork for the Cool Ribbon only, so the other
+  four award nothing yet. They will award retroactively once it draws them
+  — the wins are already in your save.
 - **The contest HUD is polished for the classic battle layout.** In the
   widescreen layout the judge and the appeal meter both show, but the
   contest dressing is missing: the meter reads as an ordinary status
@@ -129,8 +133,9 @@ with two Growlithe.
 - **[Kanto Ribbons](https://github.com/mistermiracle3036/kanto_ribbons)
   0.18.0+** — optional. Install it and winning a COOL contest awards the
   Cool Ribbon. Without it, contests play exactly the same and the judge
-  simply doesn't mention ribbons. Wins are still recorded, so installing
-  Kanto Ribbons later awards ribbons for contests you already won.
+  simply doesn't mention ribbons. Wins are recorded per category either way,
+  so installing Kanto Ribbons later — or updating it once it has the other
+  four ribbons — awards them for contests you already won.
 
 ## Compatibility
 

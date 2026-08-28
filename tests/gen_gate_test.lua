@@ -54,6 +54,20 @@ for _, case in ipairs({ { gen = 1, version = "red" },
   GameVersion.current = case.version
   local run = T.sdk.loadMod("../Kanto-Contests", { generation = case.gen })
   local mod = run.mod
+  -- A nil mod means the loader never DISCOVERED it, which is a different
+  -- failure from one that loaded badly -- and "state is nil" alone does not
+  -- say which. Seen twice on Windows immediately after writing main.lua (a
+  -- transient read failure, green on every re-run), so say what was found
+  -- rather than leaving the next person to guess.
+  if not mod then
+    local seen = {}
+    for id in pairs(run.mods or {}) do seen[#seen + 1] = id end
+    table.sort(seen)
+    print(("  (%s: loader discovered {%s}, %d error(s): %s)"):format(
+      case.version, table.concat(seen, ", "), #(run.errors or {}),
+      tostring((run.errors or {})[1] and
+               ((run.errors or {})[1].message or run.errors[1]))))
+  end
   T.eq(mod and mod.state, "loaded",
     ("%s: state is loaded (skipReason=%s)"):format(
       case.version, tostring(mod and mod.skipReason)))

@@ -1,7 +1,7 @@
 {
   "id": "kanto_contests",
   "name": "Kanto Contests (Alpha)",
-  "version": "0.10.9",
+  "version": "0.11.0",
   "api": 2,
   "games": [
     "gen1",
@@ -20,5 +20,5 @@
   "dependencies": [],
   "optional_dependencies": [],
   "conflicts": [],
-  "description": "ALPHA / proof of concept -- playable but unfinished. Ruby/Sapphire-style Pokemon Contests in Kanto and Johto: raise condition with PokeSnacks, earn and wear contest scarves, then appeal with move categories. One COOL contest so far; coordinators, the other four types and ranks are still to come."
+  "description": "ALPHA / proof of concept -- playable but unfinished. Ruby/Sapphire-style Pokemon Contests in Kanto and Johto: raise condition with PokeSnacks, earn and wear contest scarves, then pick one of the five contests -- COOL, BEAUTY, CUTE, SMART or TOUGH -- and appeal with your POKeMON's move categories. Coordinators and contest ranks are still to come. Wins are recorded per category on the POKeMON, so Kanto Ribbons awards the matching ribbon."
 }

@@ -350,6 +350,9 @@ local function kcGold(mod, VERSION)
   -- Gentleman used for Red's contest judge. It is also Gentleman Preston's
   -- class in Olivine Lighthouse (the trainer with two Growlithe), so the hall
   -- and battle portraits now agree without shipping replacement artwork.
+  -- kcContest is rewritten per contest by runGoldContest from the category
+  -- the player picked; COOL here is only the value a contest that somehow
+  -- started without going through that menu would fall back to.
   local judge = { name = "JUDGE", class = "GENTLEMAN",
                   baseMoney = 0, party = {}, kcContest = "COOL" }
 
@@ -752,51 +755,81 @@ local function kcGold(mod, VERSION)
   end
 
   local function visitHall(world)
+    -- Two rows per page. This asked its question across FOUR \n-separated
+    -- rows, and only \v and \f wait for a button (TextBox.lua:4-5), so rows
+    -- three and four scrolled the first two away unread -- the player saw
+    -- "Would you like / to go inside?" over a YES/NO box and never learned
+    -- what they were saying yes to.
     world:showText(
-      "The GOLDENROD\nCONTEST HALL!\nWould you like\nto go inside?",
+      "The GOLDENROD\nCONTEST HALL!\fWould you like\nto go inside?",
       function() end)
     world:askYesNo(function(yes)
       if yes then enterHall(world)
-      else world:showText("Come back when\nyou feel COOL!") end
+      else world:showText("Come back any\ntime!") end
     end)
+  end
+
+  -- The five contests. Everything downstream of this menu was already
+  -- category-generic -- appeal scoring, the opposed-category penalty, the
+  -- Introduction Round's hearts, the scarf bonus, every judge reaction -- so
+  -- until now the mod computed all five and could only ever be told COOL.
+  -- Kanto Ribbons has likewise mapped all five categories since it shipped
+  -- the contest resolver; it awards only the ones its catalog has drawn, so
+  -- the other four light up there with no change on this side.
+  local CONTEST_MENU = {
+    top = 1, left = 3, bottom = 14, right = 17,
+    dataFlags = 0xc0, cursor = 1,
+    items = { "COOL", "BEAUTY", "CUTE", "SMART", "TOUGH", "CANCEL" },
+  }
+
+  local function runGoldContest(world, kind)
+    local game = world.game
+    local Mon = require("src.battle.gen2.Mon")
+    local meter = Mon.new(game.data, "CHANSEY", 30)
+    if not meter then
+      world:showText("KC error: no\nmeter mon")
+      return
+    end
+    meter.nickname = "APPEAL"
+    judge.party = { meter }
+    -- The contest marker every hook reads. Set per contest rather than once
+    -- on the shared judge table, so the category the player chose is the one
+    -- scoring, reacting and being recorded.
+    judge.kcContest = kind
+    world:startBattle({ trainer = judge, save = game.save },
+      function(outcome)
+        if outcome ~= "win" then
+          world:showText("Not quite this\ntime. Practice!")
+          return
+        end
+        -- Battle.playerIndex is firstHealthy, so mirror it when recording
+        -- the win on the entrant after the contest screen closes.
+        for _, mon in ipairs((game.save and game.save.party) or {}) do
+          if not mon.isEgg and (mon.hp or 0) > 0 then
+            mon.contestWins = mon.contestWins or {}
+            mon.contestWins[kind] = (mon.contestWins[kind] or 0) + 1
+            break
+          end
+        end
+        -- dialogue-ok: %s is a contest category, six glyphs at most
+        world:showText(("Magnificent!\nTruly %s!"):format(kind))
+      end)
   end
 
   local function startGoldContest(world)
     world:showText(
-      "Welcome to the\nCONTEST HALL!\nEnter the COOL\ncontest?",
-      function() end)
-    world:askYesNo(function(yes)
-      if not yes then
-        world:showText("Take your time.\nThe stage is ready!")
-        return
-      end
-      local game = world.game
-      local Mon = require("src.battle.gen2.Mon")
-      local meter = Mon.new(game.data, "CHANSEY", 30)
-      if not meter then
-        world:showText("KC error: no\nmeter mon")
-        return
-      end
-      meter.nickname = "APPEAL"
-      judge.party = { meter }
-      world:startBattle({ trainer = judge, save = game.save },
-        function(outcome)
-          if outcome ~= "win" then
-            world:showText("Not quite this\ntime. Practice!")
+      "Welcome to the\nCONTEST HALL!\fWhich contest\nwill you enter?",
+      function()
+        world:openScriptMenu(CONTEST_MENU, "vertical", function(choice)
+          -- 1-based; 0 is B/CANCEL, and CANCEL is the last row.
+          local kind = KC_STAT_ORDER[tonumber(choice) or 0]
+          if not kind then
+            world:showText("Take your time.\nThe stage waits.")
             return
           end
-          -- Battle.playerIndex is firstHealthy, so mirror it when recording
-          -- the win on the entrant after the contest screen closes.
-          for _, mon in ipairs((game.save and game.save.party) or {}) do
-            if not mon.isEgg and (mon.hp or 0) > 0 then
-              mon.contestWins = mon.contestWins or {}
-              mon.contestWins.COOL = (mon.contestWins.COOL or 0) + 1
-              break
-            end
-          end
-          world:showText("Magnificent!\nTruly COOL!")
+          runGoldContest(world, kind)
         end)
-    end)
+      end)
   end
 
   local SNACK_MENU = {
@@ -833,6 +866,7 @@ local function kcGold(mod, VERSION)
       local key = KC_STAT_KEY[snack.category]
       cond[key] = math.min(100, cond[key] + KC_SNACK_CONDITION)
       mon.kcSheen = math.min(100, kcSheen(mon) + KC_SNACK_SHEEN)
+      -- dialogue-ok: the last %s is a contest category, six glyphs at most
       world:showText(("%s ate the\n%s!\fIts %s rose!")
         :format(nameOf(game, mon), snack.name, snack.category))
     end)
@@ -936,7 +970,7 @@ local function kcGold(mod, VERSION)
     pcall(function()
       local world = mod.world:overworld()
       if world and world.showText then
-        world:showText(("KANTO CONTESTS\nv%s ALPHA\nJOHTO preview"):format(VERSION))
+        world:showText(("KANTO CONTESTS\nv%s ALPHA\fJOHTO preview"):format(VERSION))
       end
     end)
   end)
@@ -945,7 +979,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.10.9"
+  local VERSION = "0.11.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -1171,6 +1205,7 @@ return function(mod)
       target.kcScarf = scarf.category
       return "kept", {
         ("%s put on\n%s!"):format(name, scarf.name),
+        -- dialogue-ok: %s is a contest category, six glyphs at most
         ("It adds flair to\n%s contests!"):format(scarf.category),
       }
     end
@@ -1239,7 +1274,9 @@ return function(mod)
       pcall(function()
         local n = battle.kcRound or 0
         if n > 0 and n < KC_ROUNDS then
-          battle:sayNext(("The judge has\nseen %d of %d\nappeals."):format(n, KC_ROUNDS))
+          -- battle messages split on [\n\v] only, so a third row here would
+          -- scroll unread and \f is not available to page it
+          battle:sayNext(("That was appeal\n%d of %d."):format(n, KC_ROUNDS))
         else
           battle:sayNext("The judge is\nwatching intently!")
         end
@@ -1299,7 +1336,7 @@ return function(mod)
             b:sayNext("The audience is\nsilent...")
             return
           end
-          b:sayNext("The audience\nholds up its\nscore...")
+          b:sayNext("The audience holds\nup its score...")
           -- the number gets its own WAITING page (sayNext, not auto) --
           -- v0.4's lesson: information on a fast page is never read
           b:sayNext(("%d %s!"):format(hearts,
@@ -1636,7 +1673,8 @@ return function(mod)
     end
     if self.kcRound >= KC_ROUNDS then
       self:sayNext("The routine is\nover...")
-      self:sayNext("The judge shakes\nhis head. Not\nquite this time!")
+      self:sayNext("The judge shakes\nhis head.")
+      self:sayNext("Not quite this\ntime!")
       -- end as "run": no blackout, no prize -- the clean contest loss
       self.result = "run"
       self.afterQueue = "finish"
@@ -1683,11 +1721,93 @@ return function(mod)
   -- ------------------------------------------------------------------
   -- commands
   -- ------------------------------------------------------------------
+  -- choose_contest: which of the five the player is entering.
+  --
+  -- The five-way choice is a real list, not a chain of yes/no prompts. The
+  -- developer's own report on the snack vendor was that stepping past items
+  -- one prompt at a time is "weird" and that seeing them at a glance is the
+  -- fix; the same applies here, and even more so, because a player refusing
+  -- COOL to reach TOUGH would answer NO four times.
+  --
+  -- Sets lastCheck so the script's jump_if_false is the cancel arm, and
+  -- leaves the answer in `chosenContest` for start_contest to read: the VM
+  -- passes literal arguments only, so there is no way to hand a runtime
+  -- answer to the next command except a shared upvalue.
+  local chosenContest
+  mod.content.commands:register("kanto_contests:choose_contest", {
+    foreground = true,
+    fn = function(ctx)
+      local runner = ctx.runner
+      local Screens = require("src.ui.Screens")
+      local items = {}
+      for _, cat in ipairs(KC_STAT_ORDER) do
+        items[#items + 1] = { label = cat, value = cat }
+      end
+      chosenContest = nil
+      -- Screens.push forwards its varargs to the screen's new()
+      -- (Screens.lua:184-188), so this is ListMenu.new(game, title, items,
+      -- opts) -- the same generic list the bag and shop use
+      -- (src/ui/ListMenu.lua:63).
+      Screens.push(ctx.game, "ListMenu", "CONTEST", items, {
+        -- ASYMMETRIC ON PURPOSE, and it is the engine's asymmetry, not a
+        -- slip: ListMenu's B/empty paths pop themselves before calling
+        -- onCancel (ListMenu.lua:196, 218), while the A path calls onChoose
+        -- and leaves the screen standing (:223). Popping in both arms would
+        -- take the overworld off the stack behind the menu.
+        onChoose = function(item)
+          chosenContest = item and item.value
+          ctx.game.stack:pop()
+          runner:resume()
+        end,
+        onCancel = function() runner:resume() end,
+      })
+      -- Screens.push does not yield; the appraiser's picker needs the same
+      -- explicit pair.
+      runner:yield()
+      ctx.lastCheck = chosenContest ~= nil
+    end,
+  })
+
+  -- judge_line: the judge's category-aware lines.
+  --
+  -- The script VM passes LITERAL arguments, so a `show_text` row cannot
+  -- interpolate the category the player just picked -- which is exactly how
+  -- the COOL-only wording got baked into five separate rows of this script.
+  -- Composing them here keeps the judge saying the contest actually being
+  -- judged, and keeps the stale-dialogue failure from coming straight back
+  -- the next time a category is added.
+  --
+  -- Widths are worst case at BEAUTY, the longest of the five:
+  -- "BEAUTY enough yet." is exactly 18.
+  mod.content.commands:register("kanto_contests:judge_line", {
+    foreground = true,
+    fn = function(ctx, key)
+      local cat = chosenContest or "COOL"
+      local lines = {
+        -- dialogue-ok: %s is a contest category, six glyphs at most
+        won = ("Magnificent!\nTruly %s!\fA %s RIBBON\nfor your POKeMON!")
+          :format(cat, cat),
+        -- dialogue-ok: %s is a contest category, six glyphs at most
+        won_plain = ("Magnificent!\nTruly %s!\fA fine %s\nperformance!")
+          :format(cat, cat),
+        -- dialogue-ok: %s is a contest category, six glyphs at most
+        lost_plain = ("Hmm. Not quite\n%s enough yet.\fKeep practicing!")
+          :format(cat),
+      }
+      -- required here, not through the file-scope `Commands` local: that one
+      -- is declared further down, so at this point in the chunk the name
+      -- would resolve to a nil global and only fail when the judge speaks.
+      require("src.script.Commands").show_text(ctx, lines[key] or "")
+    end,
+  })
+
   -- start_contest: Commands.start_battle's confirmed body, plus
   -- battle.contest set before the push so every later hook can key off it.
+  -- With no argument it runs the category chosen by choose_contest.
   mod.content.commands:register("kanto_contests:start_contest", {
     foreground = true,
     fn = function(ctx, contestType)
+      contestType = contestType or chosenContest
       local BattleState = require("src.battle.BattleState")
       local runner = ctx.runner
       local ok, battle = pcall(BattleState.newTrainer,
@@ -1774,10 +1894,33 @@ return function(mod)
   -- start_contest's win. With the test inverted, a skipped command falls
   -- to the plain line: the judge under-promises instead of announcing a
   -- ribbon that was never awarded.
+  -- True when the judge must NOT promise a ribbon for the contest just run.
+  --
+  -- Installed-or-not was the whole test while COOL was the only contest.
+  -- With five, "Kanto Ribbons is installed" stopped being the same question
+  -- as "there is a ribbon for THIS contest": that mod maps all five
+  -- categories but awards only the ones its catalog has actually drawn, and
+  -- today only COOL is drawn. Promising a BEAUTY RIBBON would dangle a prize
+  -- that cannot be awarded or shown -- the exact thing the plain-line branch
+  -- exists to avoid.
+  --
+  -- So ask its catalog. mod.find returns {id, version, exports}
+  -- (Loader.lua:1428-1434) and Kanto Ribbons publishes `catalog`. Anything
+  -- unexpected in another mod's exports falls through to "no promise", which
+  -- is the safe direction: the player is never told about a ribbon that does
+  -- not arrive, and a ribbon that does arrive unannounced is a nice surprise.
   mod.content.commands:register("kanto_contests:ribbons_missing", {
     fn = function(ctx)
-      local ok, handle = pcall(mod.find, "kanto_ribbons")
-      ctx.lastCheck = not (ok and handle ~= nil)
+      local wanted = chosenContest or "COOL"
+      local ok, available = pcall(function()
+        local handle = mod.find("kanto_ribbons")
+        if not handle or not handle.exports then return false end
+        for _, entry in ipairs(handle.exports.catalog or {}) do
+          if type(entry) == "table" and entry.id == wanted then return true end
+        end
+        return false
+      end)
+      ctx.lastCheck = not (ok and available)
     end,
   })
 
@@ -1960,10 +2103,13 @@ return function(mod)
       },
       TEXT_KC_JUDGE = {
         { "face_player" },
-        { "show_text", "Welcome to the\nCONTEST HALL!\fI judge the COOL\ncontest." },
-        { "ask", "Appeal to me with\nyour POKeMON's\nmoves. Enter?" },
+        { "show_text", "Welcome to the\nCONTEST HALL!\fI judge all five\ncontests." },
+        -- was a three-row `ask`: the third row scrolled the first away with
+        -- no button wait, and a yes/no cannot pick one of five anyway
+        { "show_text", "Appeal with your\nPOKeMON's moves!" },
+        { "kanto_contests:choose_contest" },
         { "jump_if_false", "later" },
-        { "kanto_contests:start_contest", "COOL" },
+        { "kanto_contests:start_contest" },
         { "jump_if_true", "won" },
         -- The losing line has to respect the same rule as the winning one:
         -- with Kanto Ribbons absent there is no ribbon to be short of, so
@@ -1977,7 +2123,7 @@ return function(mod)
         { "show_text", "Hmm. Not quite\nribbon material\fyet. Keep\npracticing!" },
         { "jump", "done" },
         { "label", "lost_plain" },
-        { "show_text", "Hmm. Not quite\nCOOL enough yet.\fKeep practicing!" },
+        { "kanto_contests:judge_line", "lost_plain" },
         { "jump", "done" },
         { "label", "won" },
         -- The COOL RIBBON is awarded by Kanto Ribbons, not by this mod, so
@@ -1989,13 +2135,13 @@ return function(mod)
         -- skipped command falls to the plain line -- see ribbons_missing.
         { "kanto_contests:ribbons_missing" },
         { "jump_if_true", "won_plain" },
-        { "show_text", "Magnificent!\nTruly COOL!\fA COOL RIBBON\nfor your POKeMON!" },
+        { "kanto_contests:judge_line", "won" },
         { "jump", "done" },
         { "label", "won_plain" },
-        { "show_text", "Magnificent!\nTruly COOL!\fA fine COOL\nperformance!" },
+        { "kanto_contests:judge_line", "won_plain" },
         { "jump", "done" },
         { "label", "later" },
-        { "show_text", "Come back when\nyou feel COOL!" },
+        { "show_text", "Come back any\ntime!" },
         { "label", "done" },
       },
     },

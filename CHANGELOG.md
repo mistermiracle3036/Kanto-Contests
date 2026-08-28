@@ -1,5 +1,50 @@
 # Changelog
 
+## 0.11.0
+All five contests.
+
+**Updating from 0.8.2?** That was the last public release, and a lot has
+landed since. The short version:
+
+- **There are five contests now**, not one: COOL, BEAUTY, CUTE, SMART and
+  TOUGH. You pick which one to enter when you talk to the judge.
+- **Contests came to Johto.** Gold, Silver and Crystal have their own
+  Contest Hall in Goldenrod City, with its own judge, snack vendor and
+  appraiser. An attendant on the main street shows you in.
+- **PokeSnacks and contest condition** (0.8.0): five flavours, each raising
+  one category. A POKeMON can only eat so many ever, so you choose what it
+  is good at.
+- **The Introduction Round** (0.9.0): before the appeals, the judge sizes
+  your POKeMON up. Condition becomes audience hearts, and hearts become a
+  head start on the appeal meter.
+- **Contest scarves** (0.10.9): the appraiser gives you a scarf when a
+  POKeMON maxes a category. A matching scarf is worth 20 points in the
+  Introduction Round. Scarves are earned, never sold.
+- The mod is MIT licensed with full credits (0.9.1).
+
+New in 0.11.0 specifically:
+
+- **Choose your contest.** The judge asks which of the five you are
+  entering, as a list you pick from -- not five yes/no questions in a row.
+  Every part of the contest already understood all five categories: the
+  appeal scoring, the clashing-category penalty, the Introduction Round's
+  hearts and the scarf bonus were all computed per category and then only
+  ever told COOL. Now they are told what you picked.
+- **Wins are recorded per category**, so a BEAUTY win is a BEAUTY win.
+  Kanto Ribbons has understood all five since it added contest ribbons, and
+  awards the ones it has artwork for -- so the other four light up there as
+  soon as that mod draws them, including for contests you have already won.
+- **The judge only promises a ribbon it can actually give.** It used to ask
+  whether Kanto Ribbons was installed; now it asks whether that mod has the
+  ribbon for *this* contest, so it can never dangle a prize that will not
+  arrive.
+- **Text-box fixes.** Several lines ran to three or four rows on a box that
+  shows two and only waits for a button on a real page break, so the top of
+  the message scrolled away before it could be read. The Johto hall's "would
+  you like to go inside?" was the worst: you saw the question and never saw
+  what it was about. Also fixed the judge's closing lines and two overlong
+  rows.
+
 ## 0.10.9
 Contest scarves, moved ahead of coordinator opponents.
 

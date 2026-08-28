@@ -1,0 +1,154 @@
+-- Run from the engine checkout:
+--   luajit ../Kanto-Contests/tests/gold_contest_test.lua
+--
+-- Drives the REAL mod's hooks through Gold's REAL Battle, headlessly and
+-- without a ROM, once per contest category.
+--
+-- This exists because 0.11.0 turned a COOL-only contest into five, and the
+-- five-way behaviour is exactly what a Gold device round is worst at
+-- checking: a wrong category scores silently, and "the meter did not move"
+-- looks identical to "the move was opposed". Asserting it here means a
+-- device test only has to confirm the menu and the wiring.
+--
+-- It also replaces coverage that was lost: 0.10.3/0.10.4 added a Gold battle
+-- regression test, but release zips exclude tests/ and those versions only
+-- ever existed as zips, so the files never reached the repo.
+package.path = "./?.lua;./?/init.lua;" .. package.path
+local T = require("tests.modkit")
+love = love or require("tests.love_stub")
+
+local GameVersion = require("src.core.GameVersion")
+GameVersion.current = "gold"
+local run = T.sdk.loadMod("../Kanto-Contests", { generation = 2 })
+T.eq(run.mod and run.mod.state, "loaded", "mod loaded on gen 2")
+
+local Battle = require("src.battle.gen2.Battle")
+local Mon = require("src.battle.gen2.Mon")
+
+-- One move per contest category, taken from the mod's own KC_CATEGORY table,
+-- plus a move of a category the mod treats as OPPOSED to each.
+-- KC_OPPOSED: COOL<->BEAUTY/TOUGH, BEAUTY<->COOL/CUTE, CUTE<->BEAUTY/SMART,
+-- SMART<->CUTE/TOUGH, TOUGH<->COOL/SMART.
+local CASES = {
+  { kind = "COOL",   match = "THUNDERPUNCH", opposed = "FIRE_PUNCH" },  -- BEAUTY
+  { kind = "BEAUTY", match = "FIRE_PUNCH",   opposed = "THUNDERPUNCH" },-- COOL
+  { kind = "CUTE",   match = "DOUBLESLAP",   opposed = "FIRE_PUNCH" },  -- BEAUTY
+  { kind = "SMART",  match = "PAY_DAY",      opposed = "DOUBLESLAP" },  -- CUTE
+  { kind = "TOUGH",  match = "POUND",        opposed = "THUNDERPUNCH" },-- COOL
+}
+
+local TYPES = {
+  NORMAL   = { id = "NORMAL",   index = 0, category = "physical" },
+  FIRE     = { id = "FIRE",     index = 20, category = "special" },
+  ELECTRIC = { id = "ELECTRIC", index = 4,  category = "special" },
+}
+local function move(id, mtype, power)
+  return { id = id, name = id, power = power, type = mtype,
+           accuracy = 100, pp = 20, effect = "EFFECT_NORMAL_HIT" }
+end
+local MOVES = {
+  THUNDERPUNCH = move("THUNDERPUNCH", "ELECTRIC", 75),
+  FIRE_PUNCH   = move("FIRE_PUNCH",   "FIRE",     75),
+  DOUBLESLAP   = move("DOUBLESLAP",   "NORMAL",   15),
+  PAY_DAY      = move("PAY_DAY",      "NORMAL",   40),
+  POUND        = move("POUND",        "NORMAL",   40),
+  STRUGGLE     = move("STRUGGLE",     "NORMAL",   40),
+}
+local POKEMON = {
+  growthRates = { GROWTH_MEDIUM_FAST = { numerator = 1, denominator = 1,
+    squared = 0, linear = 0, constant = 0 } },
+  -- the entrant: high enough level that every appeal move is usable
+  PIKACHU = { id = "PIKACHU", index = 25, name = "PIKACHU",
+    baseStats = { hp = 35, attack = 55, defense = 40, speed = 90,
+      specialAttack = 50, specialDefense = 50 },
+    types = { "ELECTRIC", "ELECTRIC" }, catchRate = 190, baseExp = 82,
+    growthRate = "GROWTH_MEDIUM_FAST", genderRatio = 127,
+    levelMoves = {}, evolutions = {} },
+  -- CHANSEY is the appeal meter: the biggest HP pool in the game, so an
+  -- appeal reads as a percentage rather than a knockout
+  CHANSEY = { id = "CHANSEY", index = 113, name = "CHANSEY",
+    baseStats = { hp = 250, attack = 5, defense = 5, speed = 50,
+      specialAttack = 35, specialDefense = 105 },
+    types = { "NORMAL", "NORMAL" }, catchRate = 30, baseExp = 255,
+    growthRate = "GROWTH_MEDIUM_FAST", genderRatio = 254,
+    levelMoves = {}, evolutions = {} },
+}
+local DATA = { pokemon = POKEMON, moves = MOVES,
+               type_chart = { types = TYPES, matchups = {} }, items = {} }
+
+local function mkmon(species, level, moves)
+  local m = Mon.new(DATA, species, level)
+  m.moves = {}
+  for _, id in ipairs(moves) do
+    m.moves[#m.moves + 1] = { id = id, pp = MOVES[id].pp, maxPp = MOVES[id].pp }
+  end
+  return m
+end
+
+local function detRandom(n) return (n or 1) <= 1 and 0 or 1 end
+
+-- one contest, returning how far the meter moved for each move
+local function runContest(kind, moveIds)
+  local player = mkmon("PIKACHU", 30, moveIds)
+  local meter = mkmon("CHANSEY", 30, { "POUND" })
+  meter.nickname = "APPEAL"
+  local judge = { name = "JUDGE", baseMoney = 0, party = { meter },
+                  kcContest = kind }
+  local save = { party = { player }, player = { id = 1, badges = {} } }
+  local battle = Battle.new({ data = DATA, party = { player },
+                              trainer = judge, save = save,
+                              random = detRandom })
+  return battle, meter, player
+end
+
+for _, case in ipairs(CASES) do
+  local battle, meter = runContest(case.kind, { case.match, case.opposed })
+
+  -- a move OF the contest's category drains the meter
+  local before = meter.hp
+  battle:takeTurn({ kind = "move", move = case.match })
+  local matched = before - meter.hp
+  T.check(matched > 0,
+    ("%s: %s is a %s move and must score (drained %d)")
+      :format(case.kind, case.match, case.kind, matched))
+
+  -- a move of an OPPOSED category scores nothing
+  before = meter.hp
+  battle:takeTurn({ kind = "move", move = case.opposed })
+  local opposedDrain = before - meter.hp
+  T.eq(opposedDrain, 0,
+    ("%s: %s is opposed and must score nothing")
+      :format(case.kind, case.opposed))
+
+  T.check(not battle.over,
+    ("%s: two appeals in, the contest is still running"):format(case.kind))
+end
+
+-- The two ways a contest ends, both in a NON-COOL contest -- the whole point
+-- of 0.11.0 is that these no longer only work for COOL.
+
+-- 1. Out of appeals. Five OPPOSED moves score nothing, so the meter never
+--    fills and the round limit is what stops it: a clean "run", no blackout.
+do
+  local battle, meter = runContest("TOUGH", { "THUNDERPUNCH" })
+  for _ = 1, 5 do battle:takeTurn({ kind = "move", move = "THUNDERPUNCH" }) end
+  T.check(battle.over, "TOUGH: contest ends after five appeals")
+  T.eq(battle.outcome, "run",
+    "TOUGH: running out of appeals ends as a run, not a knockout")
+  T.check(meter.hp > 0, "TOUGH: the meter mon never faints")
+end
+
+-- 2. The meter fills. Five MATCHING moves score every time, which is a win --
+--    and it must arrive as a win rather than as the meter mon fainting
+--    (0.10.7: the contest ends before Gold's normal faint resolver, so the
+--    judge is never announced as defeated and no prize money is paid).
+do
+  local battle, meter = runContest("TOUGH", { "POUND" })
+  for _ = 1, 5 do
+    if not battle.over then battle:takeTurn({ kind = "move", move = "POUND" }) end
+  end
+  T.check(battle.over, "TOUGH: filling the meter ends the contest")
+  T.eq(battle.outcome, "win", "TOUGH: a filled meter is a win")
+end
+
+T.finish("gold contest")

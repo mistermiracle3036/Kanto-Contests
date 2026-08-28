@@ -328,3 +328,44 @@ Slices agreed with the developer, one release each:
 
 Unscheduled: blender-style minigame; ranks + per-category ribbons via
 kanto_ribbons.
+
+## 0.11.0 findings
+
+- **`kanto_ribbons` gates per RIBBON, not per mod.** Its `syncContest`
+  awards on `mon.contestWins[CATEGORY]` but only when `inCatalog(id)` --
+  and its `ribbons.lua` catalog has COOL and nothing else, so a BEAUTY win
+  writes the save field and awards nothing until that mod draws the icon.
+  So "is Kanto Ribbons installed" stopped being the same question as "can
+  the judge promise a ribbon". `ribbons_missing` now reads the other mod's
+  exported `catalog` through `mod.find(...).exports` (Loader.lua:1428-1434)
+  and asks about the category actually being judged. Any surprise in
+  another mod's exports falls through to "no promise", which is the safe
+  direction. A brief for the four remaining icons is in briefs/.
+- **The Gen 1 script VM passes LITERAL arguments only**, so a `show_text`
+  row cannot name the category the player just chose -- which is how five
+  rows of the judge's script came to say COOL. Category-aware lines go
+  through the `kanto_contests:judge_line` command instead.
+- **`ListMenu` pops itself on CANCEL but not on CHOOSE** (ListMenu.lua:196
+  and :218 vs :223). Popping in both arms takes the overworld off the stack
+  behind the menu. `PartyMenu` is not the same shape, so the appraiser's
+  pattern cannot be copied blindly.
+- **`tests/check_dialogue.py` is a corrected fork.** The Johto-Quest-Pack
+  original converts only `\n` and leaves `\f` in the string as text, so
+  every page-broken line reads as one over-width row -- 30 findings on this
+  file, nearly all false. Ours splits `\f` into pages first, then `\n`/`\v`
+  into rows, and knows that only `\v` and `\f` wait for a button. It also
+  honours a `-- dialogue-ok: <reason>` marker, because the width pass
+  assumes a `%s` is a 10-glyph nickname and several here are six-glyph
+  category names.
+  - It found four REAL over-length pages that had shipped, the worst being
+    the Johto hall's four-row "would you like to go inside?" -- the player
+    saw the question with the subject already scrolled away.
+  - **Battle messages cannot use `\f`.** `startMessage` splits on `[\n\v]`
+    only, so an over-long battle line becomes a second `sayNext`, never a
+    page break.
+- **Harness flake, not a mod defect:** the first `luajit` run right after
+  writing main.lua sometimes reports every version as `state = nil` (the
+  loader never discovers the mod), and is green on every re-run. Seen three
+  times on Windows, never reproducible with `touch` or a rewrite.
+  `gen_gate_test.lua` now prints what the loader did discover, so a
+  recurrence explains itself instead of showing a bare nil.
