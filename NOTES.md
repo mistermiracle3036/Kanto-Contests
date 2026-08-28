@@ -501,3 +501,37 @@ Both from the same device round.
   start. Filling the meter is 1st outright.
 - Tuning is provisional like the jam numbers: if rivals feel too strong or
   too weak, KC_RIVAL_REACTIONS' score column is the dial.
+
+## 0.14.0: one hall per town, in that town's materials
+
+KC_HALLS (file scope, above kcGold) is now the single description of a
+hall: id, label, tileset, song, size, arrival cell, blocks, actors. The
+Gold arm registers every entry and drives the attendant from the one it
+names in `TOWN`. Adding a town is a table entry plus an attendant cell --
+no new mechanism.
+
+Every hall keeps the same GRAMMAR because a contest is the same event
+everywhere: stage / barrier with a way up at each end / floor with the
+coordinator line / entry strip. Only the vocabulary changes, and the
+vocabulary is always the town's own vanilla blocks.
+
+- **GOLDENROD = TILESET_MART.** The dept-store block run 0x0C/0x0D/0x0E is
+  a service counter, and its collision 0x90 is COUNTER: not walkable, but
+  it DOUBLES an A press's reach (Permissions.lua:136-140 ->
+  World:facingObjectCell, gen2/World.lua:7825), and `World:npcAt` walks
+  the runtime NPC list -- so a SPAWNED judge standing behind a counter is
+  talked to across it. Verified by reading both functions before building
+  on it, and the verifier now counts a counter as a valid approach.
+  Left/right wall columns are 0x07 / 0x20; plain floor 0x04; back wall
+  0x03.
+- **AVOID the 0x7x collision blocks in TILESET_MART** (0x01, 0x02, 0x05,
+  0x06, 0x18, 0x19, 0x1E, 0x1F, 0x25, 0x2A): those are WARP CARPETS
+  (Permissions CARPET_DIR). Our halls declare no warps -- the receptionist
+  is the way out -- so a carpet block would be a warp tile with no warp
+  record. Not tested, deliberately not risked.
+- **ECRUTEAK = TILESET_TRADITIONAL_HOUSE**, the 0.13.2 room kept whole. No
+  attendant leads there yet; it costs nothing until warped to.
+- scratchpad/verify_hall.lua now walks EVERY hall on EVERY cache, and
+  gen_gate_test's KNOWN list needs a row per borrowed tileset id -- that
+  list is the one thing that could hide a typo'd tileset behind a green
+  test, so run the verifier first when adding a town.

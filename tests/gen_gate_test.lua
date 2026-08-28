@@ -10,15 +10,21 @@ local T = require("tests.modkit")
 local GameVersion = require("src.core.GameVersion")
 
 -- these are the sandbox's own gaps (no ROM content loaded), the same set
--- modkit validate reports; they are not mod defects. The tileset row: the
--- Johto hall reads the vanilla TILESET_TRADITIONAL_HOUSE, which lives in
--- the imported game cache, not in any mod -- verified present on both the
--- gold and crystal caches by scratchpad/verify_hall.lua alongside the
--- hall's full walk geometry.
+-- modkit validate reports; they are not mod defects.
+--
+-- The tileset rows: each contest hall is dressed in ITS OWN TOWN's vanilla
+-- tileset, which lives in the imported game cache and not in any mod, so
+-- the ROM-free sandbox cannot resolve the id. Every one is verified
+-- present on both the gold and crystal caches by
+-- scratchpad/verify_hall.lua, which also walks each hall's geometry.
+-- ADD A ROW HERE WHEN A TOWN IS ADDED -- and run that verifier first,
+-- because this list is the one thing that would otherwise hide a typo in
+-- a tileset id behind a green test.
 local KNOWN = {
   ['unresolved reference to trainers "OPP_GENTLEMAN"'] = true,
   ['unresolved reference to pokemon "CHANSEY"'] = true,
   ['unresolved reference to tilesets "TILESET_TRADITIONAL_HOUSE"'] = true,
+  ['unresolved reference to tilesets "TILESET_MART"'] = true,
 }
 local function realErrors(run)
   local out = {}

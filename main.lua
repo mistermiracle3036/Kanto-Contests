@@ -327,49 +327,85 @@ for _, s in ipairs(KC_SNACKS) do KC_SNACK_BY_ID[s.id] = s end
 -- party picker follow the source-verified Hidden Grottos 0.1.3 and
 -- SelectMonFromParty patterns.
 -- ------------------------------------------------------------------
-local function kcGold(mod, VERSION)
-  local HALL = "KC_JOHTO_CONTEST_HALL"
-  local HALL_ARRIVAL_X, HALL_ARRIVAL_Y = 5, 8
-
-  -- 0.13.1: VANILLA tiles only. 0.13.0 drew its own Emerald-palette
-  -- tileset and the developer's verdict was direct -- ugly, didn't
-  -- translate to Gen 2 at all; the Emerald screenshots were LAYOUT
-  -- inspiration, not an art direction. So the room is built from the
-  -- DANCE_THEATER's own block vocabulary (TILESET_TRADITIONAL_HOUSE) --
-  -- Gold's real performance hall: back wall, raised stage, a solid stage
-  -- lip with a stair gap at each end, open floor, doorway row. Every
-  -- block's art and four-cell collision come from the player's own
-  -- imported cache; the id and the geometry are verified against BOTH
-  -- the gold and crystal caches offline (scratchpad/verify_hall.lua).
-  --
-  -- What survives from the Emerald reference is the BLOCKING: the
-  -- coordinator line waits at the floor's west side with the fourth
-  -- place open for the player, the audience stands around the floor
-  -- watching, and the judge presides centre stage.
-  --
-  -- No tileset registration: mod maps and vanilla maps resolve `tileset`
-  -- through the same merged gen2 table the cache populates -- one lookup,
-  -- no new mechanism. (In the ROM-free test sandbox the id is an
-  -- unresolved reference exactly like OPP_GENTLEMAN and CHANSEY; the
-  -- KNOWN list in tests/gen_gate_test.lua covers it.)
-  mod.content.maps:register(HALL, {
-    id = HALL,
+-- ONE HALL PER TOWN, each in that town's own materials.
+--
+-- Every hall shares the same room GRAMMAR, because it is the same event:
+-- a stage the judge presides over, a barrier between stage and floor with
+-- a way up at each end, an open floor where the coordinators queue, and an
+-- entry strip at the bottom. What changes town to town is the vocabulary
+-- that grammar is spoken in -- and every block below is the player's own
+-- imported cache, never mod art (0.13.0 tried mod art and it did not read
+-- as Gen 2 at all).
+--
+--   ECRUTEAK  TILESET_TRADITIONAL_HOUSE, the Dance Theatre: tatami,
+--             raised boards, a stage lip with stair gaps.
+--   GOLDENROD TILESET_MART, the Department Store: tiled floor and a long
+--             service counter for the judge's bench. Collision 0x90 is
+--             COUNTER -- not walkable, but it DOUBLES an A press's reach
+--             (Permissions.lua:136-140, World:facingObjectCell
+--             gen2/World.lua:7825), so the judge is talked to across it
+--             exactly like a dept-store clerk, and `npcAt` walks the
+--             runtime NPC list so a spawned judge is found that way too.
+--
+-- Only the town with an attendant is reachable today; the others are
+-- ready for one. Geometry for every hall is verified offline against
+-- BOTH the gold and crystal caches (scratchpad/verify_hall.lua).
+local KC_HALLS = {
+  GOLDENROD = {
+    id = "KC_JOHTO_CONTEST_HALL",   -- unchanged: the id players' saves know
     label = "GOLDENROD CONTEST HALL",
-    generation = 2,
+    tileset = "TILESET_MART",
+    song = "GOLDENROD_DEPT_STORE_1F",
+    palette = "PALETTE_DAY",
+    width = 5, height = 4,          -- 10x8 cells
+    arrival = { x = 5, y = 7 },
+    --   0x03 back wall   rows 0-1 (top solid, bottom open: the stage)
+    --   counter run      row 2 barred but for a gap at each end, row 3 floor
+    --   0x04 floor       rows 4-5, where the coordinators queue
+    --   0x04 floor       rows 6-7, the entry strip and its services
+    -- 0x07 / 0x20 are the left- and right-wall columns the dept store
+    -- uses; 0x0D is its counter block (top row counter, floor below).
+    blocks = {
+      0x03, 0x03, 0x03, 0x03, 0x03,
+      0x07, 0x0D, 0x0D, 0x0D, 0x20,
+      0x07, 0x04, 0x04, 0x04, 0x20,
+      0x07, 0x04, 0x04, 0x04, 0x20,
+    },
+    actors = {
+      -- behind the counter, talked to across it
+      { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
+        sprite = "SPRITE_GENTLEMAN", x = 4, y = 1, movement = 6 },
+      { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
+        sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
+      { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
+        sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
+      { name = "KC_HALL_EXIT", marker = "kcHallExit",
+        sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 6, y = 7, movement = 7 },
+      -- the coordinator line; (5,5) beside FIONA is the player's place
+      { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
+        sprite = "SPRITE_LASS", x = 2, y = 5, movement = 7 },
+      { name = "KC_RIVAL_REX", marker = "kcRivalRex",
+        sprite = "SPRITE_YOUNGSTER", x = 3, y = 5, movement = 7 },
+      { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
+        sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 5, movement = 7 },
+      { name = "KC_AUD_1", marker = "kcAudience",
+        sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
+      { name = "KC_AUD_2", marker = "kcAudience",
+        sprite = "SPRITE_GRANNY", x = 8, y = 4, movement = 8 },
+      { name = "KC_AUD_3", marker = "kcAudience",
+        sprite = "SPRITE_TWIN", x = 8, y = 6, movement = 8 },
+    },
+  },
+  -- Kept whole from 0.13.2 and ready for an Ecruteak attendant; nothing
+  -- reaches it yet, which is why the town has no entrance wired.
+  ECRUTEAK = {
+    id = "KC_ECRUTEAK_CONTEST_HALL",
+    label = "ECRUTEAK CONTEST HALL",
     tileset = "TILESET_TRADITIONAL_HOUSE",
-    width = 5, height = 5,
-    -- 0.13.2 shrinks this from 6x7 to 5x5 blocks (10x10 cells, down from
-    -- 12x14): the first cut was the theatre's footprint with three
-    -- identical floor rows, and it played as a big empty room with the
-    -- cast scattered across it. One floor row is enough to hold the
-    -- coordinator line and still walk around it.
-    --
-    -- Row shape, with the cell rows each block row covers:
-    --   0x2D back wall   rows 0-1 (top solid, bottom open: stage back)
-    --   0x2C stage       rows 2-3
-    --   lip + stairs     row 4 solid but for a stair at each end, row 5 open
-    --   0x04/0x10/0x0E   rows 6-7, the floor the line stands on
-    --   doorway          rows 8-9, services and the way out
+    song = "DANCE_THEATER",
+    palette = "PALETTE_DAY",
+    width = 5, height = 5,          -- 10x10 cells
+    arrival = { x = 5, y = 8 },
     blocks = {
       0x2D, 0x2D, 0x2D, 0x2D, 0x2D,  -- back wall
       0x2C, 0x2C, 0x2C, 0x2C, 0x2C,  -- the stage
@@ -377,22 +413,74 @@ local function kcGold(mod, VERSION)
       0x10, 0x04, 0x04, 0x04, 0x0E,  -- the floor
       0x05, 0x2A, 0x06, 0x07, 0x2B,  -- doorway row
     },
-    borderBlock = 0,
-    palette = "PALETTE_DAY",       -- the theatre's own, not AUTO
-    environment = "INDOOR",
-    phoneService = false,
-    objects = {}, warps = {}, signs = {}, connections = {},
-    callbacks = {}, sceneScripts = {}, bgEvents = {}, coordEvents = {},
-  })
+    actors = {
+      { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
+        sprite = "SPRITE_GENTLEMAN", x = 4, y = 2, movement = 6 },
+      { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
+        sprite = "SPRITE_TEACHER", x = 1, y = 9, movement = 9 },
+      { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
+        sprite = "SPRITE_BEAUTY", x = 8, y = 9, movement = 8 },
+      { name = "KC_HALL_EXIT", marker = "kcHallExit",
+        sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 6, y = 9, movement = 7 },
+      { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
+        sprite = "SPRITE_LASS", x = 2, y = 6, movement = 7 },
+      { name = "KC_RIVAL_REX", marker = "kcRivalRex",
+        sprite = "SPRITE_YOUNGSTER", x = 3, y = 6, movement = 7 },
+      { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
+        sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 6, movement = 7 },
+      { name = "KC_AUD_1", marker = "kcAudience",
+        sprite = "SPRITE_GRANNY", x = 0, y = 6, movement = 9 },
+      { name = "KC_AUD_2", marker = "kcAudience",
+        sprite = "SPRITE_POKEFAN_M", x = 9, y = 6, movement = 8 },
+      { name = "KC_AUD_3", marker = "kcAudience",
+        sprite = "SPRITE_TWIN", x = 2, y = 8, movement = 7 },
+      { name = "KC_AUD_4", marker = "kcAudience",
+        sprite = "SPRITE_ROCKER", x = 8, y = 7, movement = 7 },
+    },
+  },
+}
 
-  -- The Ecruteak theatre's music: the one performance-hall track Gold
-  -- has, present under the same id on Gold and Crystal. Falls back to
-  -- the city theme rather than silence.
+local function kcGold(mod, VERSION)
+  -- The town this build's attendant leads into.
+  local TOWN = "GOLDENROD"
+  local HALL_DEF = KC_HALLS[TOWN]
+  local HALL = HALL_DEF.id
+  local HALL_ARRIVAL_X = HALL_DEF.arrival.x
+  local HALL_ARRIVAL_Y = HALL_DEF.arrival.y
+
+  -- Every hall in KC_HALLS is registered, whether or not a town has an
+  -- attendant leading into it yet: a map costs nothing until it is warped
+  -- to, and registering them together keeps the town table the single
+  -- place a hall is described.
+  --
+  -- No tileset registration: mod maps and vanilla maps resolve `tileset`
+  -- through the same merged gen2 table the cache populates -- one lookup,
+  -- no new mechanism. (In the ROM-free test sandbox those ids are
+  -- unresolved references exactly like OPP_GENTLEMAN and CHANSEY; the
+  -- KNOWN list in tests/gen_gate_test.lua covers them.)
   local goldData = mod.game and mod.game.data
   local mapSongs = goldData and goldData.audio and goldData.audio.mapSongs
-  local hallSong = mapSongs
-    and (mapSongs.DANCE_THEATER or mapSongs.GOLDENROD_CITY)
-  if hallSong then mod.content.map_songs:register(HALL, hallSong) end
+  for _, def in pairs(KC_HALLS) do
+    mod.content.maps:register(def.id, {
+      id = def.id,
+      label = def.label,
+      generation = 2,
+      tileset = def.tileset,
+      width = def.width, height = def.height,
+      blocks = def.blocks,
+      borderBlock = 0,
+      palette = def.palette,
+      environment = "INDOOR",
+      phoneService = false,
+      objects = {}, warps = {}, signs = {}, connections = {},
+      callbacks = {}, sceneScripts = {}, bgEvents = {}, coordEvents = {},
+    })
+    -- each hall borrows the music of the room it is dressed as, falling
+    -- back to the Goldenrod street theme rather than to silence
+    local song = mapSongs
+      and (mapSongs[def.song] or mapSongs.GOLDENROD_CITY)
+    if song then mod.content.map_songs:register(def.id, song) end
+  end
   -- The attendant's spot.
   --
   -- 0.10.0 guessed (14,14) and the first Gold test found her unreachable.
@@ -825,43 +913,12 @@ local function kcGold(mod, VERSION)
   -- the map record owns geometry; map.entered repopulates transient people.
   local hallReturn
   local entranceCell = { x = KCG.x, y = KCG.y }
-  -- The Emerald stage-room BLOCKING on the theatre's vanilla geometry.
-  -- Movement values are Npc.lua MOVE numerics: 6/7/8/9 = standing
-  -- DOWN/UP/LEFT/RIGHT. The judge presides centre stage; the coordinator
-  -- line waits on the floor west side, facing the stage, with the fourth
-  -- place -- (5,8), beside FIONA -- left open for the player ("all four
-  -- in line until it is your time to go"); the audience stands along the
-  -- side walls and by the door, all on ordinary floor the Gen 2 way;
-  -- services work the doorway row. Every cell + approach verified against
-  -- both caches by scratchpad/verify_hall.lua.
-  local HALL_ACTORS = {
-    { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
-      sprite = "SPRITE_GENTLEMAN", x = 4, y = 2, movement = 6 },
-    { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
-      sprite = "SPRITE_TEACHER", x = 1, y = 9, movement = 9 },
-    { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
-      sprite = "SPRITE_BEAUTY", x = 8, y = 9, movement = 8 },
-    { name = "KC_HALL_EXIT", marker = "kcHallExit",
-      sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 6, y = 9, movement = 7 },
-    -- the coordinator line, facing the stage they are waiting to take;
-    -- (5,6) beside FIONA is the player's own place in it
-    { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
-      sprite = "SPRITE_LASS", x = 2, y = 6, movement = 7 },
-    { name = "KC_RIVAL_REX", marker = "kcRivalRex",
-      sprite = "SPRITE_YOUNGSTER", x = 3, y = 6, movement = 7 },
-    { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
-      sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 6, movement = 7 },
-    -- a small audience for a small room; every sprite verified present
-    -- in the gold AND crystal caches
-    { name = "KC_AUD_1", marker = "kcAudience",
-      sprite = "SPRITE_GRANNY", x = 0, y = 6, movement = 9 },
-    { name = "KC_AUD_2", marker = "kcAudience",
-      sprite = "SPRITE_POKEFAN_M", x = 9, y = 6, movement = 8 },
-    { name = "KC_AUD_3", marker = "kcAudience",
-      sprite = "SPRITE_TWIN", x = 2, y = 8, movement = 7 },
-    { name = "KC_AUD_4", marker = "kcAudience",
-      sprite = "SPRITE_ROCKER", x = 8, y = 7, movement = 7 },
-  }
+  -- The cast for the town this build leads into, from the same table that
+  -- describes its room. Movement values are Npc.lua MOVE numerics:
+  -- 6/7/8/9 = standing DOWN/UP/LEFT/RIGHT. Every cell and every talk
+  -- approach is verified against both caches by
+  -- scratchpad/verify_hall.lua before any device round.
+  local HALL_ACTORS = HALL_DEF.actors
 
   -- One page-set each; showText pages on \f in the overworld box (unlike
   -- battle emits). Every row <= 18 glyphs, two rows a page.
@@ -1215,11 +1272,12 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.13.2"
+  local VERSION = "0.14.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
-    maps = { "KC_CONTEST_HALL", "KC_JOHTO_CONTEST_HALL" },
+    maps = { "KC_CONTEST_HALL", "KC_JOHTO_CONTEST_HALL",
+             "KC_ECRUTEAK_CONTEST_HALL" },
     -- KC_JOHTO_HALL_TILES retired in 0.13.1: the Johto hall reads the
     -- vanilla TILESET_TRADITIONAL_HOUSE (borrowed, never owned)
     tilesets = { "KC_HALL_TILES" },

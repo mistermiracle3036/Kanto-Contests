@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.14.0
+Every town's Contest Hall is built out of that town's own materials.
+
+- **The Goldenrod hall now looks like Goldenrod.** It was wearing
+  Ecruteak's Dance Theatre -- wood, tatami, a raised stage -- while
+  standing in the middle of Johto's big modern city. It is now the
+  Department Store's room: tiled floor, shelving down both walls, windows
+  along the back, and a long service counter that the judge presides
+  behind. You talk to him across the counter, the way you talk to a clerk.
+- **The Ecruteak hall is kept whole**, wood and tatami and all, ready for
+  when Ecruteak gets its own entrance. It is no longer the room every town
+  has to share.
+- Each hall plays the music of the room it is dressed as.
+
+Every hall is the same room underneath -- a stage, a barrier with a way up
+at each end, the coordinator line, an entry strip -- so a contest reads the
+same wherever you enter one. Only the materials change.
+
 ## 0.13.2
 A smaller hall, and rival coordinators who actually compete.
 
