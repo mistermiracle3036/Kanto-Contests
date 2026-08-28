@@ -85,10 +85,17 @@ local function mkmon(species, level, moves)
   return m
 end
 
-local function detRandom(n) return (n or 1) <= 1 and 0 or 1 end
+-- Battle.random(n) -> 0..n-1, and Battle.rng is loveStyleRng over it
+-- (Battle.lua:86-105): rng(lo,hi) = lo + random(hi-lo+1).
+-- neverJam maxes every roll: rng(1,100) -> 100 > 30, so no rival ever
+-- jams and the category assertions below measure pure appeal scoring.
+-- alwaysJam floors every roll: rng(1,100) -> 1, rng(1,3) -> 1 (PIPER),
+-- rng(2,6) -> 2 hearts.
+local function neverJam(n) return (n or 1) - 1 end
+local function alwaysJam(_) return 0 end
 
 -- one contest, returning how far the meter moved for each move
-local function runContest(kind, moveIds)
+local function runContest(kind, moveIds, random)
   local player = mkmon("PIKACHU", 30, moveIds)
   local meter = mkmon("CHANSEY", 30, { "POUND" })
   meter.nickname = "APPEAL"
@@ -97,7 +104,7 @@ local function runContest(kind, moveIds)
   local save = { party = { player }, player = { id = 1, badges = {} } }
   local battle = Battle.new({ data = DATA, party = { player },
                               trainer = judge, save = save,
-                              random = detRandom })
+                              random = random or neverJam })
   return battle, meter, player
 end
 
@@ -149,6 +156,53 @@ do
   end
   T.check(battle.over, "TOUGH: filling the meter ends the contest")
   T.eq(battle.outcome, "win", "TOUGH: a filled meter is a win")
+end
+
+-- 3. Rival jams (0.12.0). With every roll floored, a rival jams each
+--    eligible round: never round 1, then rounds 2 and 3, then the cap of
+--    two stops rounds 4 and 5. FIRE_PUNCH is BEAUTY, neutral in TOUGH
+--    (opposed there is COOL/SMART), so every appeal drains exactly 10%
+--    and the arithmetic below is closed-form.
+do
+  local battle, meter = runContest("TOUGH", { "FIRE_PUNCH" }, alwaysJam)
+  local maxhp = meter.stats.hp
+  local appeal = math.ceil(maxhp * 0.10)
+  local heal = math.ceil(maxhp * 0.08)
+
+  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
+  T.eq(battle.kcJams or 0, 0, "round 1 never jams, even with the roll floored")
+  T.eq(meter.hp, maxhp - appeal, "round 1 is pure appeal drain")
+  T.same(battle.kcRivalHearts, { 2, 2, 2 },
+    "rival hearts rolled through the battle rng (floored -> 2 each)")
+
+  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
+  T.eq(battle.kcJams, 1, "round 2 jams")
+  T.eq(meter.hp, maxhp - 2 * appeal + heal,
+    "the jam healed 8% of the meter back")
+
+  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
+  T.eq(battle.kcJams, 2, "round 3 jams again")
+
+  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
+  T.eq(battle.kcJams, 2, "the cap of two holds from round 4 on")
+  T.eq(meter.hp, maxhp - 4 * appeal + 2 * heal,
+    "meter arithmetic exact across appeals and jams")
+
+  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
+  T.check(battle.over, "the five-appeal limit still ends the contest")
+  T.eq(battle.outcome, "run", "jammed contest still exits as a clean run")
+end
+
+-- 4. And with sane rolls, jams never fire here: the neverJam default
+--    maxes rng(1,100), so scoring stays exactly the pre-0.12.0 numbers --
+--    which is also what keeps every assertion above this block honest.
+do
+  local battle, meter = runContest("TOUGH", { "FIRE_PUNCH" })
+  local maxhp = meter.stats.hp
+  for _ = 1, 4 do battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" }) end
+  T.eq(battle.kcJams or 0, 0, "no jam at 100-roll: chance gate works")
+  T.eq(meter.hp, maxhp - 4 * math.ceil(maxhp * 0.10),
+    "pure drain when no rival interferes")
 end
 
 T.finish("gold contest")

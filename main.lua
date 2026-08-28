@@ -87,6 +87,47 @@ local KC_OPPOSED = {
 }
 local KC_ROUNDS = 5
 
+-- Slice 4, first half: rival coordinators. Three named entrants shared by
+-- every contest and both arms -- they stand in each hall, get their hearts
+-- announced in the Introduction Round, and from round 2 may JAM the routine,
+-- healing the judge's meter. They are pressure and personality, not
+-- battlers: the win condition is still the meter, so both arms drive them
+-- with the same three pieces below and no battle-side machinery.
+local KC_RIVALS = {
+  { name = "PIPER" },   -- sweet-snack CUTE partisan
+  { name = "REX" },     -- sour-snack TOUGH grinder
+  { name = "FIONA" },   -- immaculate BEAUTY veteran
+}
+-- Tuning provisional per NOTES.md: revisit after real playtests.
+local KC_JAM_CHANCE = 30   -- percent, rolled once per round in rounds 2..4
+local KC_JAM_HEAL = 0.08   -- fraction of the meter one jam restores
+local KC_JAM_CAP = 2       -- jams per contest, total across all rivals
+
+-- Both battles expose the same love-style rng: Gen 1 BattleState.rng is
+-- love.math.random directly (BattleState.lua:657) and Gen 2 Battle.rng is
+-- loveStyleRng over opts.random (Battle.lua:94-105) -- rng(lo,hi) -> lo..hi
+-- inclusive on both, which is why these helpers can be shared.
+local function kcRollRivalHearts(rng)
+  local out = {}
+  for i = 1, #KC_RIVALS do
+    -- 2..6, under the player's ceiling of 8: a pampered entrant can always
+    -- out-shine the field, and a raw one can be out-shone
+    out[i] = rng and rng(2, 6) or 4
+  end
+  return out
+end
+
+-- One roll per round: the rival who jams, or nil. Owns the round gate and
+-- the cap; the arms only apply the heal and speak the lines.
+local function kcJamRoll(b, rng)
+  local round = b.kcRound or 0
+  if round < 2 or round >= KC_ROUNDS then return nil end
+  if (b.kcJams or 0) >= KC_JAM_CAP then return nil end
+  if not rng or rng(1, 100) > KC_JAM_CHANCE then return nil end
+  b.kcJams = (b.kcJams or 0) + 1
+  return KC_RIVALS[rng(1, #KC_RIVALS)]
+end
+
 local KC_STAT_KEY = { COOL = "cool", BEAUTY = "beauty", CUTE = "cute",
                       SMART = "smart", TOUGH = "tough" }
 local KC_STAT_ORDER = { "COOL", "BEAUTY", "CUTE", "SMART", "TOUGH" }
@@ -400,12 +441,29 @@ local function kcGold(mod, VERSION)
     if not (entrant and meter) then return end
 
     local kind = tostring(inContest(b))
+
+    -- The rivals go first, so the player's score lands as the answer.
+    -- One emit per page: Gold's battle box wraps to two 18-tile rows and
+    -- CUTS the rest (gen2/BattleState.lua:3636-3639 printMessage), and it
+    -- has no \f -- the multi-page trick sayPages does on Gen 1 has to be
+    -- separate emits here.
+    b.kcRivalHearts = kcRollRivalHearts(b.rng)
+    b:emit({ kind = "message", text = "Rival entrants\ntake the stage!" })
+    for i, rival in ipairs(KC_RIVALS) do
+      b:emit({ kind = "message",
+        text = ("%s scores\n%d hearts!"):format(rival.name,
+                                                b.kcRivalHearts[i]) })
+    end
+    b:emit({ kind = "message", text = "Now, your\nentrant..." })
+
     local hearts = kcIntroHearts(entrant, kind, b.kcRank or "NORMAL")
     b.kcHearts = hearts
     local scarf = KC_SCARF_BY_CATEGORY[kcScarfCategory(entrant)]
     if scarf and scarf.category == kind then
+      -- two emits, not one string with \f: battle messages have no pages
       b:emit({ kind = "message",
-        text = ("%s\nshines!\fThe audience\ntakes notice!"):format(scarf.name) })
+        text = ("%s\nshines!"):format(scarf.name) })
+      b:emit({ kind = "message", text = "The audience\ntakes notice!" })
     end
     if hearts <= 0 then
       b:emit({ kind = "message", text = "The audience is silent..." })
@@ -473,15 +531,24 @@ local function kcGold(mod, VERSION)
         effectiveness = 10, move = def, moveId = moveId,
       })
     end
+    -- Each emit is one box-fill: the Gold battle box shows TWO 18-tile
+    -- rows and CUTS anything past them rather than scrolling
+    -- (gen2/BattleState.lua:3636-3639). These three ran to a third
+    -- wrapped row -- "is delighted!", "frowns." and the verdict tail were
+    -- being cut on device -- so each reaction is now two short emits.
     if cat == kind then
       b:emit({ kind = "message",
-               text = ("A perfect %s appeal! The judge is delighted!"):format(kind) })
+               text = ("A perfect\n%s appeal!"):format(kind) })
+      b:emit({ kind = "message", text = "The judge is\ndelighted!" })
     elseif dmg == 0 then
+      -- dialogue-ok: both %s are contest categories, six glyphs at most
       b:emit({ kind = "message",
-               text = ("A %s move in a %s contest? The judge frowns."):format(cat, kind) })
+               text = ("A %s move in\na %s contest?"):format(cat, kind) })
+      b:emit({ kind = "message", text = "The judge frowns." })
     else
+      b:emit({ kind = "message", text = "The judge nods\npolitely." })
       b:emit({ kind = "message",
-               text = ("The judge nods politely. A %s move, but it works."):format(cat) })
+               text = ("A %s move,\nbut it works."):format(cat) })
     end
     if (meter.hp or 0) <= 0 then
       -- Stop before runTurn reaches resolveFaints. That vanilla path would
@@ -490,14 +557,32 @@ local function kcGold(mod, VERSION)
       -- live stand-in is restored to 1 HP as a belt against later sweep calls.
       b.kcMeterComplete = true
       meter.hp = 1
-      b:emit({ kind = "message",
-               text = "The APPEAL meter is full! The judge declares a winner!" })
+      b:emit({ kind = "message", text = "The APPEAL meter\nis full!" })
+      b:emit({ kind = "message", text = "The judge declares\na winner!" })
       b:endBattle("win")
       return
     end
-    if b.kcRound < KC_ROUNDS then
+
+    -- Slice 4: a rival may jam, rounds 2..4, at most twice a contest.
+    -- AFTER the win check on purpose -- a jam pressures the rounds you
+    -- have left, it never snatches back a meter you just filled.
+    local rival = kcJamRoll(b, b.rng)
+    if rival then
+      local heal = math.ceil(maxhp * KC_JAM_HEAL)
+      -- direct write, not dealDamage: heals have no damage event. The bar
+      -- redraws from hp next frame; it steps rather than animates, noted
+      -- in NOTES.md as cosmetic.
+      meter.hp = math.min(maxhp, (meter.hp or 0) + heal)
       b:emit({ kind = "message",
-               text = ("The judge has seen %d of %d appeals."):format(
+               text = ("%s cuts in\nand jams you!"):format(rival.name) })
+      b:emit({ kind = "message",
+               text = "The judge's meter\nrecovers a little!" })
+    end
+
+    if b.kcRound < KC_ROUNDS then
+      -- dialogue-ok: both %d are round counts, one digit each
+      b:emit({ kind = "message",
+               text = ("The judge has seen\n%d of %d appeals."):format(
                  b.kcRound, KC_ROUNDS) })
     end
   end
@@ -523,8 +608,11 @@ local function kcGold(mod, VERSION)
   -- so the contest must own tryRun itself.
   GoldBattle.tryRun = function(self, ...)
     if not inContest(self) then return vanillaGoldTryRun(self, ...) end
+    -- two-row budget again: the old single line wrapped to three rows and
+    -- "disappointed" was cut
+    self:emit({ kind = "message", text = "You left the\nstage..." })
     self:emit({ kind = "run",
-      text = "You left the stage. The judge looks disappointed." })
+      text = "The judge looks\ndisappointed." })
     self:endBattle("run")
     return true
   end
@@ -633,8 +721,12 @@ local function kcGold(mod, VERSION)
       if (b.kcRound or 0) >= KC_ROUNDS then
         mod.log:info("contest over: %d appeals, meter %d left",
                      b.kcRound, (b.enemy and b.enemy.hp) or -1)
-        b:emit({ kind = "message",
-                 text = "The routine is over... The judge shakes his head. Not quite this time!" })
+        -- was ONE ~70-char line into a box that cuts after two wrapped
+        -- rows: the player saw "The routine is over... The judge" and the
+        -- verdict never displayed
+        b:emit({ kind = "message", text = "The routine is\nover..." })
+        b:emit({ kind = "message", text = "The judge shakes\nhis head." })
+        b:emit({ kind = "message", text = "Not quite this\ntime!" })
         b:endBattle("run")
       end
     end)
@@ -661,7 +753,32 @@ local function kcGold(mod, VERSION)
       sprite = "SPRITE_BEAUTY", x = 7, y = 6, movement = 6 },
     { name = "KC_HALL_EXIT", marker = "kcHallExit",
       sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 4, y = 9, movement = 6 },
+    -- Slice 4's rivals, visibly waiting their turn. Sprites verified in
+    -- BOTH the gold and crystal caches. Floor cells clear of the arrival
+    -- (4,8), the exit (4,9) and the walk up the middle column to the
+    -- judge.
+    { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
+      sprite = "SPRITE_LASS", x = 2, y = 4, movement = 6 },
+    { name = "KC_RIVAL_REX", marker = "kcRivalRex",
+      sprite = "SPRITE_YOUNGSTER", x = 7, y = 4, movement = 6 },
+    { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
+      sprite = "SPRITE_COOLTRAINER_F", x = 7, y = 8, movement = 6 },
   }
+
+  -- One page-set each; showText pages on \f in the overworld box (unlike
+  -- battle emits). Every row <= 18 glyphs, two rows a page.
+  local function talkPiper(world)
+    world:showText(
+      "I raised my\nPOKeMON on\fSWEET SNACKS.\nCUTE is mine!")
+  end
+  local function talkRex(world)
+    world:showText(
+      "Grit. Sweat.\nSOUR SNACKS.\fTOUGH contests\nare true tests!")
+  end
+  local function talkFiona(world)
+    world:showText(
+      "My routine is\nflawless.\fBEAUTY is not\nwon. It is worn.")
+  end
 
   local function markerExists(world, marker)
     for _, actor in ipairs((world and world.npcs) or {}) do
@@ -760,13 +877,23 @@ local function kcGold(mod, VERSION)
     -- three and four scrolled the first two away unread -- the player saw
     -- "Would you like / to go inside?" over a YES/NO box and never learned
     -- what they were saying yes to.
+    -- NESTED, not sequential -- the engine's own ask pattern
+    -- (World.lua:5903). askYesNo called on the line after showText finds no
+    -- stayed box (that only exists once the last page finishes typing) and
+    -- takes its fallback: it pushes a SECOND, instant box holding only the
+    -- final page, stacked over the first box while it is still typing. The
+    -- player answers on the duplicate, then the original box is revealed
+    -- underneath and has to be paged through again -- the 0.11.0 device
+    -- report, "not showing full text" and "lines weirdly repeated", is both
+    -- halves of this one call shape.
     world:showText(
       "The GOLDENROD\nCONTEST HALL!\fWould you like\nto go inside?",
-      function() end)
-    world:askYesNo(function(yes)
-      if yes then enterHall(world)
-      else world:showText("Come back any\ntime!") end
-    end)
+      function()
+        world:askYesNo(function(yes)
+          if yes then enterHall(world)
+          else world:showText("Come back any\ntime!") end
+        end)
+      end)
   end
 
   -- The five contests. Everything downstream of this menu was already
@@ -873,11 +1000,13 @@ local function kcGold(mod, VERSION)
   end
 
   local function offerSnack(world, snack)
+    -- nested for the same reason as visitHall above
     world:showText(("A %s\ncosts %d.\fFeed it now?")
-      :format(snack.name, KC_SNACK_PRICE), function() end)
-    world:askYesNo(function(yes)
-      if yes then feedSnack(world, snack) end
-    end)
+      :format(snack.name, KC_SNACK_PRICE), function()
+        world:askYesNo(function(yes)
+          if yes then feedSnack(world, snack) end
+        end)
+      end)
   end
 
   local function openSnackVendor(world)
@@ -947,6 +1076,9 @@ local function kcGold(mod, VERSION)
       or (def.kcHallVendor and openSnackVendor)
       or (def.kcHallAppraiser and appraiseGold)
       or (def.kcHallExit and leaveHall)
+      or (def.kcRivalPiper and talkPiper)
+      or (def.kcRivalRex and talkRex)
+      or (def.kcRivalFiona and talkFiona)
     )
     if not handler then
       if baseTalk then return baseTalk(world, npc) end
@@ -979,7 +1111,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.11.0"
+  local VERSION = "0.12.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -1135,6 +1267,26 @@ return function(mod)
         x = 5, y = 4,
         movement = "STAY", range = "LEFT",
         text = "TEXT_KC_APPRAISER" },
+      -- Slice 4's rival coordinators, waiting their turn. Sprites verified
+      -- in BOTH rom_manifest.json and rom_manifest_yellow.json (Gen 1 has
+      -- no SPRITE_LASS; SPRITE_GIRL is the counterpart the Gold arm's LASS
+      -- maps to). The warp from Celadon lands the player at (4,5), so the
+      -- rivals keep that cell and the middle walk to the judge clear.
+      { index = 4, name = "KC_RIVAL_PIPER",
+        sprite = "SPRITE_GIRL",
+        x = 2, y = 5,
+        movement = "STAY", range = "RIGHT",
+        text = "TEXT_KC_RIVAL_PIPER" },
+      { index = 5, name = "KC_RIVAL_REX",
+        sprite = "SPRITE_YOUNGSTER",
+        x = 5, y = 5,
+        movement = "STAY", range = "LEFT",
+        text = "TEXT_KC_RIVAL_REX" },
+      { index = 6, name = "KC_RIVAL_FIONA",
+        sprite = "SPRITE_COOLTRAINER_F",
+        x = 5, y = 6,
+        movement = "STAY", range = "LEFT",
+        text = "TEXT_KC_RIVAL_FIONA" },
     },
   })
 
@@ -1323,9 +1475,20 @@ return function(mod)
           local mon = b.player and b.player.mon
           local target = b.enemy
           if not (mon and target and target.mon) then return end
+          -- Slice 4: the rivals present first, so the player's score
+          -- lands as the answer. sayNext pages via sayPages, so \f is
+          -- fine here (unlike the Gold arm's raw emits).
+          b.kcRivalHearts = kcRollRivalHearts(b.rng)
+          b:sayNext("Rival entrants\ntake the stage!")
+          for i, rival in ipairs(KC_RIVALS) do
+            b:sayNext(("%s scores\n%d hearts!"):format(rival.name,
+                                                       b.kcRivalHearts[i]))
+          end
+          b:sayNext("Now, your\nentrant...")
+
           local hearts = kcIntroHearts(mon, tostring(b.contest),
                                        b.kcRank or "NORMAL")
-          b.kcHearts = hearts   -- slice 4's rivals compare against this
+          b.kcHearts = hearts   -- announced against the rivals' scores above
           local scarf = KC_SCARF_BY_CATEGORY[kcScarfCategory(mon)]
           if scarf and scarf.category == tostring(b.contest) then
             b:sayNext(("%s\nshines!\fThe audience\ntakes notice!"):format(scarf.name))
@@ -1670,6 +1833,18 @@ return function(mod)
     if target.mon.hp <= 0 then
       self:onFaint(target)   -- vanilla victory path; texts already rewritten
       return
+    end
+    -- Slice 4: a rival may jam, rounds 2..4, at most twice a contest.
+    -- After the win check on purpose: a jam pressures the rounds left,
+    -- it never snatches back a meter that just filled. Direct hp write --
+    -- applyDamage is damage-only -- so the bar steps rather than
+    -- animates; cosmetic, noted in NOTES.md.
+    local rival = kcJamRoll(self, self.rng)
+    if rival then
+      local heal = math.ceil(maxhp * KC_JAM_HEAL)
+      target.mon.hp = math.min(maxhp, (target.mon.hp or 0) + heal)
+      self:sayNext(("%s cuts in\nand jams you!\fThe judge's meter\nrecovers a little!")
+        :format(rival.name))
     end
     if self.kcRound >= KC_ROUNDS then
       self:sayNext("The routine is\nover...")
@@ -2089,6 +2264,20 @@ return function(mod)
         { "label", "no_sale" },
         { "show_text", "Come back when\nyou're peckish!" },
         { "label", "done" },
+      },
+      -- The rivals' one line each -- same voices as the Gold hall, and the
+      -- same names the jam and intro announcements use in the battle.
+      TEXT_KC_RIVAL_PIPER = {
+        { "face_player" },
+        { "show_text", "I raised my\nPOKeMON on\fSWEET SNACKS.\nCUTE is mine!" },
+      },
+      TEXT_KC_RIVAL_REX = {
+        { "face_player" },
+        { "show_text", "Grit. Sweat.\nSOUR SNACKS.\fTOUGH contests\nare true tests!" },
+      },
+      TEXT_KC_RIVAL_FIONA = {
+        { "face_player" },
+        { "show_text", "My routine is\nflawless.\fBEAUTY is not\nwon. It is worn." },
       },
       TEXT_KC_APPRAISER = {
         { "face_player" },

@@ -106,6 +106,8 @@ with two Growlithe.
 - Appeal scoring, the five-appeal limit, win/lose/withdraw
 - PokeSnacks, contest condition and sheen, with a vendor and an appraiser
 - Five earned contest scarves and their Introduction-round bonus
+- Three rival coordinators in each hall, scored in the Introduction Round
+  and able to jam your routine from the second appeal on
 - The Introduction Round: condition scored as hearts, cashed in as a
   head start on the appeal meter
 - Wins recorded on the POKeMON itself, so they survive boxing, evolution
@@ -113,8 +115,9 @@ with two Growlithe.
 
 ## What isn't there yet
 
-- No ranks (Normal/Super/Hyper/Master) or rival coordinators yet. Every
-  contest is the same difficulty whichever category you pick.
+- No ranks (Normal/Super/Hyper/Master) yet. Every contest is the same
+  difficulty whichever category you pick -- though from 0.12.0 the three
+  rival coordinators can jam your routine and win back part of the meter.
 - **Only the Cool Ribbon exists to be won.** All five contests record their
   win, but Kanto Ribbons has artwork for the Cool Ribbon only, so the other
   four award nothing yet. They will award retroactively once it draws them

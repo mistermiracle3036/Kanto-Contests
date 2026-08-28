@@ -369,3 +369,61 @@ kanto_ribbons.
   times on Windows, never reproducible with `touch` or a rewrite.
   `gen_gate_test.lua` now prints what the loader did discover, so a
   recurrence explains itself instead of showing a bare nil.
+
+## 0.12.0 findings
+
+- **The Gold overworld ask pattern is NESTED, never sequential.**
+  `askYesNo` called on the line after `showText` finds no stayed box
+  (that only exists once the last page finishes typing) and takes its
+  fallback: it pushes a second, INSTANT box holding only `lastText`'s
+  final page, over the first box while it is still typing. The player
+  answers on the duplicate, then the original box is revealed underneath
+  and must be paged through again. The 0.11.0 device report -- "not
+  showing full text" and "lines weirdly repeated" -- was both halves of
+  this one call shape. The engine's own pattern is
+  `showText(text, function() askYesNo(...) end)` (World.lua:5903).
+- **The Gold battle box CUTS, it does not scroll.** `printMessage` wraps
+  to two 18-tile rows and drops the rest (gen2/BattleState.lua:3636-3639,
+  "cut rather than spilling"). Any battle emit that can wrap past two
+  rows loses its tail silently -- five shipped judge lines did, including
+  the whole five-appeal verdict. Battle emits also have no `\f`: a page
+  break is a SECOND emit. The dialogue scanner cannot see these (they are
+  single-line literals with no marker), so keep battle emits short by
+  construction.
+- **Jam heals step the bar instead of animating.** Both arms write
+  `meter hp` directly because the damage paths are damage-only; the HUD
+  redraws from hp so the value is right but the bar jumps. Cosmetic.
+  If it grates on device, the fix is a negative-damage event shim, not a
+  bigger heal.
+- **Jam tuning is provisional** (30% per round in rounds 2..4, 8% heal,
+  cap 2 -- constants at the top of main.lua). Revisit after real
+  playtests; the cap and the round-1 exemption are design decisions, the
+  percentages are guesses.
+
+## Making the hall look better -- assessment (2026-08-27)
+
+Both halls are bare rooms: Johto is 10x10 cells of one floor block, Kanto
+8x8. Three options, cheapest first:
+
+1. **People and layout only (done in 0.12.0).** The three rival
+   coordinators now stand in both halls. Zero art risk.
+2. **Borrow a vanilla interior tileset for the Johto hall.** The map
+   record's `tileset` field is a plain id; pointing it at a vanilla
+   interior tileset (the Goldenrod Dept. Store floors, the Game Corner)
+   would buy real walls, counters and plants for free. UNVERIFIED whether
+   a mod-registered gen2 map may reference a vanilla tileset id -- Hidden
+   Grottos shipped a private tileset, so nothing proves the cross
+   reference. Verify OFFLINE first: load the imported cache, point a
+   scratch map def at TILESET_GAME_CORNER, and walk `Permissions` over
+   the result exactly like the attendant-cell check -- no device round
+   needed until it renders.
+3. **Extend the private tilesets with contest dressing** (stage platform,
+   red carpet, rope line, poster wall). Full control, most work: the
+   Johto tiles are authored in-code as explicit pixel blocks, the Kanto
+   ones live in assets/contest_tiles.png (Pillow is installed). A stage
+   row behind the judge plus a carpet strip down the middle column is the
+   highest-value minimum.
+
+Recommendation: verify 2 with the cache renderer; if the cross-reference
+holds, do 2 for Johto and a small 3 for Kanto's stage row. If it does
+not, do 3 on both with the same two elements.

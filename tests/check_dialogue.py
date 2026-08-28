@@ -105,8 +105,12 @@ def suppressed_lines(original: str) -> set:
     for index, line in enumerate(original.splitlines(), start=1):
         match = re.search(r"--\s*dialogue-ok:\s*\S", line)
         if match:
+            # the marker's own line and the two below it: a multi-line call
+            # (`b:emit({ kind = "message",` / `text = ...`) puts the literal
+            # two lines under the comment
             marked.add(index)
             marked.add(index + 1)
+            marked.add(index + 2)
     return marked
 
 

@@ -7,6 +7,7 @@ return {
     "Adds a contest judge who runs all five contests; you pick one and appeal in a battle-style round.",
     "Every move carries a contest category, shown in place of its type during a contest.",
     "Adds five earned contest scarves that boost matching Introduction scores.",
+    "Three rival coordinators appear in every contest and can jam your routine, healing the judge's meter.",
     "Contests award no EXP and allow no switching or items -- one POKeMON performs the whole routine.",
     "Records contest wins per category on the POKeMON so Kanto Ribbons can award the matching ribbon.",
   },

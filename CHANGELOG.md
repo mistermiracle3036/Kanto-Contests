@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.12.0
+Rival coordinators.
+
+**Updating from 0.8.2?** That was the last public release, and a lot has
+landed since. The short version:
+
+- **All five contests** (0.11.0): COOL, BEAUTY, CUTE, SMART and TOUGH. You
+  pick which to enter at the judge, and wins are recorded per category.
+- **Contests came to Johto** (0.10.x): Gold, Silver and Crystal have their
+  own Contest Hall in Goldenrod City.
+- **PokeSnacks and contest condition** (0.8.0), **the Introduction Round**
+  (0.9.0), **earned contest scarves** (0.10.9), MIT license and credits
+  (0.9.1).
+- And new in this version: **rival coordinators** -- read on.
+
+New in 0.12.0 specifically:
+
+- **Three rival coordinators enter every contest.** PIPER, REX and FIONA
+  wait their turn in both Contest Halls -- talk to them -- and in the
+  Introduction Round the judge scores their entrants before yours, so your
+  hearts land as the answer to theirs.
+- **Rivals can jam your routine.** From the second appeal on, a rival may
+  cut in and win back part of the judge's attention -- the appeal meter
+  recovers a little. It can happen at most twice a contest, and never on
+  the appeal that just filled the meter: a jam pressures the rounds you
+  have left, it never steals a win you already sealed.
+- **The judge's lines actually fit the box now.** The Johto battle box
+  shows two rows and cuts anything longer; several reactions ran to three.
+  "The judge is delighted!", "The judge frowns." and -- worst of all -- the
+  entire verdict after your fifth appeal were being cut off. Every battle
+  line is now split to fit, so nothing is lost.
+- **Questions wait for you now.** In the Johto hall, the yes/no prompt used
+  to appear over the text while it was still typing, showing only the last
+  page -- and after answering, the same text played again underneath. Both
+  the "text cut off" and the "lines repeated" reports came from this one
+  bug, and both are fixed.
+
 ## 0.11.0
 All five contests.
 
