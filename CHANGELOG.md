@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.15.0
+The judge leads you out to a stage.
+
+- **A contest hall is two rooms now.** The room you walk into is a
+  **lobby** -- the counter you enter at, the snack vendor, the appraiser,
+  the coordinators waiting their turn. It always read as a lobby, and a
+  contest was being held in it.
+- **Enter a contest and the judge takes you to the stage.** Pick your
+  category at the counter, he says to follow him, and you come out in
+  Goldenrod's own **Radio Tower studio** -- broadcast equipment banked
+  either side of an open floor, monitors along the back wall. Goldenrod
+  would televise a contest, and now it does.
+- **The other coordinators are already up there**, lined up and facing
+  the stage, waiting their turn like you. Walk up the centre and speak to
+  the judge when you are ready to perform -- so you get a moment to look
+  at the place and at who you are up against.
+- **You are shown back to the lobby afterwards**, win or lose, instead of
+  being left standing on an empty stage. A receptionist by the stage door
+  will take you back early if you change your mind.
+
+Ecruteak's hall is still one room until it gets an entrance of its own.
+
 ## 0.14.0
 Every town's Contest Hall is built out of that town's own materials.
 

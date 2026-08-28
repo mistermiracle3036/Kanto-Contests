@@ -327,31 +327,42 @@ for _, s in ipairs(KC_SNACKS) do KC_SNACK_BY_ID[s.id] = s end
 -- party picker follow the source-verified Hidden Grottos 0.1.3 and
 -- SelectMonFromParty patterns.
 -- ------------------------------------------------------------------
--- ONE HALL PER TOWN, each in that town's own materials.
+-- A HALL IS TWO ROOMS: a LOBBY you arrive in, and a STAGE the judge leads
+-- you onto when a contest starts.
 --
--- Every hall shares the same room GRAMMAR, because it is the same event:
--- a stage the judge presides over, a barrier between stage and floor with
--- a way up at each end, an open floor where the coordinators queue, and an
--- entry strip at the bottom. What changes town to town is the vocabulary
--- that grammar is spoken in -- and every block below is the player's own
--- imported cache, never mod art (0.13.0 tried mod art and it did not read
--- as Gen 2 at all).
+-- 0.14.0 built one room and it read as a lobby -- services, a queue, a
+-- counter -- which is right for what it is and wrong for where a contest
+-- happens. So the lobby stays a lobby, and the performance moved out to
+-- its own room where the other coordinators are waiting.
 --
---   ECRUTEAK  TILESET_TRADITIONAL_HOUSE, the Dance Theatre: tatami,
---             raised boards, a stage lip with stair gaps.
---   GOLDENROD TILESET_MART, the Department Store: tiled floor and a long
---             service counter for the judge's bench. Collision 0x90 is
---             COUNTER -- not walkable, but it DOUBLES an A press's reach
---             (Permissions.lua:136-140, World:facingObjectCell
---             gen2/World.lua:7825), so the judge is talked to across it
---             exactly like a dept-store clerk, and `npcAt` walks the
---             runtime NPC list so a spawned judge is found that way too.
+-- Both rooms are the town's own materials, and every block is the
+-- player's imported cache, never mod art (0.13.0 tried mod art and it did
+-- not read as Gen 2 at all).
 --
--- Only the town with an attendant is reachable today; the others are
--- ready for one. Geometry for every hall is verified offline against
--- BOTH the gold and crystal caches (scratchpad/verify_hall.lua).
+--   GOLDENROD  lobby TILESET_MART -- the Department Store: tiled floor,
+--              shelving, a service counter the judge takes entries at.
+--              Collision 0x90 is COUNTER: not walkable, but it DOUBLES an
+--              A press's reach (Permissions.lua:136-140,
+--              World:facingObjectCell gen2/World.lua:7825), and npcAt
+--              walks the runtime npc list, so a spawned judge is talked
+--              to across it like a clerk.
+--              stage TILESET_RADIO_TOWER -- the town's own broadcast
+--              studio: equipment banks either side of an open floor, the
+--              gap between them the way up to the judge. A televised
+--              contest is what Goldenrod would do with one.
+--   ECRUTEAK   TILESET_TRADITIONAL_HOUSE, the Dance Theatre: tatami and
+--              raised boards. It is a STAGE-shaped room already and has
+--              no attendant yet, so it stays one room until the town gets
+--              an entrance and a lobby of its own.
+--
+-- A town with no `stage` runs its contest where the player stands, which
+-- is exactly what every version before this one did.
+--
+-- Geometry for every room is verified offline against BOTH the gold and
+-- crystal caches (scratchpad/verify_hall.lua).
 local KC_HALLS = {
   GOLDENROD = {
+    lobby = {
     id = "KC_JOHTO_CONTEST_HALL",   -- unchanged: the id players' saves know
     label = "GOLDENROD CONTEST HALL",
     tileset = "TILESET_MART",
@@ -395,10 +406,51 @@ local KC_HALLS = {
       { name = "KC_AUD_3", marker = "kcAudience",
         sprite = "SPRITE_TWIN", x = 8, y = 6, movement = 8 },
     },
+    },
+    -- The stage the judge leads you onto. Goldenrod's own Radio Tower
+    -- studio: 0x0A equipment banks flank an open centre column, and that
+    -- gap is the way up to the judge -- the same "barrier with a way
+    -- through" the lobby counter and Ecruteak's stage lip both use.
+    stage = {
+      id = "KC_JOHTO_CONTEST_STAGE",
+      label = "CONTEST STAGE",
+      tileset = "TILESET_RADIO_TOWER",
+      song = "RADIO_TOWER_1F",
+      palette = "PALETTE_DAY",
+      width = 5, height = 4,        -- 10x8 cells
+      arrival = { x = 5, y = 7 },
+      blocks = {
+        0x02, 0x02, 0x02, 0x02, 0x02,  -- back wall; cell row 1 is the stage
+        0x1F, 0x0A, 0x01, 0x0A, 0x20,  -- equipment banks, open centre
+        0x1F, 0x01, 0x01, 0x01, 0x20,  -- the floor you walk up
+        0x1F, 0x01, 0x01, 0x01, 0x20,  -- the way in
+      },
+      actors = {
+        -- talk to him here and the contest begins
+        { name = "KC_STAGE_JUDGE", marker = "kcStageJudge",
+          sprite = "SPRITE_GENTLEMAN", x = 4, y = 1, movement = 6 },
+        -- the other coordinators, already on stage and facing it
+        { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
+          sprite = "SPRITE_LASS", x = 2, y = 5, movement = 7 },
+        { name = "KC_RIVAL_REX", marker = "kcRivalRex",
+          sprite = "SPRITE_YOUNGSTER", x = 3, y = 5, movement = 7 },
+        { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
+          sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 5, movement = 7 },
+        { name = "KC_AUD_1", marker = "kcAudience",
+          sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
+        { name = "KC_AUD_2", marker = "kcAudience",
+          sprite = "SPRITE_GRANNY", x = 8, y = 4, movement = 8 },
+        -- the way back down to the lobby, so the stage is never a trap
+        { name = "KC_STAGE_EXIT", marker = "kcStageExit",
+          sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 8, y = 7, movement = 8 },
+      },
+    },
   },
   -- Kept whole from 0.13.2 and ready for an Ecruteak attendant; nothing
-  -- reaches it yet, which is why the town has no entrance wired.
+  -- reaches it yet, which is why the town has no entrance wired. One
+  -- room, so a contest there runs where the player stands.
   ECRUTEAK = {
+    lobby = {
     id = "KC_ECRUTEAK_CONTEST_HALL",
     label = "ECRUTEAK CONTEST HALL",
     tileset = "TILESET_TRADITIONAL_HOUSE",
@@ -437,13 +489,15 @@ local KC_HALLS = {
       { name = "KC_AUD_4", marker = "kcAudience",
         sprite = "SPRITE_ROCKER", x = 8, y = 7, movement = 7 },
     },
+    },
   },
 }
 
 local function kcGold(mod, VERSION)
   -- The town this build's attendant leads into.
   local TOWN = "GOLDENROD"
-  local HALL_DEF = KC_HALLS[TOWN]
+  local HALL_DEF = KC_HALLS[TOWN].lobby
+  local STAGE_DEF = KC_HALLS[TOWN].stage      -- nil for a one-room town
   local HALL = HALL_DEF.id
   local HALL_ARRIVAL_X = HALL_DEF.arrival.x
   local HALL_ARRIVAL_Y = HALL_DEF.arrival.y
@@ -460,7 +514,12 @@ local function kcGold(mod, VERSION)
   -- KNOWN list in tests/gen_gate_test.lua covers them.)
   local goldData = mod.game and mod.game.data
   local mapSongs = goldData and goldData.audio and goldData.audio.mapSongs
-  for _, def in pairs(KC_HALLS) do
+  local ROOMS = {}
+  for _, town in pairs(KC_HALLS) do
+    if town.lobby then ROOMS[#ROOMS + 1] = town.lobby end
+    if town.stage then ROOMS[#ROOMS + 1] = town.stage end
+  end
+  for _, def in ipairs(ROOMS) do
     mod.content.maps:register(def.id, {
       id = def.id,
       label = def.label,
@@ -912,6 +971,14 @@ local function kcGold(mod, VERSION)
   -- Runtime actors are the same private-map pattern Hidden Grottos uses:
   -- the map record owns geometry; map.entered repopulates transient people.
   local hallReturn
+  local stageReturn
+  -- forward: runGoldContest ends by walking the player back off the
+  -- stage, and it is defined above the lobby judge that sends them there
+  local leaveStage
+  local function onStageNow()
+    local here = mod.world:current()
+    return STAGE_DEF ~= nil and here ~= nil and here.mapId == STAGE_DEF.id
+  end
   local entranceCell = { x = KCG.x, y = KCG.y }
   -- The cast for the town this build leads into, from the same table that
   -- describes its room. Movement values are Npc.lua MOVE numerics:
@@ -978,13 +1045,18 @@ local function kcGold(mod, VERSION)
                  KCG.map, x, y, how, tostring(ok))
   end
 
-  local function ensureHallActors(world)
-    for _, row in ipairs(HALL_ACTORS) do
+  local function ensureRoomActors(world, def)
+    for _, row in ipairs(def.actors) do
       if not markerExists(world, row.marker) then
-        spawnMarked(HALL, row, row.marker)
+        spawnMarked(def.id, row, row.marker)
       end
     end
   end
+
+  -- Set when the judge takes an entry in the lobby and cleared when the
+  -- contest actually starts; it is what the stage judge reads to know
+  -- which of the five he is about to judge.
+  local pendingContest
 
   mod.events:on("map.entered", function(ev)
     local ok, err = pcall(function()
@@ -993,7 +1065,9 @@ local function kcGold(mod, VERSION)
       if mapId == KCG.map then
         ensureGoldenrodAttendant(world)
       elseif mapId == HALL then
-        ensureHallActors(world)
+        ensureRoomActors(world, HALL_DEF)
+      elseif STAGE_DEF and mapId == STAGE_DEF.id then
+        ensureRoomActors(world, STAGE_DEF)
       end
     end)
     if not ok then mod.log:warn("kc gold spawn: %s", tostring(err)) end
@@ -1085,8 +1159,15 @@ local function kcGold(mod, VERSION)
     judge.kcContest = kind
     world:startBattle({ trainer = judge, save = game.save },
       function(outcome)
+        -- Off the stage and back to the lobby afterwards, win or lose:
+        -- the routine is over, so standing on an empty stage is not an
+        -- ending. Nested in the closing line's callback so the box is
+        -- read before the screen moves.
+        local function backToLobby()
+          if onStageNow() then leaveStage(world) end
+        end
         if outcome ~= "win" then
-          world:showText("Not quite this\ntime. Practice!")
+          world:showText("Not quite this\ntime. Practice!", backToLobby)
           return
         end
         -- Battle.playerIndex is firstHealthy, so mirror it when recording
@@ -1099,10 +1180,16 @@ local function kcGold(mod, VERSION)
           end
         end
         -- dialogue-ok: %s is a contest category, six glyphs at most
-        world:showText(("Magnificent!\nTruly %s!"):format(kind))
+        world:showText(("Magnificent!\nTruly %s!"):format(kind), backToLobby)
       end)
   end
 
+  -- The lobby judge TAKES THE ENTRY; he does not judge it here. Once a
+  -- category is picked he leads the player out to the stage, where the
+  -- other coordinators are already waiting -- 0.14.0 ran the whole contest
+  -- in this room, and the room reads as a lobby, which is what it is.
+  --
+  -- A town with no stage keeps the old behaviour and performs on the spot.
   local function startGoldContest(world)
     world:showText(
       "Welcome to the\nCONTEST HALL!\fWhich contest\nwill you enter?",
@@ -1114,9 +1201,60 @@ local function kcGold(mod, VERSION)
             world:showText("Take your time.\nThe stage waits.")
             return
           end
-          runGoldContest(world, kind)
+          if not STAGE_DEF then
+            runGoldContest(world, kind)
+            return
+          end
+          pendingContest = kind
+          -- The walk out is a WARP, not a scene script. Gold scene
+          -- scripts that walk the player are what stranded Colosseum
+          -- visitors in a void when one stayed armed; nothing here arms
+          -- anything that outlives the trip.
+          world:showText(
+            "Then follow me\nto the stage!",
+            function()
+              stageReturn = mod.world:current()
+              local ok, err = mod.world:warpTo(
+                STAGE_DEF.id, STAGE_DEF.arrival.x, STAGE_DEF.arrival.y, "up")
+              if not ok then
+                pendingContest = nil
+                mod.log:warn("contest stage warp failed: %s", tostring(err))
+                world:showText("KC error: stage\nentrance failed")
+              end
+            end)
         end)
       end)
+  end
+
+  -- On the stage: the judge who actually runs the contest. The category
+  -- was chosen at the lobby counter, so there is no second menu.
+  local function stageJudge(world)
+    local kind = pendingContest
+    if not kind then
+      -- wandered in without entering: say so rather than starting
+      -- something the player did not ask for
+      world:showText("Enter at the desk\ndownstairs first!")
+      return
+    end
+    -- dialogue-ok: %s is a contest category, six glyphs at most
+    world:showText(
+      ("The %s\nCONTEST!\fTake the stage!"):format(kind),
+      function()
+        pendingContest = nil
+        runGoldContest(world, kind)
+      end)
+  end
+
+  leaveStage = function(world)
+    pendingContest = nil
+    local back = stageReturn
+      or { mapId = HALL, x = HALL_ARRIVAL_X, y = HALL_ARRIVAL_Y }
+    local ok, err = mod.world:warpTo(
+      back.mapId, back.x, back.y, back.facing or "up")
+    if not ok then
+      mod.log:warn("contest stage exit failed: %s", tostring(err))
+      world:showText("KC error: stage\nexit failed")
+    end
   end
 
   local SNACK_MENU = {
@@ -1236,6 +1374,8 @@ local function kcGold(mod, VERSION)
       or (def.kcHallVendor and openSnackVendor)
       or (def.kcHallAppraiser and appraiseGold)
       or (def.kcHallExit and leaveHall)
+      or (def.kcStageJudge and stageJudge)
+      or (def.kcStageExit and leaveStage)
       or (def.kcRivalPiper and talkPiper)
       or (def.kcRivalRex and talkRex)
       or (def.kcRivalFiona and talkFiona)
@@ -1272,7 +1412,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.14.0"
+  local VERSION = "0.15.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

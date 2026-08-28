@@ -84,11 +84,13 @@ In Kanto, use the scarf from the bag and choose the Pokemon that will wear it.
 
 The current test build has an early Crystal development path. A Contest
 attendant stands in Goldenrod City and leads into the mod's own Contest
-Hall. Each town's hall is built from that town's own materials -- the
-Goldenrod one is a Department Store room, tiled floor and shelving, with
-the judge presiding behind a service counter -- but the layout is the
-same everywhere: an audience watching, and the rival coordinators waiting
-in line with the fourth place left open for you.
+Hall. A hall is two rooms, both built from that town's own materials. In
+Goldenrod you arrive in a Department Store lobby -- tiled floor, shelving,
+a service counter where the judge takes your entry, with the snack vendor
+and the appraiser alongside. Choose a contest and he leads you out to the
+stage: the town's Radio Tower studio, where the other coordinators are
+already waiting their turn. Walk up and speak to the judge when you are
+ready to perform.
 Inside, the judge runs all five contests; a vendor sells all five PokeSnack
 flavors and feeds the chosen Pokemon immediately, and an appraiser reads
 condition and fullness.

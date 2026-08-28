@@ -535,3 +535,40 @@ vocabulary is always the town's own vanilla blocks.
   gen_gate_test's KNOWN list needs a row per borrowed tileset id -- that
   list is the one thing that could hide a typo'd tileset behind a green
   test, so run the verifier first when adding a town.
+
+## 0.15.0: a hall is a LOBBY plus a STAGE
+
+Developer, after 0.14.0: "the room now feels like the contest lobby not
+the stage. we needed the lobby but next when you talk to the judge to
+start a contest he should lead you to a stage where the other
+coordinators are." Correct diagnosis -- what 0.14.0 built is a lobby, and
+it should stay one.
+
+KC_HALLS[town] is now `{ lobby = {...}, stage = {...} }`; a town with no
+`stage` performs where it stands, which is every version before this one,
+so ECRUTEAK stays valid untouched.
+
+Flow: lobby judge takes the entry and picks the category -> "follow me"
+-> warpTo the stage (`pendingContest` carries the category) -> stage judge
+reads it, no second menu -> contest -> back to the lobby from inside the
+closing line's callback, win or lose.
+
+- **The trip is a WARP, never a scene script.** Gold scene scripts that
+  walk the player are what stranded Colosseum visitors in a void when one
+  stayed armed; nothing here arms anything that outlives the trip.
+- **`leaveStage` is forward-declared** -- runGoldContest ends by calling
+  it and is defined above the lobby judge that sends the player out. A
+  plain `local function` later in the chunk would have been a nil global
+  at call time, the same trap judge_line hit in 0.11.0.
+- **Where the player is is derived, not remembered:** `onStageNow()` asks
+  `mod.world:current()` rather than trusting a flag, so a contest started
+  any other way still ends correctly.
+- **The stage is never a trap:** a receptionist by the door returns to the
+  lobby, and a stage judge with no `pendingContest` says to enter at the
+  desk rather than starting something unasked.
+- **GOLDENROD stage = TILESET_RADIO_TOWER.** 0x0A equipment banks flank an
+  open centre column and that gap is the way up -- the same "barrier with
+  a way through" as the lobby counter and Ecruteak's stage lip. Its 0x1F /
+  0x20 edge columns happen to be potted plants, which dresses the sides
+  for free. AVOID 0x07 there: warp carpet, and these rooms declare no
+  warps.
