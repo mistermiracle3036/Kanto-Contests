@@ -278,27 +278,37 @@ for _, s in ipairs(KC_SNACKS) do KC_SNACK_BY_ID[s.id] = s end
 local function kcGold(mod, VERSION)
   local HALL = "KC_JOHTO_CONTEST_HALL"
   local HALL_TILES = "KC_JOHTO_HALL_TILES"
-  local HALL_ARRIVAL_X, HALL_ARRIVAL_Y = 4, 8
+  local HALL_ARRIVAL_X, HALL_ARRIVAL_Y = 5, 12
 
-  -- Hidden Grottos 0.1.3 proved the Gold mod-map route: private Gen 2 map,
-  -- private tileset, explicit four-cell collision per block, empty extracted
-  -- event tables, and runtime actors re-created on map.entered.
-  local function goldFill(tile)
+  -- 0.13.0: the hall is the GEN 3 CONTEST STAGE ROOM, per the developer's
+  -- Emerald reference shots -- a pale stage ringed by an audience ledge,
+  -- the white judging machine at the top, the performance emblem
+  -- mid-stage where the entrant stands, the other coordinators lined up
+  -- at the bottom of the stage until their turn, and striped steps down
+  -- to a small entry strip.
+  --
+  -- The tiles are the mod's own art (assets/johto_hall_tiles.png,
+  -- generated Emerald-palette blocks) through the same trueColor
+  -- private-tileset route 0.10.7 proved on device; blocks are 16 tile
+  -- indices, row-major 4x4 (Map.tileAt, gen2/Map.lua:234). Geometry --
+  -- every stand-in cell, every talk approach, flood fill from the
+  -- arrival -- is verified offline by scratchpad/verify_hall.lua before
+  -- any device round.
+  local function hallBlock(i)
     local out = {}
-    for i = 1, 16 do out[i] = tile end
+    for t = 0, 15 do out[t + 1] = i * 16 + t end
     return out
   end
-
+  local WALL, WALK = { 7, 7, 7, 7 }, { 0, 0, 0, 0 }
   mod.content.tilesets:register(HALL_TILES, {
     id = HALL_TILES,
-    image = mod.path .. "/assets/contest_tiles.png",
-    imageWidth = 24, imageHeight = 8, tilesPerRow = 3,
-    blocks = { goldFill(0), goldFill(1), goldFill(2) },
-    collision = {
-      { 7, 7, 7, 7 }, -- wall
-      { 0, 0, 0, 0 }, -- floor
-      { 0, 0, 0, 0 }, -- stage rug
-    },
+    image = mod.path .. "/assets/johto_hall_tiles.png",
+    imageWidth = 128, imageHeight = 56, tilesPerRow = 16,
+    -- 0 void  1 audience ledge  2 stage  3 emblem  4 judging machine
+    -- 5 entry steps  6 lobby mat
+    blocks = { hallBlock(0), hallBlock(1), hallBlock(2), hallBlock(3),
+               hallBlock(4), hallBlock(5), hallBlock(6) },
+    collision = { WALL, WALL, WALK, WALK, WALL, WALK, WALK },
     trueColor = true,
   })
 
@@ -307,13 +317,15 @@ local function kcGold(mod, VERSION)
     label = "GOLDENROD CONTEST HALL",
     generation = 2,
     tileset = HALL_TILES,
-    width = 5, height = 5,
+    width = 6, height = 7,
     blocks = {
-      0, 0, 0, 0, 0,
-      0, 2, 2, 2, 0,
-      0, 1, 1, 1, 0,
-      0, 1, 1, 1, 0,
-      0, 1, 1, 1, 0,
+      0, 0, 0, 0, 0, 0,   -- dark surround; back-row audience stands here
+      1, 1, 1, 1, 1, 1,   -- audience ledge, ringside
+      1, 2, 2, 4, 2, 1,   -- stage row: judging machine right of centre
+      1, 2, 3, 2, 2, 1,   -- stage row: the performance emblem
+      1, 2, 2, 2, 2, 1,   -- open stage; the coordinator line waits here
+      1, 1, 5, 5, 1, 1,   -- ledge with the striped entry steps
+      0, 6, 6, 6, 6, 0,   -- entry strip: services and the way out
     },
     borderBlock = 0,
     palette = "PALETTE_AUTO",
@@ -323,9 +335,13 @@ local function kcGold(mod, VERSION)
     callbacks = {}, sceneScripts = {}, bgEvents = {}, coordEvents = {},
   })
 
+  -- The Ecruteak theatre's music: the one performance-hall track Gold
+  -- has, present under the same id on Gold and Crystal. Falls back to
+  -- the city theme rather than silence.
   local goldData = mod.game and mod.game.data
-  local hallSong = goldData and goldData.audio and goldData.audio.mapSongs
-    and goldData.audio.mapSongs.GOLDENROD_CITY
+  local mapSongs = goldData and goldData.audio and goldData.audio.mapSongs
+  local hallSong = mapSongs
+    and (mapSongs.DANCE_THEATER or mapSongs.GOLDENROD_CITY)
   if hallSong then mod.content.map_songs:register(HALL, hallSong) end
   -- The attendant's spot.
   --
@@ -744,25 +760,50 @@ local function kcGold(mod, VERSION)
   -- the map record owns geometry; map.entered repopulates transient people.
   local hallReturn
   local entranceCell = { x = KCG.x, y = KCG.y }
+  -- The Emerald stage-room blocking, from the developer's reference
+  -- shots. The judge presides beside his machine at the top of the stage
+  -- (movement 6 = STANDING_DOWN, 7/8/9 = UP/LEFT/RIGHT, Npc.lua MOVE);
+  -- the player's spot to approach him is beside the emblem. The three
+  -- rivals hold the coordinator line at the bottom of the stage --
+  -- "all four in line until it is your time to go", the fourth being the
+  -- player, whose place in it is the open cell at (5,9). Services live on
+  -- the entry strip below the steps. The audience stands the ledge ring;
+  -- they are scenery first, and where a ledge cell borders the stage a
+  -- talk may land -- harmless either way.
+  -- Every cell + approach verified by scratchpad/verify_hall.lua.
   local HALL_ACTORS = {
     { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
-      sprite = "SPRITE_GENTLEMAN", x = 4, y = 3, movement = 6 },
+      sprite = "SPRITE_GENTLEMAN", x = 5, y = 4, movement = 6 },
     { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
-      sprite = "SPRITE_TEACHER", x = 2, y = 6, movement = 6 },
+      sprite = "SPRITE_TEACHER", x = 2, y = 12, movement = 9 },
     { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
-      sprite = "SPRITE_BEAUTY", x = 7, y = 6, movement = 6 },
+      sprite = "SPRITE_BEAUTY", x = 9, y = 12, movement = 8 },
     { name = "KC_HALL_EXIT", marker = "kcHallExit",
-      sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 4, y = 9, movement = 6 },
-    -- Slice 4's rivals, visibly waiting their turn. Sprites verified in
-    -- BOTH the gold and crystal caches. Floor cells clear of the arrival
-    -- (4,8), the exit (4,9) and the walk up the middle column to the
-    -- judge.
+      sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 7, y = 12, movement = 7 },
+    -- the coordinator line, facing the stage they are waiting to take
     { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
-      sprite = "SPRITE_LASS", x = 2, y = 4, movement = 6 },
+      sprite = "SPRITE_LASS", x = 2, y = 9, movement = 7 },
     { name = "KC_RIVAL_REX", marker = "kcRivalRex",
-      sprite = "SPRITE_YOUNGSTER", x = 7, y = 4, movement = 6 },
+      sprite = "SPRITE_YOUNGSTER", x = 3, y = 9, movement = 7 },
     { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
-      sprite = "SPRITE_COOLTRAINER_F", x = 7, y = 8, movement = 6 },
+      sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 9, movement = 7 },
+    -- the audience ring; sprites all present in the gold AND crystal
+    -- caches (SPRITE_* checked; GRANNY/POKEFAN_M/KIMONO_GIRL appear in
+    -- both caches' own vanilla maps)
+    { name = "KC_AUD_1", marker = "kcAudience",
+      sprite = "SPRITE_GRANNY", x = 3, y = 1, movement = 6 },
+    { name = "KC_AUD_2", marker = "kcAudience",
+      sprite = "SPRITE_POKEFAN_M", x = 6, y = 1, movement = 6 },
+    { name = "KC_AUD_3", marker = "kcAudience",
+      sprite = "SPRITE_TWIN", x = 9, y = 1, movement = 6 },
+    { name = "KC_AUD_4", marker = "kcAudience",
+      sprite = "SPRITE_ROCKER", x = 2, y = 3, movement = 6 },
+    { name = "KC_AUD_5", marker = "kcAudience",
+      sprite = "SPRITE_COOLTRAINER_M", x = 8, y = 3, movement = 6 },
+    { name = "KC_AUD_6", marker = "kcAudience",
+      sprite = "SPRITE_POKEFAN_F", x = 1, y = 8, movement = 9 },
+    { name = "KC_AUD_7", marker = "kcAudience",
+      sprite = "SPRITE_KIMONO_GIRL", x = 10, y = 8, movement = 8 },
   }
 
   -- One page-set each; showText pages on \f in the overworld box (unlike
@@ -778,6 +819,11 @@ local function kcGold(mod, VERSION)
   local function talkFiona(world)
     world:showText(
       "My routine is\nflawless.\fBEAUTY is not\nwon. It is worn.")
+  end
+  -- One cheer covers the whole ring. Reaching most of them means facing
+  -- a ledge cell, so much of the audience is scenery in practice.
+  local function talkAudience(world)
+    world:showText("Go on! Dazzle\nus, newcomer!")
   end
 
   local function markerExists(world, marker)
@@ -1079,6 +1125,7 @@ local function kcGold(mod, VERSION)
       or (def.kcRivalPiper and talkPiper)
       or (def.kcRivalRex and talkRex)
       or (def.kcRivalFiona and talkFiona)
+      or (def.kcAudience and talkAudience)
     )
     if not handler then
       if baseTalk then return baseTalk(world, npc) end
@@ -1111,7 +1158,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.12.0"
+  local VERSION = "0.13.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

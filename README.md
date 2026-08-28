@@ -83,7 +83,10 @@ In Kanto, use the scarf from the bag and choose the Pokemon that will wear it.
 ## Crystal development preview
 
 The current test build has an early Crystal development path. A Contest
-attendant stands in Goldenrod City and leads into the mod's own Contest Hall.
+attendant stands in Goldenrod City and leads into the mod's own Contest
+Hall -- rebuilt in 0.13.0 as a Gen 3-style contest stage: audience ring,
+judging machine, performance emblem, and the rival coordinators waiting
+in line at the edge of the stage.
 Inside, the judge runs all five contests; a vendor sells all five PokeSnack
 flavors and feeds the chosen Pokemon immediately, and an appraiser reads
 condition and fullness.

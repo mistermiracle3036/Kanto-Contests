@@ -427,3 +427,38 @@ Both halls are bare rooms: Johto is 10x10 cells of one floor block, Kanto
 Recommendation: verify 2 with the cache renderer; if the cross-reference
 holds, do 2 for Johto and a small 3 for Kanto's stage row. If it does
 not, do 3 on both with the same two elements.
+
+## 0.13.0: the Emerald stage room (and what remains for the look)
+
+Direction from the developer mid-0.12.0-test, with Emerald screenshots:
+keep the GEN 3 contest presentation -- the stage room (audience ring on a
+ledge, judging machine, emblem mid-stage, contestants lined up until
+their turn) and, ideally, the Gen 3 exterior building.
+
+Done here: the interior, as mod-owned trueColor tiles
+(assets/johto_hall_tiles.png, generated Emerald-palette blocks; the
+generator lives in the session scratchpad, regenerate rather than
+hand-edit). Geometry + every actor approach verified offline by
+scratchpad/verify_hall.lua. Facts that held it together:
+
+- Block tile order is ROW-MAJOR 4x4 (Map.tileAt, gen2/Map.lua:234):
+  block[(ty%4)*4+(tx%4)+1]. The sheet is one block per 128px row,
+  tilesPerRow=16, so block i's tiles are ids 16i..16i+15.
+- Runtime NPCs may stand on SOLID cells (the audience ring does), but a
+  SERVICE npc must keep a walkable approach cell -- the first services
+  draft put vendor/appraiser on the outer dark row and they were
+  unreachable, caught by the verifier, never on device.
+- Whether a talk lands on an NPC standing on a solid ledge cell faced
+  from the stage is UNVERIFIED -- the audience is scenery first, so
+  either answer is fine. Do not put anything load-bearing on it.
+
+NOT done -- the exterior. The Gen 3 tent-roofed Contest Hall building on
+the Goldenrod street needs either (a) new blocks appended to
+TILESET_JOHTO_MODERN via a tilesets patch plus replaceBlock writes on
+GOLDENROD_CITY -- both mechanisms exist (WorldAPI:replaceBlock,
+gen2/WorldAPI.lua:282; the imported-cache workflow can verify the block
+swap offline) but a shared city tileset patch risks every Johto map if
+the block ids collide with another mod, or (b) keeping the street
+attendant as the entrance and accepting no facade. Option (a) is real
+work with a real blast radius; decide with the developer before starting
+it.

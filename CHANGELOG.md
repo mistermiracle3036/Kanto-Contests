@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.13.0
+The Johto hall becomes the Emerald stage room.
+
+**Updating from 0.8.2?** That was the last public release, and a lot has
+landed since. The short version:
+
+- **All five contests** (0.11.0), picked at the judge, wins recorded per
+  category.
+- **Contests came to Johto** (0.10.x): a Contest Hall in Goldenrod on
+  Gold, Silver and Crystal.
+- **Rival coordinators** (0.12.0): PIPER, REX and FIONA are scored before
+  you in the Introduction Round and can jam your routine mid-contest.
+- **PokeSnacks** (0.8.0), **the Introduction Round** (0.9.0), **earned
+  contest scarves** (0.10.9), plus a long list of text-box fixes.
+
+New in 0.13.0 specifically:
+
+- **The Johto Contest Hall is rebuilt as the Gen 3 contest stage.** Styled
+  on Emerald's stage room: a pale stage ringed by an audience standing at
+  the ledge, the judging machine at the top, the golden performance emblem
+  mid-stage, and striped steps up from the entrance. All-new tile art in
+  the Emerald palette.
+- **The other coordinators wait in line.** PIPER, REX and FIONA hold the
+  contestant line at the bottom edge of the stage -- with the fourth place
+  in the line left open for you. When it is your turn, step up to the
+  emblem and speak to the judge.
+- **A live audience.** Seven spectators ring the stage. The judge's music
+  is now the Dance Theatre's performance theme rather than the city theme.
+- The vendor, appraiser and receptionist now work the entry hall below
+  the steps.
+
 ## 0.12.0
 Rival coordinators.
 
