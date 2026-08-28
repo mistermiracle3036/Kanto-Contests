@@ -128,6 +128,58 @@ local function kcJamRoll(b, rng)
   return KC_RIVALS[rng(1, #KC_RIVALS)]
 end
 
+-- 0.13.2: THE RIVALS APPEAL TOO.
+--
+-- Until now they were announced once at the introduction and then only
+-- surfaced if a jam happened to roll -- 30% a round, so a whole contest
+-- could pass without them doing a thing, which is exactly how it read on
+-- device. A contest is four coordinators taking turns, so now one rival
+-- performs after every appeal of yours, rotating, and the judge reacts.
+-- Their scores accumulate, and the contest ends with a PLACEMENT.
+--
+-- Deliberately ONE rival per round rather than all three: three extra
+-- boxes a round is a wall of text between your own appeals.
+local KC_RIVAL_REACTIONS = {
+  { text = "The judge nods.",     score = 12 },
+  { text = "The crowd cheers!",   score = 18 },
+  { text = "Polite applause.",    score = 9 },
+  { text = "The judge frowns.",   score = 3 },
+}
+
+-- Whose turn it is this round, what the judge thought, and the points.
+-- Scores are the same currency the player's appeals earn (see kcAppealPoints)
+-- so the placement at the end compares like with like.
+local function kcRivalTurn(b, rng)
+  local index = ((b.kcRound or 1) - 1) % #KC_RIVALS + 1
+  local rival = KC_RIVALS[index]
+  local roll = KC_RIVAL_REACTIONS[rng and rng(1, #KC_RIVAL_REACTIONS) or 1]
+  b.kcRivalScore = b.kcRivalScore or {}
+  b.kcRivalScore[index] = (b.kcRivalScore[index] or 0) + roll.score
+  return rival, roll
+end
+
+-- The player's appeal in the same points as the rivals'.
+local function kcAppealPoints(cat, kind)
+  if cat == kind then return 25 end
+  if KC_OPPOSED[kind] and KC_OPPOSED[kind][cat] then return 0 end
+  return 10
+end
+
+-- Where the player finished, 1 = won the contest. Hearts count for both
+-- sides at the same rate, so the Introduction Round matters to the final
+-- standing and not just to the head start.
+local KC_PLACES = { "1st", "2nd", "3rd", "4th" }
+local function kcPlacement(b)
+  local mine = (b.kcPlayerScore or 0) + (b.kcHearts or 0) * 3
+  local ahead = 0
+  for i = 1, #KC_RIVALS do
+    local theirs = ((b.kcRivalScore and b.kcRivalScore[i]) or 0)
+      + (((b.kcRivalHearts and b.kcRivalHearts[i]) or 0) * 3)
+    if theirs > mine then ahead = ahead + 1 end
+  end
+  return KC_PLACES[ahead + 1] or "4th"
+end
+
 local KC_STAT_KEY = { COOL = "cool", BEAUTY = "beauty", CUTE = "cute",
                       SMART = "smart", TOUGH = "tough" }
 local KC_STAT_ORDER = { "COOL", "BEAUTY", "CUTE", "SMART", "TOUGH" }
@@ -277,7 +329,7 @@ for _, s in ipairs(KC_SNACKS) do KC_SNACK_BY_ID[s.id] = s end
 -- ------------------------------------------------------------------
 local function kcGold(mod, VERSION)
   local HALL = "KC_JOHTO_CONTEST_HALL"
-  local HALL_ARRIVAL_X, HALL_ARRIVAL_Y = 5, 12
+  local HALL_ARRIVAL_X, HALL_ARRIVAL_Y = 5, 8
 
   -- 0.13.1: VANILLA tiles only. 0.13.0 drew its own Emerald-palette
   -- tileset and the developer's verdict was direct -- ugly, didn't
@@ -305,18 +357,25 @@ local function kcGold(mod, VERSION)
     label = "GOLDENROD CONTEST HALL",
     generation = 2,
     tileset = "TILESET_TRADITIONAL_HOUSE",
-    width = 6, height = 7,
-    -- DANCE_THEATER's rows, with one change: its mid-floor low table
-    -- (blocks 0x15/0x11) becomes open mat (0x04) so the floor is clear
-    -- for the line, the audience and the walk to the stairs.
+    width = 5, height = 5,
+    -- 0.13.2 shrinks this from 6x7 to 5x5 blocks (10x10 cells, down from
+    -- 12x14): the first cut was the theatre's footprint with three
+    -- identical floor rows, and it played as a big empty room with the
+    -- cast scattered across it. One floor row is enough to hold the
+    -- coordinator line and still walk around it.
+    --
+    -- Row shape, with the cell rows each block row covers:
+    --   0x2D back wall   rows 0-1 (top solid, bottom open: stage back)
+    --   0x2C stage       rows 2-3
+    --   lip + stairs     row 4 solid but for a stair at each end, row 5 open
+    --   0x04/0x10/0x0E   rows 6-7, the floor the line stands on
+    --   doorway          rows 8-9, services and the way out
     blocks = {
-      0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,  -- back wall
-      0x2C, 0x2C, 0x2C, 0x2C, 0x2C, 0x2C,  -- the stage
-      0x2E, 0x30, 0x30, 0x30, 0x30, 0x2F,  -- stage lip; stairs both ends
-      0x10, 0x10, 0x04, 0x04, 0x0E, 0x0E,  -- open floor
-      0x10, 0x10, 0x04, 0x04, 0x0E, 0x0E,
-      0x10, 0x10, 0x04, 0x04, 0x0E, 0x0E,
-      0x05, 0x2A, 0x06, 0x07, 0x2B, 0x2A,  -- doorway row
+      0x2D, 0x2D, 0x2D, 0x2D, 0x2D,  -- back wall
+      0x2C, 0x2C, 0x2C, 0x2C, 0x2C,  -- the stage
+      0x2E, 0x30, 0x30, 0x30, 0x2F,  -- stage lip; stairs both ends
+      0x10, 0x04, 0x04, 0x04, 0x0E,  -- the floor
+      0x05, 0x2A, 0x06, 0x07, 0x2B,  -- doorway row
     },
     borderBlock = 0,
     palette = "PALETTE_DAY",       -- the theatre's own, not AUTO
@@ -455,6 +514,7 @@ local function kcGold(mod, VERSION)
     -- has no \f -- the multi-page trick sayPages does on Gen 1 has to be
     -- separate emits here.
     b.kcRivalHearts = kcRollRivalHearts(b.rng)
+    b.kcRivalScore, b.kcPlayerScore = {}, 0
     b:emit({ kind = "message", text = "Rival entrants\ntake the stage!" })
     for i, rival in ipairs(KC_RIVALS) do
       b:emit({ kind = "message",
@@ -530,6 +590,8 @@ local function kcGold(mod, VERSION)
     else
       dmg = math.ceil(maxhp * 0.10)
     end
+    -- the same points the rivals earn, for the placement at the end
+    b.kcPlayerScore = (b.kcPlayerScore or 0) + kcAppealPoints(cat, kind)
 
     mod.log:info("contest appeal %d: %s (%s) in %s -> %d of %d",
                  b.kcRound, tostring(moveId), cat, kind, dmg, maxhp)
@@ -566,6 +628,7 @@ local function kcGold(mod, VERSION)
       meter.hp = 1
       b:emit({ kind = "message", text = "The APPEAL meter\nis full!" })
       b:emit({ kind = "message", text = "The judge declares\na winner!" })
+      b:emit({ kind = "message", text = "You place 1st\nof 4!" })
       b:endBattle("win")
       return
     end
@@ -586,7 +649,15 @@ local function kcGold(mod, VERSION)
                text = "The judge's meter\nrecovers a little!" })
     end
 
+    -- A rival takes their turn after yours, rotating. This is the beat
+    -- that makes them read as competitors rather than set dressing.
     if b.kcRound < KC_ROUNDS then
+      local next_, roll = kcRivalTurn(b, b.rng)
+      if next_ then
+        b:emit({ kind = "message",
+                 text = ("%s appeals\nnext!"):format(next_.name) })
+        b:emit({ kind = "message", text = roll.text })
+      end
       -- dialogue-ok: both %d are round counts, one digit each
       b:emit({ kind = "message",
                text = ("The judge has seen\n%d of %d appeals."):format(
@@ -733,7 +804,10 @@ local function kcGold(mod, VERSION)
         -- verdict never displayed
         b:emit({ kind = "message", text = "The routine is\nover..." })
         b:emit({ kind = "message", text = "The judge shakes\nhis head." })
-        b:emit({ kind = "message", text = "Not quite this\ntime!" })
+        -- where you actually finished against the other three
+        -- dialogue-ok: %s is a placement, three glyphs
+        b:emit({ kind = "message",
+                 text = ("You place %s\nof 4!"):format(kcPlacement(b)) })
         b:endBattle("run")
       end
     end)
@@ -762,34 +836,31 @@ local function kcGold(mod, VERSION)
   -- both caches by scratchpad/verify_hall.lua.
   local HALL_ACTORS = {
     { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
-      sprite = "SPRITE_GENTLEMAN", x = 5, y = 2, movement = 6 },
+      sprite = "SPRITE_GENTLEMAN", x = 4, y = 2, movement = 6 },
     { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
-      sprite = "SPRITE_TEACHER", x = 1, y = 12, movement = 9 },
+      sprite = "SPRITE_TEACHER", x = 1, y = 9, movement = 9 },
     { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
-      sprite = "SPRITE_BEAUTY", x = 10, y = 12, movement = 8 },
+      sprite = "SPRITE_BEAUTY", x = 8, y = 9, movement = 8 },
     { name = "KC_HALL_EXIT", marker = "kcHallExit",
-      sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 7, y = 12, movement = 7 },
-    -- the coordinator line, facing the stage they are waiting to take
+      sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 6, y = 9, movement = 7 },
+    -- the coordinator line, facing the stage they are waiting to take;
+    -- (5,6) beside FIONA is the player's own place in it
     { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
-      sprite = "SPRITE_LASS", x = 2, y = 8, movement = 7 },
+      sprite = "SPRITE_LASS", x = 2, y = 6, movement = 7 },
     { name = "KC_RIVAL_REX", marker = "kcRivalRex",
-      sprite = "SPRITE_YOUNGSTER", x = 3, y = 8, movement = 7 },
+      sprite = "SPRITE_YOUNGSTER", x = 3, y = 6, movement = 7 },
     { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
-      sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 8, movement = 7 },
-    -- the audience, on plain floor cells; every sprite verified present
+      sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 6, movement = 7 },
+    -- a small audience for a small room; every sprite verified present
     -- in the gold AND crystal caches
     { name = "KC_AUD_1", marker = "kcAudience",
       sprite = "SPRITE_GRANNY", x = 0, y = 6, movement = 9 },
     { name = "KC_AUD_2", marker = "kcAudience",
-      sprite = "SPRITE_POKEFAN_F", x = 0, y = 9, movement = 9 },
+      sprite = "SPRITE_POKEFAN_M", x = 9, y = 6, movement = 8 },
     { name = "KC_AUD_3", marker = "kcAudience",
-      sprite = "SPRITE_POKEFAN_M", x = 11, y = 6, movement = 8 },
+      sprite = "SPRITE_TWIN", x = 2, y = 8, movement = 7 },
     { name = "KC_AUD_4", marker = "kcAudience",
-      sprite = "SPRITE_COOLTRAINER_M", x = 11, y = 9, movement = 8 },
-    { name = "KC_AUD_5", marker = "kcAudience",
-      sprite = "SPRITE_TWIN", x = 2, y = 11, movement = 7 },
-    { name = "KC_AUD_6", marker = "kcAudience",
-      sprite = "SPRITE_ROCKER", x = 9, y = 11, movement = 7 },
+      sprite = "SPRITE_ROCKER", x = 8, y = 7, movement = 7 },
   }
 
   -- One page-set each; showText pages on \f in the overworld box (unlike
@@ -1144,7 +1215,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.13.1"
+  local VERSION = "0.13.2"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -1514,6 +1585,7 @@ return function(mod)
           -- lands as the answer. sayNext pages via sayPages, so \f is
           -- fine here (unlike the Gold arm's raw emits).
           b.kcRivalHearts = kcRollRivalHearts(b.rng)
+          b.kcRivalScore, b.kcPlayerScore = {}, 0
           b:sayNext("Rival entrants\ntake the stage!")
           for i, rival in ipairs(KC_RIVALS) do
             b:sayNext(("%s scores\n%d hearts!"):format(rival.name,
@@ -1864,8 +1936,10 @@ return function(mod)
     if dmg > 0 then self:applyDamage(target, dmg) end
     self:sayNext(react)
     -- round bookkeeping + endings
+    self.kcPlayerScore = (self.kcPlayerScore or 0) + kcAppealPoints(cat, kind)
     self.kcRound = (self.kcRound or 0) + 1
     if target.mon.hp <= 0 then
+      self:sayNext("You place 1st\nof 4!")
       self:onFaint(target)   -- vanilla victory path; texts already rewritten
       return
     end
@@ -1881,10 +1955,18 @@ return function(mod)
       self:sayNext(("%s cuts in\nand jams you!\fThe judge's meter\nrecovers a little!")
         :format(rival.name))
     end
-    if self.kcRound >= KC_ROUNDS then
+    if self.kcRound < KC_ROUNDS then
+      -- a rival's own turn, rotating: the beat that makes them read as
+      -- competitors rather than set dressing
+      local next_, roll = kcRivalTurn(self, self.rng)
+      if next_ then
+        self:sayNext(("%s appeals\nnext!\f%s"):format(next_.name, roll.text))
+      end
+    else
       self:sayNext("The routine is\nover...")
       self:sayNext("The judge shakes\nhis head.")
-      self:sayNext("Not quite this\ntime!")
+      -- dialogue-ok: %s is a placement, three glyphs
+      self:sayNext(("You place %s\nof 4!"):format(kcPlacement(self)))
       -- end as "run": no blackout, no prize -- the clean contest loss
       self.result = "run"
       self.afterQueue = "finish"

@@ -193,6 +193,45 @@ do
   T.eq(battle.outcome, "run", "jammed contest still exits as a clean run")
 end
 
+-- 3b. The rivals APPEAL every round (0.13.2). Before this they were
+--     announced once and then only surfaced on a jam roll, so a whole
+--     contest could pass with them doing nothing -- which is how it read
+--     on device. One rival performs per round, rotating, and their
+--     scores accumulate toward the final placement.
+do
+  local battle, meter = runContest("TOUGH", { "FIRE_PUNCH" })
+  T.eq(battle.kcRivalScore, nil, "no rival scores before the contest opens")
+
+  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
+  T.check(type(battle.kcRivalScore) == "table",
+    "the introduction seeds the rival scoreboard")
+  local scored = 0
+  for i = 1, 3 do
+    if (battle.kcRivalScore[i] or 0) > 0 then scored = scored + 1 end
+  end
+  T.eq(scored, 1, "exactly ONE rival appeals in round 1, not all three")
+  T.check((battle.kcRivalScore[1] or 0) > 0,
+    "the rotation starts with the first coordinator")
+  T.check((battle.kcPlayerScore or 0) > 0,
+    "the player's own appeal scores in the same currency")
+
+  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
+  T.check((battle.kcRivalScore[2] or 0) > 0,
+    "round 2 hands the turn to the next coordinator")
+
+  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
+  T.check((battle.kcRivalScore[3] or 0) > 0,
+    "round 3 reaches the third, so all three are seen in one contest")
+
+  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
+  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
+  T.check(battle.over, "five appeals still end it")
+  -- neutral appeals only: 5 x 10 points, which the rivals can beat, so a
+  -- placement is computed rather than assumed
+  T.check(battle.kcPlayerScore == 50,
+    "five neutral appeals score 50 (10 each)")
+end
+
 -- 4. And with sane rolls, jams never fire here: the neverJam default
 --    maxes rng(1,100), so scoring stays exactly the pre-0.12.0 numbers --
 --    which is also what keeps every assertion above this block honest.

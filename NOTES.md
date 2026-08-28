@@ -475,3 +475,29 @@ superseded theatre draft measured: `tileset = "TILESET_TRADITIONAL_HOUSE"`
 resolves through the merged gen2 table at runtime, shows as a KNOWN
 unresolved reference in the ROM-free sandbox, and the id + full geometry
 are verified against both imported caches by scratchpad/verify_hall.lua.
+
+## 0.13.2: room size and rival presence
+
+Both from the same device round.
+
+- **"Room is too big."** 6x7 blocks (12x14 cells) was the theatre's own
+  footprint, and three identical floor rows is what made it read as empty.
+  Now 5x5 blocks / 10x10 cells: back wall, stage, lip+stairs, ONE floor
+  row, doorway. The cast is dense enough to read as a room with people in
+  it. Rule of thumb for a mod interior: size the floor to the cast, not to
+  the reference map.
+- **"Doesn't feel like they are doing much."** Correct, and the numbers
+  say why: the rivals had exactly two beats -- one intro announcement and
+  a 30%-per-round jam -- so a median contest showed them once. They now
+  take a turn after every player appeal, rotating by
+  `(kcRound - 1) % #KC_RIVALS`, so all three appear in any contest that
+  runs three rounds. One per round, not three: three extra boxes a round
+  is a wall of text between your own appeals.
+- **Placement** closes the loop -- the rival scores existed but were
+  invisible, which is its own kind of "not doing much". Player and rivals
+  score in ONE currency (kcAppealPoints: 25 match / 10 neutral / 0 opposed;
+  rival reactions 3-18), hearts worth 3 apiece on both sides, so the
+  Introduction Round now affects the final standing and not just the head
+  start. Filling the meter is 1st outright.
+- Tuning is provisional like the jam numbers: if rivals feel too strong or
+  too weak, KC_RIVAL_REACTIONS' score column is the dial.

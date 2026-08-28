@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.13.2
+A smaller hall, and rival coordinators who actually compete.
+
+- **The hall is much smaller.** It was a big empty room with the cast
+  spread thin across it -- three identical floor rows where one does the
+  job. The whole hall is now about a screen: you come in the door and the
+  coordinator line is right there in front of you, with the stage and the
+  judge above it.
+- **The rivals take their turns now.** Before, they were introduced once
+  and then only reappeared if they happened to jam you -- so a whole
+  contest could go by with them doing nothing at all. Now one of them
+  performs after every appeal of yours, rotating, and the judge reacts to
+  each: all three are seen and scored in every contest.
+- **Contests end with a placement.** Fill the meter and you place 1st. Run
+  out of appeals and the judge ranks you against the other three on what
+  everyone actually scored -- your appeals and your Introduction Round
+  hearts against theirs. Placing 2nd of 4 after a strong routine now reads
+  very differently from placing 4th.
+
 ## 0.13.1
 The hall keeps the Emerald layout but wears Gold's own tiles.
 

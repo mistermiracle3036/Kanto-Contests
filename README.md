@@ -110,8 +110,9 @@ with two Growlithe.
 - Appeal scoring, the five-appeal limit, win/lose/withdraw
 - PokeSnacks, contest condition and sheen, with a vendor and an appraiser
 - Five earned contest scarves and their Introduction-round bonus
-- Three rival coordinators in each hall, scored in the Introduction Round
-  and able to jam your routine from the second appeal on
+- Three rival coordinators in each hall: scored in the Introduction Round,
+  taking a turn of their own after each of your appeals, able to jam your
+  routine from the second appeal on, and ranked against you at the end
 - The Introduction Round: condition scored as hearts, cashed in as a
   head start on the appeal meter
 - Wins recorded on the POKeMON itself, so they survive boxing, evolution
