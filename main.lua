@@ -407,42 +407,53 @@ local KC_HALLS = {
         sprite = "SPRITE_TWIN", x = 8, y = 6, movement = 8 },
     },
     },
-    -- The stage the judge leads you onto. Goldenrod's own Radio Tower
-    -- studio: 0x0A equipment banks flank an open centre column, and that
-    -- gap is the way up to the judge -- the same "barrier with a way
-    -- through" the lobby counter and Ecruteak's stage lip both use.
+    -- The stage the judge leads you onto. Third vocabulary for this room:
+    -- 0.15.0's Radio Tower equipment banks read as store shelving, and
+    -- 0.15.1's broadcast bench read as a front desk -- both verdicts from
+    -- the developer, both right. What a stage needs is a RAISED DAIS with
+    -- a visible edge, and the GAME CORNER -- Goldenrod's own show floor --
+    -- has exactly that: block 0x09 is a platform whose decorated skirt is
+    -- COUNTER collision (identical both caches), so the dais reads as a
+    -- stage front AND the judge on it is spoken to from the performance
+    -- floor across the skirt, Emerald-style. The 0x01 block at the east
+    -- end of the dais row is the open way up. Palms dress the west side;
+    -- the 0x19 cushioned-seat blocks are WALKABLE, so the audience
+    -- actually sits the seats.
     stage = {
       id = "KC_JOHTO_CONTEST_STAGE",
       label = "CONTEST STAGE",
-      tileset = "TILESET_RADIO_TOWER",
-      song = "RADIO_TOWER_1F",
+      tileset = "TILESET_GAME_CORNER",
+      song = "GOLDENROD_GAME_CORNER",
       palette = "PALETTE_DAY",
       width = 5, height = 4,        -- 10x8 cells
       arrival = { x = 5, y = 7 },
       blocks = {
-        0x02, 0x02, 0x02, 0x02, 0x02,  -- back wall; cell row 1 is the stage
-        0x1F, 0x0A, 0x01, 0x0A, 0x20,  -- equipment banks, open centre
-        0x1F, 0x01, 0x01, 0x01, 0x20,  -- the floor you walk up
-        0x1F, 0x01, 0x01, 0x01, 0x20,  -- the way in
+        0x02, 0x02, 0x02, 0x02, 0x02,  -- back wall
+        0x09, 0x09, 0x09, 0x09, 0x01,  -- the dais and its skirt; open east end
+        0x12, 0x01, 0x01, 0x01, 0x01,  -- palms west, the performance floor
+        0x19, 0x01, 0x01, 0x01, 0x19,  -- seat clusters flank the entrance
       },
       actors = {
-        -- talk to him here and the contest begins
+        -- on the dais, above the skirt; speak to him from the floor
+        -- (across the skirt) or walk up the east end
         { name = "KC_STAGE_JUDGE", marker = "kcStageJudge",
-          sprite = "SPRITE_GENTLEMAN", x = 4, y = 1, movement = 6 },
-        -- the other coordinators, already on stage and facing it
+          sprite = "SPRITE_GENTLEMAN", x = 4, y = 2, movement = 6 },
+        -- the coordinator line on the performance floor before the dais;
+        -- (5,5) beside FIONA is the player's place
         { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
           sprite = "SPRITE_LASS", x = 2, y = 5, movement = 7 },
         { name = "KC_RIVAL_REX", marker = "kcRivalRex",
           sprite = "SPRITE_YOUNGSTER", x = 3, y = 5, movement = 7 },
         { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
           sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 5, movement = 7 },
+        -- seated at the show-floor stools, watching
         { name = "KC_AUD_1", marker = "kcAudience",
-          sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
+          sprite = "SPRITE_POKEFAN_M", x = 0, y = 6, movement = 7 },
         { name = "KC_AUD_2", marker = "kcAudience",
-          sprite = "SPRITE_GRANNY", x = 8, y = 4, movement = 8 },
+          sprite = "SPRITE_GRANNY", x = 9, y = 6, movement = 7 },
         -- the way back down to the lobby, so the stage is never a trap
         { name = "KC_STAGE_EXIT", marker = "kcStageExit",
-          sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 8, y = 7, movement = 8 },
+          sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 7, y = 7, movement = 8 },
       },
     },
   },
@@ -1412,7 +1423,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.15.0"
+  local VERSION = "0.15.2"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

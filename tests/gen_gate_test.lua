@@ -25,7 +25,7 @@ local KNOWN = {
   ['unresolved reference to pokemon "CHANSEY"'] = true,
   ['unresolved reference to tilesets "TILESET_TRADITIONAL_HOUSE"'] = true,
   ['unresolved reference to tilesets "TILESET_MART"'] = true,
-  ['unresolved reference to tilesets "TILESET_RADIO_TOWER"'] = true,
+  ['unresolved reference to tilesets "TILESET_GAME_CORNER"'] = true,
 }
 local function realErrors(run)
   local out = {}

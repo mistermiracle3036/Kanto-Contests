@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.15.2
+The stage is a raised dais with a proper stage front.
+
+- Third dressing for this room, and the right one. The equipment banks
+  read as shelving; the broadcast bench read as a front desk. The stage
+  is now built from the **Game Corner** -- Goldenrod's own show floor:
+  a **raised dais spans the room, with a decorated skirt for a stage
+  front**, and the judge presides up on it. Perform from the floor in
+  front of the dais, or walk up its open end and join him on it.
+- **The audience sits show-floor seats** at the corners, palms dress
+  stage left, and the room plays the Game Corner's music.
+
 ## 0.15.0
 The judge leads you out to a stage.
 

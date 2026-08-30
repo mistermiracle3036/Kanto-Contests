@@ -572,3 +572,47 @@ closing line's callback, win or lose.
   0x20 edge columns happen to be potted plants, which dresses the sides
   for free. AVOID 0x07 there: warp carpet, and these rooms declare no
   warps.
+
+## 0.15.1 (unshipped) / 0.15.2: finding the stage's vocabulary
+
+Developer, on 0.15.0's stage: remove the shelves (the 0x0A equipment
+banks -- they read as store shelving) and make more of a stage. The
+replacement is the Gen 3 structure in the Radio Tower's own vocabulary:
+the 1F broadcast desk run (0x05 0x26 0x2B 0x26 0x2E -- long bench, left
+cap, console at centre) spans the room as the judges' bench; the judge
+stands behind it on a strip only he occupies; the WHOLE floor below is
+the performance stage the coordinator line stands on.
+
+- Bench collision (identical both caches): upper cells walkable, lower
+  cells COUNTER except 0x05's solid left cap -- so the behind-bench strip
+  is sealed to walking and the judge is spoken to across the bench with
+  the doubled A-press reach, same as the lobby counter.
+- 0x1F / 0x20 side columns: OUTER cell is a solid potted plant, INNER
+  cell is walkable floor -- so audience stands ON the floor against the
+  plants, and the floor is 8 cells wide, not 6.
+- The judge NPC spawns onto the sealed strip; runtime objects place
+  anywhere, reachability is only a player concern. The verifier's
+  counter-reach rule proves he is talkable.
+
+0.15.1's bench never shipped: the developer saw the preview and called it
+a front desk, which it was -- a long counter with someone behind it IS
+reception grammar in these games, whatever the room around it says. The
+lesson generalises: **judge the preview by what the furniture means in
+the game's own visual language, not by what the room is named.** Radio
+Tower vocabulary only speaks office; no arrangement of it was going to
+read as a stage.
+
+0.15.2 is TILESET_GAME_CORNER -- Goldenrod's actual show floor -- and its
+0x09 block is the thing itself: a raised dais whose decorated skirt is a
+stage front. Facts that make it work (identical both caches):
+
+- 0x09 skirt cells are COUNTER collision, so the judge on the dais is
+  spoken to from the performance floor across the skirt (doubled A-press
+  reach) AND the dais is walkable on top -- a plain 0x01 at the row's
+  east end is the open way up. Both approaches verified.
+- 0x19 seat clusters are WALKABLE: the audience sits actual seats.
+- 0x12 twin palms are solid dressing; 0x1A's single palm is walkable
+  (odd but true) -- avoided for that reason.
+- Song: GOLDENROD_GAME_CORNER's own track.
+- KNOWN list: TILESET_RADIO_TOWER row swapped for TILESET_GAME_CORNER;
+  no map references the Radio Tower any more.
