@@ -363,291 +363,403 @@ for _, s in ipairs(KC_SNACKS) do KC_SNACK_BY_ID[s.id] = s end
 local KC_HALLS = {
   GOLDENROD = {
     lobby = {
-    id = "KC_JOHTO_CONTEST_HALL",   -- unchanged: the id players' saves know
-    label = "GOLDENROD CONTEST HALL",
-    tileset = "TILESET_MART",
-    song = "GOLDENROD_DEPT_STORE_1F",
-    palette = "PALETTE_DAY",
-    width = 5, height = 4,          -- 10x8 cells
-    arrival = { x = 5, y = 7 },
-    --   0x03 back wall   rows 0-1 (top solid, bottom open: the stage)
-    --   counter run      row 2 barred but for a gap at each end, row 3 floor
-    --   0x04 floor       rows 4-5, where the coordinators queue
-    --   0x04 floor       rows 6-7, the entry strip and its services
-    -- PAINTED BY THE DEVELOPER in the Content Editor and read back by
-    -- tests/read_editor_layout.lua. The painter works a quarter-block at
-    -- a time, so these are our OWN blocks cut from the dept store's
-    -- sheet -- which ships as numbers only: `image` is the player's own
-    -- extracted file, resolved out of their cache by Assets.resolve
-    -- (Assets.lua:36-54). No ROM art is redistributed.
-    --
-    -- ONE CELL KIND THE EDITOR CANNOT PAINT: its collision modes are
-    -- solid/walk/grass/water/shore, with no COUNTER, so the desk came
-    -- back solid and the judge could only be reached by walking round it.
-    -- Counter is restored by hand below -- 0x90, which is not walkable
-    -- but DOUBLES an A press's reach (Permissions.lua:136-140,
-    -- World:facingObjectCell gen2/World.lua:7825), so he is served across
-    -- the desk like a clerk again.
-    --
-    -- It is a safe hand-edit because the desk is one composed block used
-    -- in one place: index 2, at block (1,1), (2,1) and (3,1) -- the six
-    -- cells (2,2)..(7,2). Its TOP row is the desk (quad slots 1 and 2,
-    -- since index = (cy%2)*2 + (cx%2) + 1); the row below stays floor.
-    -- Re-check that if the room is ever repainted.
-    tiles = {
-      id = "KC_GOLDENROD_LOBBY_TILES",
-      image = "assets/generated/tilesets/mart.png",
-      imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
-      -- Which of the eight background palettes each TILE of the sheet
-      -- takes, copied from TILESET_MART. It is indexed by tile over that
-      -- same image (World.lua:8088-8090), and our blocks reuse those
-      -- tiles, so this is exactly the game's own colouring -- as numbers,
-      -- not art. 0.16.0 tried to look this up from the live game at load
-      -- time instead and got nothing, which is why every room baked grey:
-      -- with no tilePalettes every tile falls back to palette slot 1.
-      tilePalettes = {
-        1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7,
-        1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5,
-        1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1,
-        1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1,
-        1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6,
-      },
-      -- index 5 is the BORDER: what the game tiles outside the room.
-      -- `borderBlock = 0` used to mean vanilla block 0x00, the void; in a
-      -- composed sheet index 0 is just our first block, so 0.16.0 papered
-      -- the whole screen with the back wall. This is vanilla 0x00's own
-      -- tile, kept at a known index.
-      border = 5,
+      id = "KC_JOHTO_CONTEST_HALL",
+      label = "GOLDENROD CONTEST HALL",
+      song = "GOLDENROD_DEPT_STORE_1F",
+      palette = "PALETTE_DAY",
+      width = 5, height = 4,
+      arrival = { x = 5, y = 7 },
+      tiles = {
+        id = "KC_GOLDENROD_LOBBY_TILES",
+        source = "TILESET_MART",
+        variants = {
+          gs = {
+            image = "assets/generated/tilesets/mart.png",
+            imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
+            border = 5,
+            tilePalettes = {
+              1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7, 1, 1, 1, 1,
+              1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5, 1, 1, 2, 2, 2, 2, 4, 4,
+              4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1,
+              1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1,
+              1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 2,
+              2, 4, 4, 7, 1, 1, 1, 5, 5, 5, 7, 1, 1, 1, 4, 1, 1, 1, 5, 5,
+              1, 1, 1, 1, 1, 2, 4, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
+              2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 4, 1,
+              4, 2, 6, 6,
+            },
       blocks = {
-        { 14, 15, 14, 15, 28, 29, 28, 29, 1, 1, 1, 1, 1, 1, 1, 1 },
-        { 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53, 1, 1 },
-        { 30, 30, 30, 30, 26, 26, 26, 26, 1, 1, 1, 1, 1, 1, 1, 1 },
-        { 1, 1, 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53 },
-        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-        { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
-      },
+              { 14, 15, 14, 15, 28, 29, 28, 29, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53, 1, 1 },
+              { 30, 30, 30, 30, 26, 26, 26, 26, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
+            },
       collision = {
-        { 7, 7, 0, 0 },
-        { 7, 0, 7, 0 },
-        -- the desk: 0x90 = COUNTER on its top row, so an A press from the
-        -- floor below reaches the judge standing behind it
-        { 0x90, 0x90, 0, 0 },
-        { 0, 7, 0, 7 },
-        { 0, 0, 0, 0 },
-        { 7, 7, 7, 7 },   -- the border block, solid like vanilla 0x00
+              { 7, 7, 0, 0 },
+              { 7, 0, 7, 0 },
+              { 7, 7, 0, 0 },
+              { 0, 7, 0, 7 },
+              { 0, 0, 0, 0 },
+              { 7, 7, 7, 7 },
+            },
+    },
+          crystal = {
+            image = "assets/generated/tilesets/mart.png",
+            imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
+            border = 5,
+            tilePalettes = {
+              1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7, 1, 1, 1, 1,
+              1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5, 1, 1, 2, 2, 2, 2, 4, 4,
+              4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1,
+              1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1,
+              1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 2,
+              2, 4, 4, 7, 1, 1, 1, 5, 5, 5, 7, 1, 1, 1, 4, 1, 1, 1, 5, 5,
+              1, 1, 1, 1, 1, 2, 4, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
+              2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 4, 1,
+              4, 2, 6, 6,
+            },
+      blocks = {
+              { 14, 15, 14, 15, 28, 29, 28, 29, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53, 1, 1 },
+              { 30, 30, 30, 30, 26, 26, 26, 26, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
+            },
+      collision = {
+              { 7, 7, 0, 0 },
+              { 7, 0, 7, 0 },
+              { 7, 7, 0, 0 },
+              { 0, 7, 0, 7 },
+              { 0, 0, 0, 0 },
+              { 7, 7, 7, 7 },
+            },
+    },
+        },
+      },
+      blocks = {
+        0, 0, 0, 0, 0,
+        1, 2, 2, 2, 3,
+        1, 4, 4, 4, 3,
+        1, 4, 4, 4, 3,
+      },
+      actors = {
+        { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
+          sprite = "SPRITE_GENTLEMAN", x = 4, y = 1, movement = 6 },
+        { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
+          sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
+        { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
+          sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
+        { name = "KC_HALL_EXIT", marker = "kcHallExit",
+          sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 6, y = 7, movement = 7 },
+        { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
+          sprite = "SPRITE_LASS", x = 2, y = 5, movement = 7 },
+        { name = "KC_RIVAL_REX", marker = "kcRivalRex",
+          sprite = "SPRITE_YOUNGSTER", x = 3, y = 5, movement = 7 },
+        { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
+          sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 5, movement = 7 },
+        { name = "KC_AUD_1", marker = "kcAudience",
+          sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
+        { name = "KC_AUD_2", marker = "kcAudience",
+          sprite = "SPRITE_GRANNY", x = 8, y = 4, movement = 8 },
+        { name = "KC_AUD_3", marker = "kcAudience",
+          sprite = "SPRITE_TWIN", x = 8, y = 6, movement = 8 },
       },
     },
-    blocks = {
-      0, 0, 0, 0, 0,
-      1, 2, 2, 2, 3,
-      1, 4, 4, 4, 3,
-      1, 4, 4, 4, 3,
-    },
-    actors = {
-      -- behind the counter, talked to across it
-      { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
-        sprite = "SPRITE_GENTLEMAN", x = 4, y = 1, movement = 6 },
-      { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
-        sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
-      { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
-        sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
-      { name = "KC_HALL_EXIT", marker = "kcHallExit",
-        sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 6, y = 7, movement = 7 },
-      -- the coordinator line; (5,5) beside FIONA is the player's place
-      { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
-        sprite = "SPRITE_LASS", x = 2, y = 5, movement = 7 },
-      { name = "KC_RIVAL_REX", marker = "kcRivalRex",
-        sprite = "SPRITE_YOUNGSTER", x = 3, y = 5, movement = 7 },
-      { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
-        sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 5, movement = 7 },
-      { name = "KC_AUD_1", marker = "kcAudience",
-        sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
-      { name = "KC_AUD_2", marker = "kcAudience",
-        sprite = "SPRITE_GRANNY", x = 8, y = 4, movement = 8 },
-      { name = "KC_AUD_3", marker = "kcAudience",
-        sprite = "SPRITE_TWIN", x = 8, y = 6, movement = 8 },
-    },
-    },
-    -- The stage the judge leads you onto. Third vocabulary for this room:
-    -- 0.15.0's Radio Tower equipment banks read as store shelving, and
-    -- 0.15.1's broadcast bench read as a front desk -- both verdicts from
-    -- the developer, both right. What a stage needs is a RAISED DAIS with
-    -- a visible edge, and the GAME CORNER -- Goldenrod's own show floor --
-    -- has exactly that: block 0x09 is a platform whose decorated skirt is
-    -- COUNTER collision (identical both caches), so the dais reads as a
-    -- stage front AND the judge on it is spoken to from the performance
-    -- floor across the skirt, Emerald-style. The 0x01 block at the east
-    -- end of the dais row is the open way up. Palms dress the west side;
-    -- the 0x19 cushioned-seat blocks are WALKABLE, so the audience
-    -- actually sits the seats.
     stage = {
       id = "KC_JOHTO_CONTEST_STAGE",
       label = "CONTEST STAGE",
-      tileset = "TILESET_GAME_CORNER",
       song = "GOLDENROD_GAME_CORNER",
       palette = "PALETTE_DAY",
-      width = 5, height = 4,        -- 10x8 cells
+      width = 5, height = 4,
       arrival = { x = 5, y = 7 },
-      -- PAINTED BY THE DEVELOPER, same route as the lobby above: our own
-      -- blocks cut from the Game Corner sheet, shipped as numbers over
-      -- the player's own extracted image.
       tiles = {
         id = "KC_GOLDENROD_STAGE_TILES",
-        image = "assets/generated/tilesets/game_corner.png",
-        imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
-        -- per-tile palette slots copied from TILESET_GAME_CORNER; see the
-        -- lobby's note above for why these are baked in rather than
-        -- looked up at load
-        tilePalettes = {
-          1, 2, 6, 2, 7, 7, 3, 3, 3, 3, 2, 2, 2, 2, 7, 6,
-          2, 2, 2, 2, 7, 7, 1, 1, 1, 3, 2, 2, 2, 2, 7, 7,
-          6, 6, 2, 2, 6, 6, 1, 1, 1, 3, 2, 2, 3, 1, 2, 2,
-          6, 6, 2, 2, 2, 2, 6, 6, 6, 6, 2, 2, 3, 7, 2, 2,
-          7, 7, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 7, 2, 2,
-          2, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 4, 7, 7, 4, 4,
-        },
-        border = 12,   -- vanilla 0x00's tile, at a known index
-        blocks = {
-          { 2, 2, 2, 2, 2, 2, 2, 2, 4, 5, 14, 14, 34, 35, 30, 30 },
-          { 2, 2, 2, 2, 2, 2, 2, 2, 14, 14, 14, 14, 30, 30, 30, 30 },
-          { 2, 2, 2, 2, 2, 2, 2, 2, 14, 14, 4, 5, 30, 30, 34, 35 },
-          { 20, 21, 77, 77, 20, 21, 77, 77, 20, 21, 77, 77, 20, 21, 77, 77 },
-          { 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77 },
-          { 77, 77, 20, 21, 77, 77, 20, 21, 77, 77, 20, 21, 77, 77, 20, 21 },
-          { 34, 35, 77, 77, 50, 51, 81, 81, 1, 16, 14, 14, 17, 18, 30, 30 },
-          { 77, 77, 77, 77, 81, 81, 81, 81, 77, 77, 14, 14, 91, 91, 30, 30 },
-          { 77, 77, 77, 77, 81, 81, 81, 81, 14, 14, 14, 14, 30, 30, 30, 30 },
-          { 77, 77, 77, 77, 81, 81, 81, 81, 14, 14, 77, 77, 30, 30, 91, 91 },
-          { 77, 77, 34, 35, 81, 81, 50, 51, 14, 14, 1, 16, 30, 30, 17, 18 },
-          { 1, 16, 1, 16, 17, 18, 17, 18, 1, 16, 1, 16, 17, 18, 17, 18 },
-          { 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45 },
-        },
-        collision = {
-          { 7, 7, 7, 7 }, { 7, 7, 7, 7 }, { 7, 7, 7, 7 },
-          { 7, 0, 7, 0 }, { 0, 0, 0, 0 }, { 0, 7, 0, 7 },
-          { 7, 0, 0, 7 }, { 0, 0, 0, 7 }, { 0, 0, 7, 7 },
-          { 0, 0, 7, 0 }, { 0, 7, 7, 0 }, { 0, 0, 0, 0 },
-          { 7, 7, 7, 7 },   -- the border block, solid like vanilla 0x00
+        source = "TILESET_MART",
+        variants = {
+          gs = {
+            image = "assets/generated/tilesets/mart.png",
+            imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
+            border = 13,
+            tilePalettes = {
+              1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7, 1, 1, 1, 1,
+              1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5, 1, 1, 2, 2, 2, 2, 4, 4,
+              4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1,
+              1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1,
+              1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 2,
+              2, 4, 4, 7, 1, 1, 1, 5, 5, 5, 7, 1, 1, 1, 4, 1, 1, 1, 5, 5,
+              1, 1, 1, 1, 1, 2, 4, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
+              2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 4, 1,
+              4, 2, 6, 6,
+            },
+      blocks = {
+              { 1, 1, 1, 1, 1, 1, 1, 1, 74, 75, 34, 35, 8, 9, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 74, 75, 50, 51, 8, 9 },
+              { 74, 75, 34, 35, 8, 9, 50, 51, 74, 75, 34, 35, 8, 9, 50, 51 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 34, 35, 74, 75, 50, 51, 8, 9, 34, 35, 74, 75, 50, 51, 8, 9 },
+              { 137, 138, 36, 37, 167, 168, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 4, 5, 36, 37, 20, 21, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 36, 37, 36, 37, 52, 53, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 36, 37, 4, 5, 52, 53, 20, 21, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 36, 37, 137, 138, 52, 53, 167, 168, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 11, 11, 27, 27, 27, 27 },
+              { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
+            },
+      collision = {
+              { 7, 7, 7, 0 },
+              { 7, 7, 0, 0 },
+              { 7, 7, 0, 7 },
+              { 7, 0, 7, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 7, 0, 7 },
+              { 7, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 7, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 7, 7, 7, 7 },
+            },
+    },
+          crystal = {
+            image = "assets/generated/tilesets/mart.png",
+            imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
+            border = 13,
+            tilePalettes = {
+              1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7, 1, 1, 1, 1,
+              1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5, 1, 1, 2, 2, 2, 2, 4, 4,
+              4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1,
+              1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1,
+              1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 2,
+              2, 4, 4, 7, 1, 1, 1, 5, 5, 5, 7, 1, 1, 1, 4, 1, 1, 1, 5, 5,
+              1, 1, 1, 1, 1, 2, 4, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
+              2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 4, 1,
+              4, 2, 6, 6,
+            },
+      blocks = {
+              { 1, 1, 1, 1, 1, 1, 1, 1, 74, 75, 34, 35, 8, 9, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 74, 75, 50, 51, 8, 9 },
+              { 74, 75, 34, 35, 8, 9, 50, 51, 74, 75, 34, 35, 8, 9, 50, 51 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 34, 35, 74, 75, 50, 51, 8, 9, 34, 35, 74, 75, 50, 51, 8, 9 },
+              { 137, 138, 36, 37, 167, 168, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 4, 5, 36, 37, 20, 21, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 36, 37, 36, 37, 52, 53, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 36, 37, 4, 5, 52, 53, 20, 21, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 36, 37, 137, 138, 52, 53, 167, 168, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 11, 11, 27, 27, 27, 27 },
+              { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
+            },
+      collision = {
+              { 7, 7, 7, 0 },
+              { 7, 7, 0, 0 },
+              { 7, 7, 0, 7 },
+              { 7, 0, 7, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 7, 0, 7 },
+              { 7, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 7, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 7, 7, 7, 7 },
+            },
+    },
         },
       },
       blocks = {
         0, 1, 1, 1, 2,
         3, 4, 4, 4, 5,
         6, 7, 8, 9, 10,
-        11, 11, 11, 11, 11,
+        11, 11, 12, 11, 11,
       },
       actors = {
-        -- on the dais, above the skirt; speak to him from the floor
-        -- (across the skirt) or walk up the east end
         { name = "KC_STAGE_JUDGE", marker = "kcStageJudge",
           sprite = "SPRITE_GENTLEMAN", x = 4, y = 2, movement = 6 },
-        -- Re-placed for the PAINTED room: the way in is rows 6-7, a
-        -- divider with two gaps (x=2 and x=7) crosses row 5, and the
-        -- performance floor is rows 2-4. The old line sat on row 5, which
-        -- is now mostly wall -- REX and FIONA would have stood inside it.
-        -- (5,4) beside FIONA is the player's place.
         { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
           sprite = "SPRITE_LASS", x = 2, y = 4, movement = 7 },
         { name = "KC_RIVAL_REX", marker = "kcRivalRex",
           sprite = "SPRITE_YOUNGSTER", x = 3, y = 4, movement = 7 },
         { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
           sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 4, movement = 7 },
-        -- watching from the entrance strip, either side of the way in
         { name = "KC_AUD_1", marker = "kcAudience",
           sprite = "SPRITE_POKEFAN_M", x = 1, y = 6, movement = 7 },
         { name = "KC_AUD_2", marker = "kcAudience",
           sprite = "SPRITE_GRANNY", x = 8, y = 6, movement = 7 },
-        -- the way back down to the lobby, so the stage is never a trap
         { name = "KC_STAGE_EXIT", marker = "kcStageExit",
           sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 7, y = 7, movement = 8 },
       },
     },
   },
-  -- Kept whole from 0.13.2 and ready for an Ecruteak attendant; nothing
-  -- reaches it yet, which is why the town has no entrance wired. One
-  -- room, so a contest there runs where the player stands.
   ECRUTEAK = {
     lobby = {
-    id = "KC_ECRUTEAK_CONTEST_HALL",
-    label = "ECRUTEAK CONTEST HALL",
-    tileset = "TILESET_TRADITIONAL_HOUSE",
-    song = "DANCE_THEATER",
-    palette = "PALETTE_DAY",
-    width = 5, height = 5,          -- 10x10 cells
-    arrival = { x = 5, y = 8 },
-    -- PAINTED BY THE DEVELOPER, same route as the two Goldenrod rooms.
-    tiles = {
-      id = "KC_ECRUTEAK_HALL_TILES",
-      image = "assets/generated/tilesets/traditional_house.png",
-      imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
-      tilePalettes = {
-        1, 6, 4, 4, 2, 1, 1, 1, 6, 6, 1, 1, 6, 6, 6, 6,
-        6, 6, 4, 4, 2, 6, 1, 1, 6, 6, 1, 1, 6, 6, 6, 6,
-        1, 1, 6, 6, 6, 6, 6, 1, 1, 6, 6, 6, 6, 6, 6, 6,
-        1, 1, 6, 6, 6, 6, 2, 1, 1, 6, 6, 6, 6, 6, 6, 6,
-        6, 6, 6, 6, 3, 3, 3, 6, 6, 6, 6, 6, 6, 6, 4, 4,
-        6, 6, 6, 6, 3, 3, 3, 6, 6, 6, 6, 6, 6, 6, 4, 6,
-      },
-      border = 13,
+      id = "KC_ECRUTEAK_CONTEST_HALL",
+      label = "ECRUTEAK CONTEST HALL",
+      song = "DANCE_THEATER",
+      palette = "PALETTE_DAY",
+      width = 5, height = 5,
+      arrival = { x = 5, y = 8 },
+      tiles = {
+        id = "KC_ECRUTEAK_HALL_TILES",
+        source = "TILESET_TRADITIONAL_HOUSE",
+        variants = {
+          gs = {
+            image = "assets/generated/tilesets/traditional_house.png",
+            imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
+            border = 13,
+            tilePalettes = {
+              1, 6, 4, 4, 2, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4,
+              2, 6, 1, 1, 6, 6, 1, 1, 6, 6, 6, 6, 1, 1, 6, 6, 6, 6, 6, 1,
+              1, 6, 6, 6, 6, 6, 6, 6, 1, 1, 6, 6, 6, 6, 2, 1, 1, 6, 6, 6,
+              6, 6, 6, 6, 6, 6, 6, 6, 3, 3, 3, 6, 6, 6, 6, 6, 6, 6, 4, 4,
+              6, 6, 6, 6, 3, 3, 3, 6, 6, 6, 6, 6, 6, 6, 4, 6, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 1, 6, 4, 4, 2, 1, 1, 1, 6, 6, 1, 1,
+              6, 6, 6, 6, 6, 6, 4, 4, 2, 6, 1, 1, 6, 6, 1, 1, 6, 6, 6, 6,
+              1, 1, 6, 6, 6, 6, 6, 1, 1, 6, 6, 6, 6, 6, 6, 6, 1, 1, 6, 6,
+              6, 6, 2, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 3, 3, 6,
+              6, 6, 6, 6, 6, 6, 4, 4, 6, 6, 6, 6, 3, 3, 3, 6, 6, 6, 6, 6,
+              6, 6, 4, 6,
+            },
       blocks = {
-        { 78, 79, 78, 79, 94, 94, 94, 94, 80, 80, 80, 80, 80, 80, 80, 80 },
-        { 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80 },
-        { 80, 80, 80, 80, 15, 15, 95, 95, 69, 70, 68, 69, 85, 86, 84, 85 },
-        { 80, 80, 80, 80, 15, 15, 15, 15, 69, 70, 68, 69, 85, 86, 84, 85 },
-        { 80, 80, 80, 80, 95, 95, 15, 15, 69, 70, 68, 69, 85, 86, 84, 85 },
-        { 68, 69, 2, 3, 84, 85, 18, 19, 69, 70, 68, 69, 85, 86, 84, 85 },
-        { 68, 69, 69, 70, 84, 85, 85, 86, 69, 70, 68, 69, 85, 86, 84, 85 },
-        { 2, 3, 69, 70, 18, 19, 85, 86, 69, 70, 68, 69, 85, 86, 84, 85 },
-        { 16, 16, 16, 16, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-        { 16, 16, 16, 16, 14, 14, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-        { 16, 16, 16, 16, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 20, 20 },
-        { 16, 16, 16, 16, 1, 1, 1, 1, 4, 4, 1, 1, 20, 20, 1, 1 },
-        { 16, 16, 16, 16, 14, 1, 1, 14, 1, 1, 1, 1, 1, 1, 1, 1 },
-        { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 },
-      },
+              { 78, 79, 78, 79, 94, 94, 94, 94, 80, 80, 80, 80, 80, 80, 80, 80 },
+              { 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80 },
+              { 80, 80, 80, 80, 15, 15, 95, 95, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 80, 80, 80, 80, 15, 15, 15, 15, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 80, 80, 80, 80, 95, 95, 15, 15, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 68, 69, 2, 3, 84, 85, 18, 19, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 68, 69, 69, 70, 84, 85, 85, 86, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 2, 3, 69, 70, 18, 19, 85, 86, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 16, 16, 16, 16, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 16, 16, 16, 16, 14, 14, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 16, 16, 16, 16, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 20, 20 },
+              { 16, 16, 16, 16, 1, 1, 1, 1, 4, 4, 1, 1, 20, 20, 1, 1 },
+              { 16, 16, 16, 16, 14, 1, 1, 14, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 },
+            },
       collision = {
-        { 7, 7, 0, 0 }, { 0, 0, 0, 0 }, { 7, 0, 0, 0 }, { 7, 7, 0, 0 },
-        { 0, 7, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 },
-        { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 },
-        { 0, 0, 0, 0 },
-        -- the border. Vanilla 0x00's own collision here is 54/0/80/0, not
-        -- solid; outside the map that is harmless, but solid is what the
-        -- other two rooms use and what a border ought to be.
-        { 7, 7, 7, 7 },
+              { 7, 7, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 7, 0, 0, 0 },
+              { 7, 7, 0, 0 },
+              { 0, 7, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 7, 7, 7, 7 },
+            },
+    },
+          crystal = {
+            image = "assets/generated/tilesets/traditional_house.png",
+            imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
+            border = 13,
+            tilePalettes = {
+              1, 6, 4, 4, 2, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4,
+              2, 6, 1, 1, 6, 6, 1, 1, 6, 6, 6, 6, 1, 1, 6, 6, 6, 6, 6, 1,
+              1, 6, 6, 6, 6, 6, 6, 6, 1, 1, 6, 6, 6, 6, 2, 1, 1, 6, 6, 6,
+              6, 6, 6, 6, 6, 6, 6, 6, 3, 3, 3, 6, 6, 6, 6, 6, 6, 6, 4, 4,
+              6, 6, 6, 6, 3, 3, 3, 6, 6, 6, 6, 6, 6, 6, 4, 6, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 1, 6, 4, 4, 2, 1, 1, 1, 6, 6, 1, 1,
+              6, 6, 6, 6, 6, 6, 4, 4, 2, 6, 1, 1, 6, 6, 1, 1, 6, 6, 6, 6,
+              1, 1, 6, 6, 6, 6, 6, 1, 1, 6, 6, 6, 6, 6, 6, 6, 1, 1, 6, 6,
+              6, 6, 2, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 3, 3, 6,
+              6, 6, 6, 6, 6, 6, 4, 4, 6, 6, 6, 6, 3, 3, 3, 6, 6, 6, 6, 6,
+              6, 6, 4, 6,
+            },
+      blocks = {
+              { 78, 79, 78, 79, 94, 94, 94, 94, 80, 80, 80, 80, 80, 80, 80, 80 },
+              { 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80 },
+              { 80, 80, 80, 80, 15, 15, 95, 95, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 80, 80, 80, 80, 15, 15, 15, 15, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 80, 80, 80, 80, 95, 95, 15, 15, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 68, 69, 2, 3, 84, 85, 18, 19, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 68, 69, 69, 70, 84, 85, 85, 86, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 2, 3, 69, 70, 18, 19, 85, 86, 69, 70, 68, 69, 85, 86, 84, 85 },
+              { 16, 16, 16, 16, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 16, 16, 16, 16, 14, 14, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 16, 16, 16, 16, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 20, 20 },
+              { 16, 16, 16, 16, 1, 1, 1, 1, 4, 4, 1, 1, 20, 20, 1, 1 },
+              { 16, 16, 16, 16, 14, 1, 1, 14, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 },
+            },
+      collision = {
+              { 7, 7, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 7, 0, 0, 0 },
+              { 7, 7, 0, 0 },
+              { 0, 7, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 7, 7, 7, 7 },
+            },
+    },
+        },
       },
-    },
-    blocks = {
-      0, 0, 0, 0, 0,
-      1, 1, 1, 1, 1,
-      2, 3, 3, 3, 4,
-      5, 6, 6, 6, 7,
-      8, 9, 10, 11, 12,
-    },
-    actors = {
-      { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
-        sprite = "SPRITE_GENTLEMAN", x = 4, y = 2, movement = 6 },
-      { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
-        sprite = "SPRITE_TEACHER", x = 1, y = 9, movement = 9 },
-      { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
-        sprite = "SPRITE_BEAUTY", x = 8, y = 9, movement = 8 },
-      { name = "KC_HALL_EXIT", marker = "kcHallExit",
-        sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 6, y = 9, movement = 7 },
-      { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
-        sprite = "SPRITE_LASS", x = 2, y = 6, movement = 7 },
-      { name = "KC_RIVAL_REX", marker = "kcRivalRex",
-        sprite = "SPRITE_YOUNGSTER", x = 3, y = 6, movement = 7 },
-      { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
-        sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 6, movement = 7 },
-      { name = "KC_AUD_1", marker = "kcAudience",
-        sprite = "SPRITE_GRANNY", x = 0, y = 6, movement = 9 },
-      { name = "KC_AUD_2", marker = "kcAudience",
-        sprite = "SPRITE_POKEFAN_M", x = 9, y = 6, movement = 8 },
-      { name = "KC_AUD_3", marker = "kcAudience",
-        sprite = "SPRITE_TWIN", x = 2, y = 8, movement = 7 },
-      { name = "KC_AUD_4", marker = "kcAudience",
-        sprite = "SPRITE_ROCKER", x = 8, y = 7, movement = 7 },
-    },
+      blocks = {
+        0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1,
+        2, 3, 3, 3, 4,
+        5, 6, 6, 6, 7,
+        8, 9, 10, 11, 12,
+      },
+      actors = {
+        { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
+          sprite = "SPRITE_GENTLEMAN", x = 4, y = 2, movement = 6 },
+        { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
+          sprite = "SPRITE_TEACHER", x = 1, y = 9, movement = 9 },
+        { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
+          sprite = "SPRITE_BEAUTY", x = 8, y = 9, movement = 8 },
+        { name = "KC_HALL_EXIT", marker = "kcHallExit",
+          sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 6, y = 9, movement = 7 },
+        { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
+          sprite = "SPRITE_LASS", x = 2, y = 6, movement = 7 },
+        { name = "KC_RIVAL_REX", marker = "kcRivalRex",
+          sprite = "SPRITE_YOUNGSTER", x = 3, y = 6, movement = 7 },
+        { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
+          sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 6, movement = 7 },
+        { name = "KC_AUD_1", marker = "kcAudience",
+          sprite = "SPRITE_GRANNY", x = 0, y = 6, movement = 9 },
+        { name = "KC_AUD_2", marker = "kcAudience",
+          sprite = "SPRITE_POKEFAN_M", x = 9, y = 6, movement = 8 },
+        { name = "KC_AUD_3", marker = "kcAudience",
+          sprite = "SPRITE_TWIN", x = 2, y = 8, movement = 7 },
+        { name = "KC_AUD_4", marker = "kcAudience",
+          sprite = "SPRITE_ROCKER", x = 8, y = 7, movement = 7 },
+      },
     },
   },
 }
@@ -689,19 +801,40 @@ local function kcGold(mod, VERSION)
     -- mod.game.data at load time, got nothing, and every room rendered
     -- grey with the border block papered across the screen -- a lookup
     -- that fails leaves no trace at the only moment it matters.
+    -- PER ENGINE, because Gold and Crystal are not the same game's art.
+    -- Their sheets share a filename and nothing else: Crystal's are
+    -- 128x128 where Gold's are 128x48, with different tile numbering and
+    -- different palette slots. A room baked from one renders as garbage
+    -- on the other -- which is exactly what shipped in 0.16.x, painted on
+    -- Gold and played on Crystal.
+    --
+    -- GameVersion.engine() is the right split: gold and silver share "gs",
+    -- crystal is its own.
     local tilesetId = def.tileset
     if def.tiles then
       tilesetId = def.tiles.id
-      mod.content.tilesets:register(def.tiles.id, {
-        id = def.tiles.id,
-        image = def.tiles.image,
-        imageWidth = def.tiles.imageWidth,
-        imageHeight = def.tiles.imageHeight,
-        tilesPerRow = def.tiles.tilesPerRow,
-        blocks = def.tiles.blocks,
-        collision = def.tiles.collision,
-        tilePalettes = def.tiles.tilePalettes,
-      })
+      -- required here: the file-scope GameVersion local is declared far
+      -- below this point, so the name would be a nil global at load
+      local GV = require("src.core.GameVersion")
+      local engine = GV.engine and GV.engine() or "gs"
+      local v = def.tiles.variants
+        and (def.tiles.variants[engine] or def.tiles.variants.gs)
+      if v then
+        mod.content.tilesets:register(def.tiles.id, {
+          id = def.tiles.id,
+          image = v.image,
+          imageWidth = v.imageWidth,
+          imageHeight = v.imageHeight,
+          tilesPerRow = v.tilesPerRow,
+          blocks = v.blocks,
+          collision = v.collision,
+          tilePalettes = v.tilePalettes,
+        })
+        def.tiles.border = v.border
+      else
+        mod.log:warn("kc: %s has no tileset variant for engine %s",
+                     def.id, tostring(engine))
+      end
     end
     mod.content.maps:register(def.id, {
       id = def.id,
@@ -1597,7 +1730,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.17.0"
+  local VERSION = "0.18.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

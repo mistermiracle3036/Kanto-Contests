@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.18.0
+The halls are finally right on Crystal.
+
+- **Every room is rebuilt from the latest editor pass**, and built for
+  the game you actually play. Gold and Crystal ship different tile art
+  under the same filenames, so rooms laid out against Gold's tiles came
+  out as nonsense on Crystal -- which is what the last few builds were.
+  Each room now carries the right tiles for each game and picks at
+  startup.
+- All three halls -- the Goldenrod lobby, the stage, and Ecruteak --
+  are hand-laid, and every character in them is verified to stand on
+  solid ground and be reachable.
+
 ## 0.17.0
 All three rooms are the hand-painted ones now.
 

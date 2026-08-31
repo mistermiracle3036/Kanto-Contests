@@ -36,8 +36,8 @@
 package.path = "./?.lua;./?/init.lua;" .. package.path
 local Perm = require("src.world.gen2.Permissions")
 
-local PROJECT = "C:/Users/dwitt/ce-trial/mods/kc_layout/editor_project.lua"
-local CACHE = "C:/Users/dwitt/AppData/Roaming/pokemon-love2d/gold/data/generated/"
+local PROJECT = "C:/Users/dwitt/ce-new/mods/kc_layout/editor_project.lua"
+local CACHE = "C:/Users/dwitt/AppData/Roaming/pokemon-love2d/crystal/data/generated/"
 
 local chunk = loadfile(PROJECT)
 if not chunk then
