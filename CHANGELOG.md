@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.16.1
+You can talk to the judge over his desk again.
+
+- The map editor has no way to paint a counter, so the lobby desk came
+  back as a plain wall and you had to walk around it. It is a proper
+  counter again: you stand at it and talk across, the way you would to
+  any clerk.
+
 ## 0.16.0
 The Goldenrod rooms are hand-built now.
 
@@ -9,8 +17,8 @@ The Goldenrod rooms are hand-built now.
   stamping whole ones -- and they still add nothing to the download: the
   rooms are lists of numbers pointing into the tiles your own game
   already has.
-- **In the lobby, the judge's counter is a solid desk now.** You walk
-  around either end to reach him rather than talking across it.
+- **In the lobby, the judge's counter came back as a solid desk**, since
+  the editor cannot paint a counter -- fixed in 0.16.1 above.
 - **The stage is rebuilt around its new shape**: a way in along the
   bottom, a divider with two openings, and the performance floor beyond
   it. The coordinators line up across that floor with your place beside

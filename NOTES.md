@@ -736,3 +736,18 @@ Three things that had to be right, and would each have failed quietly:
 
 The verifier now takes a `composed = true` hall with its own collision
 table, so painted rooms are checked exactly like vanilla-block ones.
+
+### Counter cells are a hand-edit after every repaint
+
+The editor's collision modes are solid/walk/grass/water/shore -- there is
+no COUNTER -- so any desk a room needs comes back solid and the NPC behind
+it becomes walk-around-only. 0.16.1 restores it by setting 0x90 on the
+desk block's top row by hand.
+
+Safe because the desk is ONE composed block used in one place (lobby index
+2, at block (1,1)/(2,1)/(3,1) = cells (2,2)..(7,2)), and because a quad
+slot is (cy%2)*2 + (cx%2) + 1, so slots 1-2 are the desk's top row and the
+row below stays floor. **Re-apply and re-check this whenever the lobby is
+repainted** -- a repaint renumbers the composed blocks, so index 2 will not
+necessarily be the desk next time. verify_hall.lua proves the judge is
+still talkable either way: it counts a counter as a valid approach.

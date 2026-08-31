@@ -381,9 +381,19 @@ local KC_HALLS = {
     -- extracted file, resolved out of their cache by Assets.resolve
     -- (Assets.lua:36-54). No ROM art is redistributed.
     --
-    -- The barrier row is SOLID rather than counter now: the editor has no
-    -- counter mode to paint, so the judge is reached by walking round
-    -- through the gap at either end instead of being talked to across it.
+    -- ONE CELL KIND THE EDITOR CANNOT PAINT: its collision modes are
+    -- solid/walk/grass/water/shore, with no COUNTER, so the desk came
+    -- back solid and the judge could only be reached by walking round it.
+    -- Counter is restored by hand below -- 0x90, which is not walkable
+    -- but DOUBLES an A press's reach (Permissions.lua:136-140,
+    -- World:facingObjectCell gen2/World.lua:7825), so he is served across
+    -- the desk like a clerk again.
+    --
+    -- It is a safe hand-edit because the desk is one composed block used
+    -- in one place: index 2, at block (1,1), (2,1) and (3,1) -- the six
+    -- cells (2,2)..(7,2). Its TOP row is the desk (quad slots 1 and 2,
+    -- since index = (cy%2)*2 + (cx%2) + 1); the row below stays floor.
+    -- Re-check that if the room is ever repainted.
     tiles = {
       id = "KC_GOLDENROD_LOBBY_TILES",
       image = "assets/generated/tilesets/mart.png",
@@ -399,7 +409,9 @@ local KC_HALLS = {
       collision = {
         { 7, 7, 0, 0 },
         { 7, 0, 7, 0 },
-        { 7, 7, 0, 0 },
+        -- the desk: 0x90 = COUNTER on its top row, so an A press from the
+        -- floor below reaches the judge standing behind it
+        { 0x90, 0x90, 0, 0 },
         { 0, 7, 0, 7 },
         { 0, 0, 0, 0 },
       },
@@ -1512,7 +1524,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.16.0"
+  local VERSION = "0.16.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
