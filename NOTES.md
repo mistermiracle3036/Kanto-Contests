@@ -751,3 +751,26 @@ row below stays floor. **Re-apply and re-check this whenever the lobby is
 repainted** -- a repaint renumbers the composed blocks, so index 2 will not
 necessarily be the desk next time. verify_hall.lua proves the judge is
 still talkable either way: it counts a counter as a valid approach.
+
+### A composed room needs TWO things beyond blocks (0.16.2)
+
+Both were missing in 0.16.0 and both failed silently on device.
+
+- **tilePalettes, BAKED IN.** Which of the eight BG palettes each TILE
+  takes; `bakeMapImage` reads `tileset.tilePalettes` and falls back to
+  slot 1 for anything absent (World.lua:8088-8090), so a room without it
+  renders entirely flat -- greyscale, no error. 0.16.0 looked it up from
+  `mod.game.data` at load and got nothing; the array is now a literal in
+  main.lua, copied from the source sheet. It is indexed by TILE over the
+  same image, and composed blocks reuse those tiles, so a verbatim copy is
+  exactly right. Verified by loading the mod headlessly and asserting
+  `tilePalettes = 96` on the registered sheet.
+- **A border block at a known index.** `borderBlock` indexes the room's
+  OWN tileset. For a vanilla sheet 0 is the void; in a composed sheet 0 is
+  merely our first block, so 0.16.0 papered the screen with the back wall.
+  Each composed sheet now appends the source's block 0x00 (MART tile 16,
+  GAME_CORNER tile 45, both fully solid) and points `border` at it.
+
+Rule of thumb: anything a composed room inherits from a vanilla sheet has
+to be copied in, because the composed sheet is a NEW tileset that shares
+only the image.

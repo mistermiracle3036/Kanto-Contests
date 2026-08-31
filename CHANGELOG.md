@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.16.2
+The new rooms are in colour, and stay inside their walls.
+
+- **They were rendering in grey.** A room built out of custom blocks has
+  to carry its own note of which colour set each tile takes; that note was
+  being looked up from the running game and was coming back empty, so
+  every tile fell back to the same flat palette. It is written into the
+  mod now.
+- **The room was tiling across the whole screen.** The block the game
+  repeats *outside* a room was pointing at the first block of the new
+  room -- the back wall -- instead of the void, so the wall papered
+  everything. Both rooms now carry a proper edge block.
+
 ## 0.16.1
 You can talk to the judge over his desk again.
 

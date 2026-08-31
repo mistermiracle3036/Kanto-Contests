@@ -398,13 +398,34 @@ local KC_HALLS = {
       id = "KC_GOLDENROD_LOBBY_TILES",
       image = "assets/generated/tilesets/mart.png",
       imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
-      source = "TILESET_MART",   -- tilePalettes are copied from here
+      -- Which of the eight background palettes each TILE of the sheet
+      -- takes, copied from TILESET_MART. It is indexed by tile over that
+      -- same image (World.lua:8088-8090), and our blocks reuse those
+      -- tiles, so this is exactly the game's own colouring -- as numbers,
+      -- not art. 0.16.0 tried to look this up from the live game at load
+      -- time instead and got nothing, which is why every room baked grey:
+      -- with no tilePalettes every tile falls back to palette slot 1.
+      tilePalettes = {
+        1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7,
+        1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5,
+        1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1,
+        1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1,
+        1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6,
+      },
+      -- index 5 is the BORDER: what the game tiles outside the room.
+      -- `borderBlock = 0` used to mean vanilla block 0x00, the void; in a
+      -- composed sheet index 0 is just our first block, so 0.16.0 papered
+      -- the whole screen with the back wall. This is vanilla 0x00's own
+      -- tile, kept at a known index.
+      border = 5,
       blocks = {
         { 14, 15, 14, 15, 28, 29, 28, 29, 1, 1, 1, 1, 1, 1, 1, 1 },
         { 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53, 1, 1 },
         { 30, 30, 30, 30, 26, 26, 26, 26, 1, 1, 1, 1, 1, 1, 1, 1 },
         { 1, 1, 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53 },
         { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+        { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
       },
       collision = {
         { 7, 7, 0, 0 },
@@ -414,6 +435,7 @@ local KC_HALLS = {
         { 0x90, 0x90, 0, 0 },
         { 0, 7, 0, 7 },
         { 0, 0, 0, 0 },
+        { 7, 7, 7, 7 },   -- the border block, solid like vanilla 0x00
       },
     },
     blocks = {
@@ -474,7 +496,18 @@ local KC_HALLS = {
         id = "KC_GOLDENROD_STAGE_TILES",
         image = "assets/generated/tilesets/game_corner.png",
         imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
-        source = "TILESET_GAME_CORNER",
+        -- per-tile palette slots copied from TILESET_GAME_CORNER; see the
+        -- lobby's note above for why these are baked in rather than
+        -- looked up at load
+        tilePalettes = {
+          1, 2, 6, 2, 7, 7, 3, 3, 3, 3, 2, 2, 2, 2, 7, 6,
+          2, 2, 2, 2, 7, 7, 1, 1, 1, 3, 2, 2, 2, 2, 7, 7,
+          6, 6, 2, 2, 6, 6, 1, 1, 1, 3, 2, 2, 3, 1, 2, 2,
+          6, 6, 2, 2, 2, 2, 6, 6, 6, 6, 2, 2, 3, 7, 2, 2,
+          7, 7, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 7, 2, 2,
+          2, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 4, 7, 7, 4, 4,
+        },
+        border = 12,   -- vanilla 0x00's tile, at a known index
         blocks = {
           { 2, 2, 2, 2, 2, 2, 2, 2, 4, 5, 14, 14, 34, 35, 30, 30 },
           { 2, 2, 2, 2, 2, 2, 2, 2, 14, 14, 14, 14, 30, 30, 30, 30 },
@@ -488,12 +521,14 @@ local KC_HALLS = {
           { 77, 77, 77, 77, 81, 81, 81, 81, 14, 14, 92, 77, 30, 30, 94, 91 },
           { 77, 77, 34, 35, 81, 81, 50, 51, 14, 14, 1, 16, 30, 30, 17, 18 },
           { 1, 16, 1, 16, 17, 18, 17, 18, 1, 16, 1, 16, 17, 18, 17, 18 },
+          { 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45 },
         },
         collision = {
           { 7, 7, 7, 7 }, { 7, 7, 7, 7 }, { 7, 7, 7, 7 },
           { 7, 0, 7, 0 }, { 0, 0, 0, 0 }, { 0, 7, 0, 7 },
           { 7, 0, 0, 7 }, { 0, 0, 0, 7 }, { 0, 0, 7, 7 },
           { 0, 0, 7, 0 }, { 0, 7, 7, 0 }, { 0, 0, 0, 0 },
+          { 7, 7, 7, 7 },   -- the border block, solid like vanilla 0x00
         },
       },
       blocks = {
@@ -608,15 +643,14 @@ local function kcGold(mod, VERSION)
     -- the player's extracted file, which Assets.resolve finds in their
     -- cache (Assets.lua:36-54), so no ROM art is redistributed.
     --
-    -- tilePalettes is copied from the source sheet verbatim: it is
-    -- indexed by TILE over that same image (BorderFill.lua:97-99), and
-    -- our blocks reuse those tiles, so the colours stay the game's own.
-    -- Without it the room bakes grey.
+    -- tilePalettes and the border block are BAKED INTO the room above,
+    -- not looked up from the running game. 0.16.0 read them off
+    -- mod.game.data at load time, got nothing, and every room rendered
+    -- grey with the border block papered across the screen -- a lookup
+    -- that fails leaves no trace at the only moment it matters.
     local tilesetId = def.tileset
     if def.tiles then
       tilesetId = def.tiles.id
-      local src = goldData and goldData.tilesets
-        and goldData.tilesets[def.tiles.source]
       mod.content.tilesets:register(def.tiles.id, {
         id = def.tiles.id,
         image = def.tiles.image,
@@ -625,12 +659,8 @@ local function kcGold(mod, VERSION)
         tilesPerRow = def.tiles.tilesPerRow,
         blocks = def.tiles.blocks,
         collision = def.tiles.collision,
-        tilePalettes = src and src.tilePalettes or nil,
+        tilePalettes = def.tiles.tilePalettes,
       })
-      if not src then
-        mod.log:warn("kc: %s has no source sheet %s; colours may be flat",
-                     def.id, tostring(def.tiles.source))
-      end
     end
     mod.content.maps:register(def.id, {
       id = def.id,
@@ -639,7 +669,9 @@ local function kcGold(mod, VERSION)
       tileset = tilesetId,
       width = def.width, height = def.height,
       blocks = def.blocks,
-      borderBlock = 0,
+      -- a composed sheet has its border at a known index; a vanilla one
+      -- keeps 0, which IS that sheet's void block
+      borderBlock = (def.tiles and def.tiles.border) or 0,
       palette = def.palette,
       environment = "INDOOR",
       phoneService = false,
@@ -1524,7 +1556,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.16.1"
+  local VERSION = "0.16.2"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
