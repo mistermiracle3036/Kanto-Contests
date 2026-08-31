@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.16.0
+The Goldenrod rooms are hand-built now.
+
+- **The lobby and the stage were laid out by hand in a map editor**
+  rather than assembled by me out of whole vanilla blocks. Both rooms are
+  now built a quarter-block at a time, which is a lot more control than
+  stamping whole ones -- and they still add nothing to the download: the
+  rooms are lists of numbers pointing into the tiles your own game
+  already has.
+- **In the lobby, the judge's counter is a solid desk now.** You walk
+  around either end to reach him rather than talking across it.
+- **The stage is rebuilt around its new shape**: a way in along the
+  bottom, a divider with two openings, and the performance floor beyond
+  it. The coordinators line up across that floor with your place beside
+  them, and the audience watches from the entrance.
+
+Ecruteak still has its single room and no entrance of its own; a lobby
+for it is the next piece.
+
 ## 0.15.2
 The stage is a raised dais with a proper stage front.
 

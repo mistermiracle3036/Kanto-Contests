@@ -708,3 +708,31 @@ If finer control is ever wanted, the untested option is registering a
 tileset RECORD whose `image` points into the player's own cache and whose
 `blocks` compose those tiles differently -- index data ships, art does
 not. Still limited to one image, so it would not rescue mixing.
+
+## 0.16.0: the first hand-painted rooms, transplanted
+
+Both Goldenrod rooms now come from the editor. What ships is a tileset
+RECORD per room -- `image` pointing at the player's own extracted sheet
+("assets/generated/tilesets/mart.png", resolved out of their cache by
+Assets.resolve, Assets.lua:36-54), plus our own `blocks` and `collision`
+arrays. Numbers ship; ROM art does not.
+
+Three things that had to be right, and would each have failed quietly:
+
+- **tilePalettes must be copied from the source sheet.** It is indexed by
+  TILE over that same image (BorderFill.lua:97-99), and our blocks reuse
+  those tiles, so copying it verbatim keeps the game's own colours. Left
+  out, the room bakes grey -- and nothing errors.
+- **The editor has no COUNTER collision mode.** The lobby's dept-store
+  counter is therefore SOLID now, and the judge is reached by walking
+  round it rather than talked to across it. Not a regression to fix
+  blindly: it is what the painting says. Restoring the counter means
+  hand-setting 0x90 on those cells after a read-back.
+- **Actor cells do not survive a repaint.** The stage's coordinator line
+  had sat on row 5, which the painting turned into a divider -- REX and
+  FIONA would have stood inside a wall, the 0.10.0 bug again. Re-place
+  the cast against the painted collision every time a room changes, and
+  let verify_hall.lua prove it.
+
+The verifier now takes a `composed = true` hall with its own collision
+table, so painted rooms are checked exactly like vanilla-block ones.

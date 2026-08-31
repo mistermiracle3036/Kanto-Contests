@@ -374,13 +374,41 @@ local KC_HALLS = {
     --   counter run      row 2 barred but for a gap at each end, row 3 floor
     --   0x04 floor       rows 4-5, where the coordinators queue
     --   0x04 floor       rows 6-7, the entry strip and its services
-    -- 0x07 / 0x20 are the left- and right-wall columns the dept store
-    -- uses; 0x0D is its counter block (top row counter, floor below).
+    -- PAINTED BY THE DEVELOPER in the Content Editor and read back by
+    -- tests/read_editor_layout.lua. The painter works a quarter-block at
+    -- a time, so these are our OWN blocks cut from the dept store's
+    -- sheet -- which ships as numbers only: `image` is the player's own
+    -- extracted file, resolved out of their cache by Assets.resolve
+    -- (Assets.lua:36-54). No ROM art is redistributed.
+    --
+    -- The barrier row is SOLID rather than counter now: the editor has no
+    -- counter mode to paint, so the judge is reached by walking round
+    -- through the gap at either end instead of being talked to across it.
+    tiles = {
+      id = "KC_GOLDENROD_LOBBY_TILES",
+      image = "assets/generated/tilesets/mart.png",
+      imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
+      source = "TILESET_MART",   -- tilePalettes are copied from here
+      blocks = {
+        { 14, 15, 14, 15, 28, 29, 28, 29, 1, 1, 1, 1, 1, 1, 1, 1 },
+        { 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53, 1, 1 },
+        { 30, 30, 30, 30, 26, 26, 26, 26, 1, 1, 1, 1, 1, 1, 1, 1 },
+        { 1, 1, 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53 },
+        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+      },
+      collision = {
+        { 7, 7, 0, 0 },
+        { 7, 0, 7, 0 },
+        { 7, 7, 0, 0 },
+        { 0, 7, 0, 7 },
+        { 0, 0, 0, 0 },
+      },
+    },
     blocks = {
-      0x03, 0x03, 0x03, 0x03, 0x03,
-      0x07, 0x0D, 0x0D, 0x0D, 0x20,
-      0x07, 0x04, 0x04, 0x04, 0x20,
-      0x07, 0x04, 0x04, 0x04, 0x20,
+      0, 0, 0, 0, 0,
+      1, 2, 2, 2, 3,
+      1, 4, 4, 4, 3,
+      1, 4, 4, 4, 3,
     },
     actors = {
       -- behind the counter, talked to across it
@@ -427,30 +455,62 @@ local KC_HALLS = {
       palette = "PALETTE_DAY",
       width = 5, height = 4,        -- 10x8 cells
       arrival = { x = 5, y = 7 },
+      -- PAINTED BY THE DEVELOPER, same route as the lobby above: our own
+      -- blocks cut from the Game Corner sheet, shipped as numbers over
+      -- the player's own extracted image.
+      tiles = {
+        id = "KC_GOLDENROD_STAGE_TILES",
+        image = "assets/generated/tilesets/game_corner.png",
+        imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
+        source = "TILESET_GAME_CORNER",
+        blocks = {
+          { 2, 2, 2, 2, 2, 2, 2, 2, 4, 5, 14, 14, 34, 35, 30, 30 },
+          { 2, 2, 2, 2, 2, 2, 2, 2, 14, 14, 14, 14, 30, 30, 30, 30 },
+          { 2, 2, 2, 2, 2, 2, 2, 2, 14, 14, 4, 5, 30, 30, 34, 35 },
+          { 20, 21, 77, 77, 20, 21, 77, 77, 20, 21, 77, 77, 20, 21, 77, 77 },
+          { 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77 },
+          { 77, 77, 20, 21, 77, 77, 20, 21, 77, 77, 20, 21, 77, 77, 20, 21 },
+          { 34, 35, 77, 77, 50, 51, 81, 81, 1, 16, 14, 14, 17, 18, 30, 30 },
+          { 77, 77, 77, 77, 81, 81, 81, 81, 77, 77, 14, 14, 91, 91, 30, 30 },
+          { 77, 77, 77, 77, 81, 81, 81, 81, 14, 14, 14, 14, 30, 30, 30, 30 },
+          { 77, 77, 77, 77, 81, 81, 81, 81, 14, 14, 92, 77, 30, 30, 94, 91 },
+          { 77, 77, 34, 35, 81, 81, 50, 51, 14, 14, 1, 16, 30, 30, 17, 18 },
+          { 1, 16, 1, 16, 17, 18, 17, 18, 1, 16, 1, 16, 17, 18, 17, 18 },
+        },
+        collision = {
+          { 7, 7, 7, 7 }, { 7, 7, 7, 7 }, { 7, 7, 7, 7 },
+          { 7, 0, 7, 0 }, { 0, 0, 0, 0 }, { 0, 7, 0, 7 },
+          { 7, 0, 0, 7 }, { 0, 0, 0, 7 }, { 0, 0, 7, 7 },
+          { 0, 0, 7, 0 }, { 0, 7, 7, 0 }, { 0, 0, 0, 0 },
+        },
+      },
       blocks = {
-        0x02, 0x02, 0x02, 0x02, 0x02,  -- back wall
-        0x09, 0x09, 0x09, 0x09, 0x01,  -- the dais and its skirt; open east end
-        0x12, 0x01, 0x01, 0x01, 0x01,  -- palms west, the performance floor
-        0x19, 0x01, 0x01, 0x01, 0x19,  -- seat clusters flank the entrance
+        0, 1, 1, 1, 2,
+        3, 4, 4, 4, 5,
+        6, 7, 8, 9, 10,
+        11, 11, 11, 11, 11,
       },
       actors = {
         -- on the dais, above the skirt; speak to him from the floor
         -- (across the skirt) or walk up the east end
         { name = "KC_STAGE_JUDGE", marker = "kcStageJudge",
           sprite = "SPRITE_GENTLEMAN", x = 4, y = 2, movement = 6 },
-        -- the coordinator line on the performance floor before the dais;
-        -- (5,5) beside FIONA is the player's place
+        -- Re-placed for the PAINTED room: the way in is rows 6-7, a
+        -- divider with two gaps (x=2 and x=7) crosses row 5, and the
+        -- performance floor is rows 2-4. The old line sat on row 5, which
+        -- is now mostly wall -- REX and FIONA would have stood inside it.
+        -- (5,4) beside FIONA is the player's place.
         { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
-          sprite = "SPRITE_LASS", x = 2, y = 5, movement = 7 },
+          sprite = "SPRITE_LASS", x = 2, y = 4, movement = 7 },
         { name = "KC_RIVAL_REX", marker = "kcRivalRex",
-          sprite = "SPRITE_YOUNGSTER", x = 3, y = 5, movement = 7 },
+          sprite = "SPRITE_YOUNGSTER", x = 3, y = 4, movement = 7 },
         { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
-          sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 5, movement = 7 },
-        -- seated at the show-floor stools, watching
+          sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 4, movement = 7 },
+        -- watching from the entrance strip, either side of the way in
         { name = "KC_AUD_1", marker = "kcAudience",
-          sprite = "SPRITE_POKEFAN_M", x = 0, y = 6, movement = 7 },
+          sprite = "SPRITE_POKEFAN_M", x = 1, y = 6, movement = 7 },
         { name = "KC_AUD_2", marker = "kcAudience",
-          sprite = "SPRITE_GRANNY", x = 9, y = 6, movement = 7 },
+          sprite = "SPRITE_GRANNY", x = 8, y = 6, movement = 7 },
         -- the way back down to the lobby, so the stage is never a trap
         { name = "KC_STAGE_EXIT", marker = "kcStageExit",
           sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 7, y = 7, movement = 8 },
@@ -531,11 +591,40 @@ local function kcGold(mod, VERSION)
     if town.stage then ROOMS[#ROOMS + 1] = town.stage end
   end
   for _, def in ipairs(ROOMS) do
+    -- A room the developer painted carries its OWN blocks, cut a quarter
+    -- at a time from a vanilla sheet. Only numbers are ours: `image` is
+    -- the player's extracted file, which Assets.resolve finds in their
+    -- cache (Assets.lua:36-54), so no ROM art is redistributed.
+    --
+    -- tilePalettes is copied from the source sheet verbatim: it is
+    -- indexed by TILE over that same image (BorderFill.lua:97-99), and
+    -- our blocks reuse those tiles, so the colours stay the game's own.
+    -- Without it the room bakes grey.
+    local tilesetId = def.tileset
+    if def.tiles then
+      tilesetId = def.tiles.id
+      local src = goldData and goldData.tilesets
+        and goldData.tilesets[def.tiles.source]
+      mod.content.tilesets:register(def.tiles.id, {
+        id = def.tiles.id,
+        image = def.tiles.image,
+        imageWidth = def.tiles.imageWidth,
+        imageHeight = def.tiles.imageHeight,
+        tilesPerRow = def.tiles.tilesPerRow,
+        blocks = def.tiles.blocks,
+        collision = def.tiles.collision,
+        tilePalettes = src and src.tilePalettes or nil,
+      })
+      if not src then
+        mod.log:warn("kc: %s has no source sheet %s; colours may be flat",
+                     def.id, tostring(def.tiles.source))
+      end
+    end
     mod.content.maps:register(def.id, {
       id = def.id,
       label = def.label,
       generation = 2,
-      tileset = def.tileset,
+      tileset = tilesetId,
       width = def.width, height = def.height,
       blocks = def.blocks,
       borderBlock = 0,
@@ -1423,15 +1512,17 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.15.2"
+  local VERSION = "0.16.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
     maps = { "KC_CONTEST_HALL", "KC_JOHTO_CONTEST_HALL",
              "KC_ECRUTEAK_CONTEST_HALL" },
-    -- KC_JOHTO_HALL_TILES retired in 0.13.1: the Johto hall reads the
-    -- vanilla TILESET_TRADITIONAL_HOUSE (borrowed, never owned)
-    tilesets = { "KC_HALL_TILES" },
+    -- Ecruteak still borrows the vanilla TILESET_TRADITIONAL_HOUSE and
+    -- owns nothing; the two Goldenrod rooms own composed sheets whose
+    -- IMAGE is the player's own cache file -- ours are the block numbers.
+    tilesets = { "KC_HALL_TILES",
+                 "KC_GOLDENROD_LOBBY_TILES", "KC_GOLDENROD_STAGE_TILES" },
     items = { "KC_SPICY_SNACK", "KC_DRY_SNACK", "KC_SWEET_SNACK",
               "KC_BITTER_SNACK", "KC_SOUR_SNACK", "KC_RED_SCARF",
               "KC_BLUE_SCARF", "KC_PINK_SCARF", "KC_GREEN_SCARF",
