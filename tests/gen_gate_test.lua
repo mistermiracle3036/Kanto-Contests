@@ -12,20 +12,15 @@ local GameVersion = require("src.core.GameVersion")
 -- these are the sandbox's own gaps (no ROM content loaded), the same set
 -- modkit validate reports; they are not mod defects.
 --
--- The tileset rows: each contest hall is dressed in ITS OWN TOWN's vanilla
--- tileset, which lives in the imported game cache and not in any mod, so
--- the ROM-free sandbox cannot resolve the id. Every one is verified
--- present on both the gold and crystal caches by
--- scratchpad/verify_hall.lua, which also walks each hall's geometry.
--- ADD A ROW HERE WHEN A TOWN IS ADDED -- and run that verifier first,
--- because this list is the one thing that would otherwise hide a typo in
--- a tileset id behind a green test.
+-- No tileset rows any more: since 0.17.0 every hall registers its OWN
+-- composed sheet, so nothing references a vanilla tileset id and there is
+-- nothing here for the sandbox to fail to resolve. The three allowances
+-- that used to sit here are deliberately NOT kept "just in case" -- a
+-- stale allowance in this list is the one thing that could hide a typo'd
+-- tileset id behind a green test.
 local KNOWN = {
   ['unresolved reference to trainers "OPP_GENTLEMAN"'] = true,
   ['unresolved reference to pokemon "CHANSEY"'] = true,
-  ['unresolved reference to tilesets "TILESET_TRADITIONAL_HOUSE"'] = true,
-  ['unresolved reference to tilesets "TILESET_MART"'] = true,
-  ['unresolved reference to tilesets "TILESET_GAME_CORNER"'] = true,
 }
 local function realErrors(run)
   local out = {}

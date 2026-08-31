@@ -774,3 +774,18 @@ Both were missing in 0.16.0 and both failed silently on device.
 Rule of thumb: anything a composed room inherits from a vanilla sheet has
 to be copied in, because the composed sheet is a NEW tileset that shares
 only the image.
+
+## 0.17.0: all three rooms painted; no vanilla tileset ids left
+
+Ecruteak joins the two Goldenrod rooms as a composed room, so every hall
+now registers its own sheet over the player's own image. Consequence worth
+noting: NOTHING references a vanilla tileset id any more, so the three
+KNOWN allowances in gen_gate_test are deleted rather than kept "just in
+case" -- a stale allowance there would hide a typo'd tileset behind a
+green test, which is the exact failure that list was warned about.
+
+Also fixed one block on the stage's right edge (index 9): it carried
+tiles 92/94 where the developer wanted 77/91. The earlier transplant was
+faithful to what was SAVED at the time -- the saved data itself had the
+wrong tiles -- which is worth remembering when a device report and a
+read-back disagree: check the save's timestamp before doubting the reader.

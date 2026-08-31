@@ -518,7 +518,7 @@ local KC_HALLS = {
           { 34, 35, 77, 77, 50, 51, 81, 81, 1, 16, 14, 14, 17, 18, 30, 30 },
           { 77, 77, 77, 77, 81, 81, 81, 81, 77, 77, 14, 14, 91, 91, 30, 30 },
           { 77, 77, 77, 77, 81, 81, 81, 81, 14, 14, 14, 14, 30, 30, 30, 30 },
-          { 77, 77, 77, 77, 81, 81, 81, 81, 14, 14, 92, 77, 30, 30, 94, 91 },
+          { 77, 77, 77, 77, 81, 81, 81, 81, 14, 14, 77, 77, 30, 30, 91, 91 },
           { 77, 77, 34, 35, 81, 81, 50, 51, 14, 14, 1, 16, 30, 30, 17, 18 },
           { 1, 16, 1, 16, 17, 18, 17, 18, 1, 16, 1, 16, 17, 18, 17, 18 },
           { 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45 },
@@ -576,12 +576,53 @@ local KC_HALLS = {
     palette = "PALETTE_DAY",
     width = 5, height = 5,          -- 10x10 cells
     arrival = { x = 5, y = 8 },
+    -- PAINTED BY THE DEVELOPER, same route as the two Goldenrod rooms.
+    tiles = {
+      id = "KC_ECRUTEAK_HALL_TILES",
+      image = "assets/generated/tilesets/traditional_house.png",
+      imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
+      tilePalettes = {
+        1, 6, 4, 4, 2, 1, 1, 1, 6, 6, 1, 1, 6, 6, 6, 6,
+        6, 6, 4, 4, 2, 6, 1, 1, 6, 6, 1, 1, 6, 6, 6, 6,
+        1, 1, 6, 6, 6, 6, 6, 1, 1, 6, 6, 6, 6, 6, 6, 6,
+        1, 1, 6, 6, 6, 6, 2, 1, 1, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 3, 3, 3, 6, 6, 6, 6, 6, 6, 6, 4, 4,
+        6, 6, 6, 6, 3, 3, 3, 6, 6, 6, 6, 6, 6, 6, 4, 6,
+      },
+      border = 13,
+      blocks = {
+        { 78, 79, 78, 79, 94, 94, 94, 94, 80, 80, 80, 80, 80, 80, 80, 80 },
+        { 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80 },
+        { 80, 80, 80, 80, 15, 15, 95, 95, 69, 70, 68, 69, 85, 86, 84, 85 },
+        { 80, 80, 80, 80, 15, 15, 15, 15, 69, 70, 68, 69, 85, 86, 84, 85 },
+        { 80, 80, 80, 80, 95, 95, 15, 15, 69, 70, 68, 69, 85, 86, 84, 85 },
+        { 68, 69, 2, 3, 84, 85, 18, 19, 69, 70, 68, 69, 85, 86, 84, 85 },
+        { 68, 69, 69, 70, 84, 85, 85, 86, 69, 70, 68, 69, 85, 86, 84, 85 },
+        { 2, 3, 69, 70, 18, 19, 85, 86, 69, 70, 68, 69, 85, 86, 84, 85 },
+        { 16, 16, 16, 16, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+        { 16, 16, 16, 16, 14, 14, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+        { 16, 16, 16, 16, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 20, 20 },
+        { 16, 16, 16, 16, 1, 1, 1, 1, 4, 4, 1, 1, 20, 20, 1, 1 },
+        { 16, 16, 16, 16, 14, 1, 1, 14, 1, 1, 1, 1, 1, 1, 1, 1 },
+        { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 },
+      },
+      collision = {
+        { 7, 7, 0, 0 }, { 0, 0, 0, 0 }, { 7, 0, 0, 0 }, { 7, 7, 0, 0 },
+        { 0, 7, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        -- the border. Vanilla 0x00's own collision here is 54/0/80/0, not
+        -- solid; outside the map that is harmless, but solid is what the
+        -- other two rooms use and what a border ought to be.
+        { 7, 7, 7, 7 },
+      },
+    },
     blocks = {
-      0x2D, 0x2D, 0x2D, 0x2D, 0x2D,  -- back wall
-      0x2C, 0x2C, 0x2C, 0x2C, 0x2C,  -- the stage
-      0x2E, 0x30, 0x30, 0x30, 0x2F,  -- stage lip; stairs both ends
-      0x10, 0x04, 0x04, 0x04, 0x0E,  -- the floor
-      0x05, 0x2A, 0x06, 0x07, 0x2B,  -- doorway row
+      0, 0, 0, 0, 0,
+      1, 1, 1, 1, 1,
+      2, 3, 3, 3, 4,
+      5, 6, 6, 6, 7,
+      8, 9, 10, 11, 12,
     },
     actors = {
       { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
@@ -1556,7 +1597,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.16.2"
+  local VERSION = "0.17.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -1565,8 +1606,8 @@ return function(mod)
     -- Ecruteak still borrows the vanilla TILESET_TRADITIONAL_HOUSE and
     -- owns nothing; the two Goldenrod rooms own composed sheets whose
     -- IMAGE is the player's own cache file -- ours are the block numbers.
-    tilesets = { "KC_HALL_TILES",
-                 "KC_GOLDENROD_LOBBY_TILES", "KC_GOLDENROD_STAGE_TILES" },
+    tilesets = { "KC_HALL_TILES", "KC_GOLDENROD_LOBBY_TILES",
+                 "KC_GOLDENROD_STAGE_TILES", "KC_ECRUTEAK_HALL_TILES" },
     items = { "KC_SPICY_SNACK", "KC_DRY_SNACK", "KC_SWEET_SNACK",
               "KC_BITTER_SNACK", "KC_SOUR_SNACK", "KC_RED_SCARF",
               "KC_BLUE_SCARF", "KC_PINK_SCARF", "KC_GREEN_SCARF",

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.17.0
+All three rooms are the hand-painted ones now.
+
+- **The Ecruteak hall is hand-built too**, from the latest pass in the
+  editor -- so every Contest Hall in the mod is now laid out by hand
+  rather than assembled out of whole blocks.
+- **Fixed the wrong tiles on the stage's edge.** One block on the right
+  of the performance floor was drawing the wrong pieces; it is the
+  corrected one from the editor now.
+
 ## 0.16.2
 The new rooms are in colour, and stay inside their walls.
 
