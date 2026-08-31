@@ -654,3 +654,31 @@ the cache and prints only the CHANGED blocks as `mod.world:replaceBlock(bx,
 by, block)` calls (WorldAPI:replaceBlock, gen2/WorldAPI.lua:282). Those are
 per-block, touch nothing else, and are applied on `map.entered` next to the
 attendant spawn.
+
+### Why the editor could not open a Gold room (fixed 2026-08-31)
+
+Symptom: every room reported "map tileset is unavailable: TILESET_*",
+and reloading Gold did not help.
+
+Cause was NOT the project or the prefs. `ce-trial`'s pinned copy of the
+engine predates an upstream fix: Gold's extractor emits no
+`text_pointers` and no `trainer_headers` (the Gen 1 pointer/header tables
+have no Gold counterpart -- Gen2Compat.DATA_UNBACKED says so), but that
+copy's `Data:load()` lists both as REQUIRED and calls `error()` when a
+required module is missing. So the whole Gold data load threw, the editor
+was left with no Gold tables, and every `TILESET_*` id missed.
+
+Engine v0.2.4 already fixes this with
+`GEN2_OPTIONAL = { text_pointers, trainer_headers, field }`, substituting
+empty tables on Gen 2 -- and its comment names this exact case ("Empty
+tables are enough for seedDefaults / the editor"). Backported into
+`ce-trial/runtime/gen1recomp/src/core/Data.lua` AND the
+`.content-editor-runtime` copy, both marked BACKPORTED.
+
+Two traps around this, both hit while diagnosing:
+- **The prep script re-stages `.content-editor-runtime` from source**, so
+  a patch applied only to the runtime copy vanishes. Patch BOTH (that is
+  also how the previous session's debug tap was lost).
+- **`loadfile` from a Windows luajit cannot open an MSYS `/c/...` path**
+  and returns a parse-looking failure, which reads as "I broke the file"
+  when nothing is wrong. Pass `C:/...` paths.
