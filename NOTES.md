@@ -682,3 +682,29 @@ Two traps around this, both hit while diagnosing:
 - **`loadfile` from a Windows luajit cannot open an MSYS `/c/...` path**
   and returns a parse-looking failure, which reads as "I broke the file"
   when nothing is wrong. Pass `C:/...` paths.
+
+### The editor's painter is a TILE painter, and what that means for us
+
+Opening a map in the painter converts it to a LAYERED map: the editor
+composites a private tileset PNG from the tiles in use, repoints
+`maps.X.tileset` at it, and rewrites `blocks` as indices into that.
+
+**We can never ship that PNG** -- it is built from the player's ROM tiles,
+and this mod redistributes no ROM-derived art. We do not have to, because
+each painted cell records its origin: `{ source = "@runtime:TILESET_MART",
+tile = N }` where `N = vanillaBlockId * 4 + quadrant` (0..3 = TL/TR/BL/BR,
+a cell being one quarter of a block). A block stamped WHOLE reverses
+exactly, so `read_editor_layout.lua` recovers pure vanilla block ids.
+Verified 20/20 against a known layout.
+
+Two rules follow, and the tool enforces both:
+- **One tileset per room.** A cell painted from a second tileset cannot be
+  a block of the first. (Caught on the first real paint: the stage mixed
+  GAME_CORNER and RADIO_TOWER tiles.)
+- **Stamp whole blocks, not quarters.** A block whose quadrants come from
+  different vanilla blocks has no vanilla id and is reported MIXED.
+
+If finer control is ever wanted, the untested option is registering a
+tileset RECORD whose `image` points into the player's own cache and whose
+`blocks` compose those tiles differently -- index data ships, art does
+not. Still limited to one image, so it would not rescue mixing.
