@@ -616,3 +616,41 @@ stage front. Facts that make it work (identical both caches):
 - Song: GOLDENROD_GAME_CORNER's own track.
 - KNOWN list: TILESET_RADIO_TOWER row swapped for TILESET_GAME_CORNER;
   no map references the Radio Tower any more.
+
+## Editing rooms in the Content Editor (the kc_layout bridge)
+
+Set up 2026-08-31 at the developer's request, on the pattern the Olivine
+agent proved with `oc_layout`.
+
+- Bridge project: `C:\Users\dwitt\ce-trial\mods\kc_layout`, seeded with all
+  three current rooms so the editor opens on what is shipping, not a blank
+  grid. **NEVER install kc_layout as a real mod** -- it would double-register
+  the room ids against kanto_contests.
+- Launch: `C:\Users\dwitt\ce-trial\ContentEditor.bat`. Its prefs already say
+  mode=imported, lastVersion=gold, recompRoot=%APPDATA%\pokemon-love2d, so it
+  reads the real Gold cache and no staging step is needed.
+- Read back: `luajit ../Kanto-Contests/tests/read_editor_layout.lua` from the
+  engine checkout. Prints each room's `blocks` array formatted for KC_HALLS
+  AND walks the geometry -- floor connectivity included, which is the class
+  of bug (unreachable NPC, room cut in two) that has cost this mod device
+  rounds before. Lives in tests/ so it never ships.
+- **Only `blocks` is transplanted.** The hall cast is runtime-spawned by
+  `spawnNpc`, not map objects, so anything placed in the editor's object
+  layer is ignored -- do not spend time on NPCs there. Actor cells are still
+  chosen in main.lua and proven by verify_hall.lua.
+
+### The exterior, and the trap in it
+
+`LayeredMap.ownedMap` copies a VANILLA map into the project with
+`_isNew = false`, and `emitVerb` then emits `maps:patch` for it -- so
+GOLDENROD_CITY can be painted in the editor.
+
+**Do not take the editor's patch output.** That record carries a bare
+`objects` list, and lists REPLACE wholesale (Merge.lua:29-49), so applying it
+would erase every other mod's NPCs on Goldenrod and the vanilla ones with
+them -- the exact failure CLAUDE.md opens by warning about. Instead run
+`read_editor_layout.lua GOLDENROD_CITY`, which diffs the painted map against
+the cache and prints only the CHANGED blocks as `mod.world:replaceBlock(bx,
+by, block)` calls (WorldAPI:replaceBlock, gen2/WorldAPI.lua:282). Those are
+per-block, touch nothing else, and are applied on `map.entered` next to the
+attendant spawn.
