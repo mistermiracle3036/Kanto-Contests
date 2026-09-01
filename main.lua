@@ -481,137 +481,139 @@ local KC_HALLS = {
     stage = {
       id = "KC_JOHTO_CONTEST_STAGE",
       warps = {
-        { x = 4, y = 7, destMap = "KC_JOHTO_CONTEST_HALL", destWarp = 1 },
-        { x = 5, y = 7, destMap = "KC_JOHTO_CONTEST_HALL", destWarp = 1 },
+        { x = 4, y = 13, destMap = "KC_JOHTO_CONTEST_HALL", destWarp = 1 },
+        { x = 5, y = 13, destMap = "KC_JOHTO_CONTEST_HALL", destWarp = 1 },
       },
       label = "CONTEST STAGE",
       song = "GOLDENROD_GAME_CORNER",
       palette = "PALETTE_DAY",
-      width = 5, height = 4,
-      -- The player walks in at the END OF THE LINE (3,3), beside the
-      -- three coordinators, and is called up to 4,1 by name.
-      arrival = { x = 3, y = 3 },
+      width = 5, height = 7,
+      -- The player arrives at the END OF THE LINE on the stage itself and
+      -- is called up to the mark; they never have to climb.
+      arrival = { x = 3, y = 8 },
       tiles = {
         id = "KC_GOLDENROD_STAGE_TILES",
         source = "TILESET_MART",
+        border = 0,
         variants = {
           gs = {
             image = "assets/generated/tilesets/mart.png",
-            imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
+            imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
             border = 0,
-            tilePalettes = {
-              1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7, 1, 1, 1, 1,
-              1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5, 1, 1, 2, 2, 2, 2, 4, 4,
-              4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1,
-              1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1,
-              1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6, 8, 8, 8, 8,
-              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-              8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 2,
-              2, 4, 4, 7, 1, 1, 1, 5, 5, 5, 7, 1, 1, 1, 4, 1, 1, 1, 5, 5,
-              1, 1, 1, 1, 1, 2, 4, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
-              2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 4, 1,
-              4, 2, 6, 6,
-            },
-      blocks = {
-              { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
-              { 14, 15, 14, 15, 28, 29, 28, 29, 74, 75, 34, 35, 8, 9, 50, 51 },
-              { 14, 15, 14, 15, 28, 29, 28, 29, 34, 35, 34, 35, 50, 51, 50, 51 },
-              { 14, 15, 14, 15, 28, 29, 28, 29, 34, 35, 74, 75, 50, 51, 8, 9 },
-              { 74, 75, 34, 35, 8, 9, 50, 51, 74, 75, 34, 35, 8, 9, 50, 51 },
+            tilePalettes = { 1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1, 1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6 },
+            blocks = {
+              { 14, 15, 14, 15, 28, 29, 28, 29, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 34, 35, 34, 35, 50, 51, 50, 51, 34, 35, 34, 35, 50, 51, 50, 51 },
-              { 34, 35, 74, 75, 50, 51, 8, 9, 34, 35, 74, 75, 50, 51, 8, 9 },
-              { 137, 138, 36, 37, 167, 168, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
-              { 4, 5, 36, 37, 20, 21, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
-              { 36, 37, 36, 37, 52, 53, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
-              { 36, 37, 4, 5, 52, 53, 20, 21, 1, 1, 1, 1, 1, 1, 1, 1 },
-              { 36, 37, 137, 138, 52, 53, 167, 168, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 4, 5, 36, 37, 20, 21, 52, 53 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 36, 37, 36, 37, 52, 53, 52, 53 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 36, 37, 4, 5, 52, 53, 20, 21 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 11, 11, 27, 27, 27, 27 },
             },
-      collision = {
-              { 7, 7, 7, 7 },
-              { 7, 7, 7, 0 },
-              { 7, 7, 0, 0 },
-              { 7, 7, 0, 7 },
-              { 7, 0, 7, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 7, 0, 7 },
-              { 7, 0, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 7, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 0, 112, 112 },
+            collision = {
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0xB0 },
+              { 0xB3, 0xB3, 0xB7, 0xB2 },
+              { 0xB3, 0xB3, 0xB2, 0xB2 },
+              { 0xB3, 0xB3, 0xB2, 0xB6 },
+              { 0x00, 0x00, 0xB1, 0x00 },
+              { 0x00, 0xB0, 0x00, 0xB0 },
+              { 0xB1, 0x00, 0xB1, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0xB0, 0x00, 0xB0 },
+              { 0xB1, 0x00, 0xB1, 0x00 },
+              { 0x00, 0xB0, 0x00, 0x00 },
+              { 0xB1, 0x00, 0x00, 0x07 },
+              { 0x00, 0x00, 0x07, 0x07 },
+              { 0x00, 0xB0, 0x07, 0x00 },
+              { 0xB1, 0x00, 0x00, 0x00 },
+              { 0x00, 0xB2, 0x00, 0x00 },
+              { 0xB2, 0xB2, 0x00, 0x00 },
+              { 0xB2, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x70, 0x70 },
             },
-    },
+          },
           crystal = {
             image = "assets/generated/tilesets/mart.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
-            tilePalettes = {
-              1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7, 1, 1, 1, 1,
-              1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5, 1, 1, 2, 2, 2, 2, 4, 4,
-              4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1,
-              1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1,
-              1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6, 8, 8, 8, 8,
-              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-              8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 2,
-              2, 4, 4, 7, 1, 1, 1, 5, 5, 5, 7, 1, 1, 1, 4, 1, 1, 1, 5, 5,
-              1, 1, 1, 1, 1, 2, 4, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
-              2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 4, 1,
-              4, 2, 6, 6,
-            },
-      blocks = {
-              { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
-              { 14, 15, 14, 15, 28, 29, 28, 29, 74, 75, 34, 35, 8, 9, 50, 51 },
-              { 14, 15, 14, 15, 28, 29, 28, 29, 34, 35, 34, 35, 50, 51, 50, 51 },
-              { 14, 15, 14, 15, 28, 29, 28, 29, 34, 35, 74, 75, 50, 51, 8, 9 },
-              { 74, 75, 34, 35, 8, 9, 50, 51, 74, 75, 34, 35, 8, 9, 50, 51 },
+            tilePalettes = { 1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1, 1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 2, 2, 4, 4, 7, 1, 1, 1, 5, 5, 5, 7, 1, 1, 1, 4, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 2, 4, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 4, 1, 4, 2, 6, 6 },
+            blocks = {
+              { 14, 15, 14, 15, 28, 29, 28, 29, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 34, 35, 34, 35, 50, 51, 50, 51, 34, 35, 34, 35, 50, 51, 50, 51 },
-              { 34, 35, 74, 75, 50, 51, 8, 9, 34, 35, 74, 75, 50, 51, 8, 9 },
-              { 137, 138, 36, 37, 167, 168, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
-              { 4, 5, 36, 37, 20, 21, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
-              { 36, 37, 36, 37, 52, 53, 52, 53, 1, 1, 1, 1, 1, 1, 1, 1 },
-              { 36, 37, 4, 5, 52, 53, 20, 21, 1, 1, 1, 1, 1, 1, 1, 1 },
-              { 36, 37, 137, 138, 52, 53, 167, 168, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 4, 5, 36, 37, 20, 21, 52, 53 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 36, 37, 36, 37, 52, 53, 52, 53 },
+              { 34, 35, 34, 35, 50, 51, 50, 51, 36, 37, 4, 5, 52, 53, 20, 21 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 11, 11, 27, 27, 27, 27 },
             },
-      collision = {
-              { 7, 7, 7, 7 },
-              { 7, 7, 7, 0 },
-              { 7, 7, 0, 0 },
-              { 7, 7, 0, 7 },
-              { 7, 0, 7, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 7, 0, 7 },
-              { 7, 0, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 7, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 0, 112, 112 },
+            collision = {
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0xB0 },
+              { 0xB3, 0xB3, 0xB7, 0xB2 },
+              { 0xB3, 0xB3, 0xB2, 0xB2 },
+              { 0xB3, 0xB3, 0xB2, 0xB6 },
+              { 0x00, 0x00, 0xB1, 0x00 },
+              { 0x00, 0xB0, 0x00, 0xB0 },
+              { 0xB1, 0x00, 0xB1, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0xB0, 0x00, 0xB0 },
+              { 0xB1, 0x00, 0xB1, 0x00 },
+              { 0x00, 0xB0, 0x00, 0x00 },
+              { 0xB1, 0x00, 0x00, 0x07 },
+              { 0x00, 0x00, 0x07, 0x07 },
+              { 0x00, 0xB0, 0x07, 0x00 },
+              { 0xB1, 0x00, 0x00, 0x00 },
+              { 0x00, 0xB2, 0x00, 0x00 },
+              { 0xB2, 0xB2, 0x00, 0x00 },
+              { 0xB2, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x70, 0x70 },
             },
-    },
+          },
         },
       },
       blocks = {
-        1, 2, 2, 2, 3,
-        4, 5, 5, 5, 6,
+        0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1,
+        2, 3, 4, 5, 6,
         7, 8, 9, 10, 11,
-        12, 12, 13, 12, 12,
+        12, 13, 14, 15, 16,
+        1, 17, 18, 19, 1,
+        1, 1, 20, 1, 1,
       },
-      -- Only the judge is fixed. The rest of the stage -- three
-      -- coordinators and twelve seats -- is drawn per contest by
-      -- ensureStageCast, so it is not the same room twice. He stands on
-      -- the developer's cell facing LEFT, which is the player's mark.
       actors = {
         { name = "KC_STAGE_JUDGE", marker = "kcStageJudge",
-          sprite = "SPRITE_GENTLEMAN", x = 5, y = 1, movement = 8 },
+          sprite = "SPRITE_GENTLEMAN", x = 5, y = 6, movement = 8 },
       },
     },
   },
@@ -1489,22 +1491,67 @@ local function kcGold(mod, VERSION)
   -- movement is NUMERIC on Gen 2 (Npc.lua:23 MOVE): 6 STANDING_DOWN,
   -- 7 STANDING_UP, 8 STANDING_LEFT, 9 STANDING_RIGHT.
   local FACE_DOWN, FACE_UP, FACE_LEFT, FACE_RIGHT = 6, 7, 8, 9
+  -- Every seat the developer marked out. The crowd is DRAWN from these
+  -- rather than filling them all: 10-15 per contest keeps the density
+  -- they asked for while making the room different each time.
+  --
+  -- Facings all point at the stage: the rows above look DOWN, the rows
+  -- below look UP, and the flanking columns look inward.
   local STAGE_SEATS = {
-    { x = 1, y = 5, face = FACE_UP    }, { x = 3, y = 5, face = FACE_UP    },
-    { x = 4, y = 5, face = FACE_UP    }, { x = 5, y = 5, face = FACE_UP    },
-    { x = 6, y = 5, face = FACE_UP    }, { x = 8, y = 5, face = FACE_LEFT  },
-    { x = 0, y = 7, face = FACE_RIGHT }, { x = 1, y = 7, face = FACE_UP    },
-    { x = 2, y = 7, face = FACE_UP    }, { x = 7, y = 7, face = FACE_UP    },
-    { x = 8, y = 7, face = FACE_UP    }, { x = 9, y = 7, face = FACE_LEFT  },
+    { x = 2, y =  2, face = FACE_DOWN   },
+    { x = 3, y =  2, face = FACE_DOWN   },
+    { x = 4, y =  2, face = FACE_DOWN   },
+    { x = 5, y =  2, face = FACE_DOWN   },
+    { x = 6, y =  2, face = FACE_DOWN   },
+    { x = 7, y =  2, face = FACE_DOWN   },
+    { x = 2, y =  4, face = FACE_DOWN   },
+    { x = 3, y =  4, face = FACE_DOWN   },
+    { x = 4, y =  4, face = FACE_DOWN   },
+    { x = 5, y =  4, face = FACE_DOWN   },
+    { x = 6, y =  4, face = FACE_DOWN   },
+    { x = 7, y =  4, face = FACE_DOWN   },
+    { x = 1, y =  5, face = FACE_RIGHT  },
+    { x = 1, y =  6, face = FACE_RIGHT  },
+    { x = 1, y =  7, face = FACE_RIGHT  },
+    { x = 1, y =  8, face = FACE_RIGHT  },
+    { x = 8, y =  5, face = FACE_LEFT   },
+    { x = 8, y =  6, face = FACE_LEFT   },
+    { x = 8, y =  7, face = FACE_LEFT   },
+    { x = 8, y =  8, face = FACE_LEFT   },
+    { x = 3, y = 10, face = FACE_UP     },
+    { x = 4, y = 10, face = FACE_UP     },
+    { x = 5, y = 10, face = FACE_UP     },
+    { x = 6, y = 10, face = FACE_UP     },
+    { x = 1, y = 12, face = FACE_UP     },
+    { x = 2, y = 12, face = FACE_UP     },
+    { x = 3, y = 12, face = FACE_UP     },
+    { x = 6, y = 12, face = FACE_UP     },
+    { x = 7, y = 12, face = FACE_UP     },
+    { x = 8, y = 12, face = FACE_UP     },
   }
-  -- Seats that sit shoulder to shoulder, so a PAIR can be seated
-  -- together. Indices into STAGE_SEATS above.
-  local SEAT_PAIRS = { { 2, 3 }, { 4, 5 }, { 7, 8 }, { 8, 9 }, { 10, 11 }, { 11, 12 } }
+  local CROWD_MIN, CROWD_MAX = 10, 15
+
+  -- Adjacency is computed from the seats actually CHOSEN, not a fixed
+  -- index table -- the seat list changes whenever the room does, and a
+  -- hardcoded pair list silently seats a "pair" on opposite walls.
+  local function adjacentPairs(chosen)
+    local out = {}
+    for a = 1, #chosen do
+      for b = a + 1, #chosen do
+        local p, q = chosen[a], chosen[b]
+        if math.abs(p.x - q.x) + math.abs(p.y - q.y) == 1 then
+          out[#out + 1] = { a, b }
+        end
+      end
+    end
+    return out
+  end
+
   local STAGE_COORD_CELLS = {
-    { x = 4, y = 3 }, { x = 5, y = 3 }, { x = 6, y = 3 },
+    { x = 4, y = 8 }, { x = 5, y = 8 }, { x = 6, y = 8 },
   }
-  local STAGE_LINEUP = { x = 3, y = 3 }   -- where the player waits
-  local STAGE_MARK   = { x = 4, y = 1 }   -- where the player performs
+  local STAGE_LINEUP = { x = 3, y = 8 }   -- where the player waits
+  local STAGE_MARK   = { x = 4, y = 6 }   -- where the player performs
 
   -- Every sprite below is VANILLA Gen 2 except Larry, so the crowd
   -- carries no attribution burden at all: no conversion, no credit line,
@@ -1698,25 +1745,38 @@ local function kcGold(mod, VERSION)
       end
     end
 
-    -- The crowd. One pair sometimes sits together in adjacent seats --
-    -- the developer asked for it and it is the cheapest thing that makes
-    -- a row of strangers look like an audience.
+    -- Choose WHICH seats are filled. 10-15 of the 30 the developer
+    -- marked out, so the hall is the same density each time but never
+    -- the same shape.
+    local pool = {}
+    for k = 1, #STAGE_SEATS do pool[k] = STAGE_SEATS[k] end
+    for k = #pool, 2, -1 do
+      local m = rnd(k)
+      pool[k], pool[m] = pool[m], pool[k]
+    end
+    local take = CROWD_MIN + rnd(CROWD_MAX - CROWD_MIN + 1) - 1
+    local chosen = {}
+    for k = 1, math.min(take, #pool) do chosen[k] = pool[k] end
+
+    -- One pair sometimes sits together, in seats that are actually next
+    -- to each other -- worked out from the seats CHOSEN this contest.
     local seatFor = {}
     if rnd(2) == 1 then
-      local slot = SEAT_PAIRS[rnd(#SEAT_PAIRS)]
-      local pair = CAST_PAIRS[rnd(#CAST_PAIRS)]
-      -- `used` matters here, not just the seats: the coordinators were
-      -- drawn FIRST and are already marked, so seating a pair without
-      -- this check put the same character on stage and in the crowd at
-      -- once. It showed up as ~5% of crowds having a duplicate.
-      if slot and pair and not seatFor[slot[1]] and not seatFor[slot[2]]
-         and not used[pair[1]] and not used[pair[2]] then
-        seatFor[slot[1]] = "SPRITE_" .. pair[1]
-        seatFor[slot[2]] = "SPRITE_" .. pair[2]
-        used[pair[1]], used[pair[2]] = true, true
+      local adj = adjacentPairs(chosen)
+      if #adj > 0 then
+        local slot = adj[rnd(#adj)]
+        local pair = CAST_PAIRS[rnd(#CAST_PAIRS)]
+        -- `used` matters, not just the seats: the coordinators were drawn
+        -- FIRST and are already marked, so seating a pair without this
+        -- check put the same character on stage and in the crowd at once.
+        if pair and not used[pair[1]] and not used[pair[2]] then
+          seatFor[slot[1]] = "SPRITE_" .. pair[1]
+          seatFor[slot[2]] = "SPRITE_" .. pair[2]
+          used[pair[1]], used[pair[2]] = true, true
+        end
       end
     end
-    for i, seat in ipairs(STAGE_SEATS) do
+    for i, seat in ipairs(chosen) do
       local sprite = seatFor[i]
       if not sprite then
         -- The crowd is people only -- no Pokemon in the seats. Roughly a
@@ -1781,7 +1841,8 @@ local function kcGold(mod, VERSION)
   -- assigns one), and objectEntity looks up `objectId - 1`, so an actor
   -- we spawned is addressed as def.index + 1.
   local HEART_EMOTE = 4
-  local CENTRE = { x = 5, y = 2 }
+  -- Mid-platform, between the line-up on y=8 and the judge on 5,6.
+  local CENTRE = { x = 5, y = 7 }
 
   -- What each coordinator brings out. Contest-appropriate and vanilla.
   local KC_PARTNERS = {
@@ -1803,10 +1864,19 @@ local function kcGold(mod, VERSION)
 
   -- step bytes for a straight run: horizontal first, then vertical.
   -- 0x0c + dir (down 0, up 1, left 2, right 3), 0x47 ends (Movement.lua).
-  local function walkBytes(dx, dy)
+  -- vertFirst matters: the three coordinators stand SHOULDER TO SHOULDER
+  -- on 4/5/6,8. Stepping sideways first walks straight into the neighbour,
+  -- so they leave the line vertically and come back horizontally, and the
+  -- lane they use is always clear.
+  local function walkBytes(dx, dy, vertFirst)
     local out = {}
-    for _ = 1, math.abs(dx) do out[#out + 1] = (dx > 0) and 0x0f or 0x0e end
-    for _ = 1, math.abs(dy) do out[#out + 1] = (dy > 0) and 0x0c or 0x0d end
+    local function horiz()
+      for _ = 1, math.abs(dx) do out[#out + 1] = (dx > 0) and 0x0f or 0x0e end
+    end
+    local function vert()
+      for _ = 1, math.abs(dy) do out[#out + 1] = (dy > 0) and 0x0c or 0x0d end
+    end
+    if vertFirst then vert() horiz() else horiz() vert() end
     out[#out + 1] = 0x47
     return out
   end
@@ -1944,7 +2014,7 @@ local function kcGold(mod, VERSION)
     return {
       function(next_)
         if not id then return next_() end
-        world:beginMovement(id, walkBytes(CENTRE.x - sx, CENTRE.y - sy), next_)
+        world:beginMovement(id, walkBytes(CENTRE.x - sx, CENTRE.y - sy, true), next_)
       end,
       function(next_)
         -- 18 columns, 2 rows. `who` is a sprite-derived name, so it gets
@@ -1972,7 +2042,7 @@ local function kcGold(mod, VERSION)
       end,
       function(next_)
         if not id then return next_() end
-        world:beginMovement(id, walkBytes(sx - CENTRE.x, sy - CENTRE.y), next_)
+        world:beginMovement(id, walkBytes(sx - CENTRE.x, sy - CENTRE.y, false), next_)
       end,
     }
   end
@@ -2677,7 +2747,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.24.2"
+  local VERSION = "0.25.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

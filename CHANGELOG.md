@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.25.0
+The new contest stage.
+
+- The stage is a raised platform now, and the stairs at its front
+  corners are the only way up onto it.
+- The crowd is drawn from thirty possible places around the hall, ten
+  to fifteen of them filled each contest, everyone facing the stage.
+- The judge, the coordinators' line and your mark all moved onto the
+  platform.
+
 ## 0.24.2
 The hearts really do appear and fade now.
 
