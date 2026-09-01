@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.22.3
+
+- Reverted nine sprites to the untouched canonical art. Agatha, Brendan,
+  Dawn, Lance, May, Michael, Nurse Joy, Santa and Wes had been nudged a
+  pixel sideways to satisfy an alignment rule that turned out not to exist:
+  vanilla Gold walkers actually range from 6.5 to 9.0, so the sprites were
+  never off in the first place. They now look exactly as the artists drew
+  them, and identical to the same characters in every other mod.
+- The genuine fix from 0.22.2 stays. Nine sheets really did carry stray
+  pixels bled in from the neighbouring sprite on the source sheet, and
+  those are still stripped.
+
 ## 0.22.2
 The stray pixel beside the guests.
 
