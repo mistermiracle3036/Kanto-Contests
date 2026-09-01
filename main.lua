@@ -947,8 +947,6 @@ local function kcGold(mod, VERSION)
     { "SPRITE_KC_PROTON", "proton.png", "PAL_OW_PINK", 4 },
     { "SPRITE_KC_RANGER", "ranger.png", "PAL_OW_RED", 0 },
     { "SPRITE_KC_ROCKET_EXECUTIVE", "rocket_executive.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_ROCKET_GRUNT_F", "rocket_grunt_f.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_ROCKET_GRUNT_M", "rocket_grunt_m.png", "PAL_OW_BROWN", 3 },
     { "SPRITE_KC_ROSA", "rosa.png", "PAL_OW_RED", 0 },
     { "SPRITE_KC_ROXIE", "roxie.png", "PAL_OW_PINK", 4 },
     { "SPRITE_KC_RUIN_MANIAC", "ruin_maniac.png", "PAL_OW_BROWN", 3 },
@@ -1512,7 +1510,7 @@ local function kcGold(mod, VERSION)
     "BLAINE", "BLUE", "WILL", "KOGA", "BRUNO", "KAREN", "LANCE",
   }
   local CAST_FOLK = {
-    "BIKER", "TWIN", "COOLTRAINER_M", "COOLTRAINER_F", "BLACK_BELT",
+    "BIKER", "TWIN", "ROCKET", "ROCKET_GIRL", "COOLTRAINER_M", "COOLTRAINER_F", "BLACK_BELT",
     "BUG_CATCHER", "TEACHER", "OFFICER", "POKEFAN_M", "POKEFAN_F",
     "YOUNGSTER", "SUPER_NERD", "SAGE", "BIRD",
     "GENTLEMAN", "BEAUTY", "LASS", "FISHER", "SAILOR", "SWIMMER_GUY",
@@ -1538,8 +1536,7 @@ local function kcGold(mod, VERSION)
     "KC_AJ", "KC_PIERS",
   }
   local CAST_CUSTOM_CROWD = {
-    "KC_BREEDER", "KC_ROCKET_EXECUTIVE", "KC_ROCKET_GRUNT_F",
-    "KC_ROCKET_GRUNT_M", "KC_CHEF", "KC_EUSINE", "KC_LOOKER",
+    "KC_BREEDER", "KC_ROCKET_EXECUTIVE", "KC_CHEF", "KC_EUSINE", "KC_LOOKER",
     "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BALLGUY", "KC_BILL",
     "KC_INGO", "KC_AGATHA", "KC_ARCHER", "KC_ARIANA", "KC_GIOVANNI",
     "KC_PETREL", "KC_PROTON", "KC_OFFICER_JENNY", "KC_RUIN_MANIAC",
@@ -2377,7 +2374,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.23.1"
+  local VERSION = "0.23.2"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

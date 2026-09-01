@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.23.2
+
+- The two Rocket Grunts now use Gold's own grunt sprites instead of custom
+  copies. They looked almost identical to the originals, and the copies had
+  a cut edge on one frame that the real ones do not.
+
 ## 0.23.1
 The queue really is the field now.
 
