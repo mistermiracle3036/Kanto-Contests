@@ -1595,7 +1595,13 @@ local function kcGold(mod, VERSION)
   -- Split by whether the character has a reason to be COMPETING. The
   -- rival set can also just be watching; the crowd set never competes.
   local CAST_CUSTOM_RIVAL = {
-    "KC_STADIUM_PLAYER", "KC_DUPLICA", "KC_GISELLE", "KC_SUZIE",
+    -- KC_DUPLICA / KC_GISELLE / KC_SUZIE are held back: their canonical
+    -- sheets are RGB where every other walker is mode L, and an RGB sheet
+    -- goes through the palette pass as a solid blob rather than a person.
+    -- That is a canonical-store inconsistency (10 masters are non-L), not
+    -- something to paper over in this mod, so they sit out until it is
+    -- fixed at the source.
+    "KC_STADIUM_PLAYER",
     -- KC_LARRY is deliberately NOT here: he has his own once-in-a-blue-
     -- moon roll below, and listing him again would make him common.
     "KC_ASH", "KC_JULIANA", "KC_LEAF", "KC_LEAR",
@@ -1957,6 +1963,67 @@ local function kcGold(mod, VERSION)
   -- picture and plays no cry, which is exactly the kind of failure that
   -- reaches a device looking like nothing happened.
   local KC_PARTNER_POOLS = {
+    -- Trainer classes bring what their class brings. This is most of the
+    -- field: 55 of the 95 coordinator-eligible characters had no pool and
+    -- all drew from the same 18, which is why the same few POKeMON kept
+    -- turning up contest after contest.
+    SPRITE_TEACHER     = { "CHIKORITA", "HOOTHOOT", "SENTRET", "MARILL" },
+    SPRITE_BUG_CATCHER = { "CATERPIE", "WEEDLE", "LEDYBA", "PARAS" },
+    SPRITE_FISHER      = { "MAGIKARP", "GOLDEEN", "POLIWAG", "CHINCHOU" },
+    SPRITE_SAILOR      = { "TENTACOOL", "KRABBY", "WOOPER", "HORSEA" },
+    SPRITE_BLACK_BELT  = { "MACHOP", "MANKEY", "TYROGUE", "HITMONLEE" },
+    SPRITE_BIKER       = { "KOFFING", "GRIMER", "VOLTORB", "MAGNEMITE" },
+    SPRITE_ROCKER      = { "VOLTORB", "ELECTABUZZ", "MAGNEMITE", "PIKACHU" },
+    SPRITE_SCIENTIST   = { "PORYGON", "MAGNEMITE", "DITTO", "ELEKID" },
+    SPRITE_PHARMACIST  = { "CHANSEY", "BLISSEY", "ODDISH", "TANGELA" },
+    SPRITE_NURSE       = { "CHANSEY", "CLEFAIRY", "BLISSEY", "TOGEPI" },
+    SPRITE_OFFICER     = { "GROWLITHE", "ARCANINE", "HOUNDOUR", "SNUBBULL" },
+    SPRITE_BEAUTY      = { "VULPIX", "PERSIAN", "BELLOSSOM", "FURRET" },
+    SPRITE_LASS        = { "CLEFAIRY", "JIGGLYPUFF", "SENTRET", "HOPPIP" },
+    SPRITE_TWIN        = { "PICHU", "CLEFFA", "IGGLYBUFF", "TOGEPI" },
+    SPRITE_YOUNGSTER   = { "RATTATA", "SPEAROW", "SENTRET", "GEODUDE" },
+    SPRITE_SUPER_NERD  = { "GRIMER", "MAGNEMITE", "PORYGON", "VOLTORB" },
+    SPRITE_SAGE        = { "BELLSPROUT", "HOOTHOOT", "NATU", "GASTLY" },
+    SPRITE_BIRD        = { "PIDGEY", "SPEAROW", "HOOTHOOT", "NATU" },
+    SPRITE_GENTLEMAN   = { "GROWLITHE", "PERSIAN", "FURRET", "MEOWTH" },
+    SPRITE_POKEFAN_M   = { "PIKACHU", "CLEFAIRY", "MEOWTH", "SNUBBULL" },
+    SPRITE_POKEFAN_F   = { "JIGGLYPUFF", "MARILL", "SKIPLOOM", "TOGEPI" },
+    SPRITE_COOLTRAINER_M = { "SANDSLASH", "PRIMEAPE", "SEADRA", "KINGLER" },
+    SPRITE_COOLTRAINER_F = { "NIDORINA", "STARMIE", "JYNX", "BELLOSSOM" },
+    SPRITE_GRAMPS      = { "SLOWPOKE", "GEODUDE", "DUNSPARCE", "SUDOWOODO" },
+    SPRITE_GRANNY      = { "MEOWTH", "CLEFAIRY", "SLOWPOKE", "MARILL" },
+    SPRITE_CLERK       = { "PORYGON", "MEOWTH", "PIDGEY", "MAGNEMITE" },
+    SPRITE_GYM_GUIDE   = { "MACHOP", "GEODUDE", "RATTATA", "PIDGEY" },
+    SPRITE_ELDER       = { "BELLSPROUT", "HOOTHOOT", "ONIX", "GASTLY" },
+    SPRITE_KIMONO_GIRL = { "EEVEE", "VAPOREON", "FLAREON", "ESPEON" },
+    SPRITE_ROCKET      = { "KOFFING", "GRIMER", "RATTATA", "ZUBAT" },
+    SPRITE_ROCKET_GIRL = { "EKANS", "ZUBAT", "MEOWTH", "GRIMER" },
+    -- named vanilla faces
+    SPRITE_BILL        = { "EEVEE", "PORYGON", "ABRA", "DITTO" },
+    SPRITE_OAK         = { "BULBASAUR", "CHARMANDER", "SQUIRTLE", "TAUROS" },
+    SPRITE_ELM         = { "CHIKORITA", "CYNDAQUIL", "TOTODILE", "TOGEPI" },
+    SPRITE_KURT        = { "PINECO", "HERACROSS", "SPINARAK", "SUDOWOODO" },
+    SPRITE_DAISY       = { "EEVEE", "JIGGLYPUFF", "PERSIAN", "CLEFAIRY" },
+    SPRITE_MOM         = { "CLEFAIRY", "MARILL", "MEOWTH", "TOGEPI" },
+    SPRITE_RED         = { "PIKACHU", "CHARIZARD", "LAPRAS", "SNORLAX" },
+    SPRITE_CAL         = { "TOTODILE", "CYNDAQUIL", "CHIKORITA", "SENTRET" },
+    -- remaining custom cast
+    SPRITE_KC_STADIUM_PLAYER = { "TAUROS", "SNORLAX", "GENGAR", "RHYDON" },
+    SPRITE_KC_GISELLE  = { "CUBONE", "PERSIAN", "NIDORINA", "CLEFAIRY" },
+    SPRITE_KC_SUZIE    = { "VULPIX", "NINETALES", "GROWLITHE", "PERSIAN" },
+    SPRITE_KC_JULIANA  = { "SENTRET", "HOPPIP", "MARILL", "PIKACHU" },
+    SPRITE_KC_LILLIE   = { "CLEFAIRY", "VULPIX", "CHANSEY", "TOGEPI" },
+    SPRITE_KC_NATE     = { "TOTODILE", "SANDSHREW", "PIDGEY", "MAGNEMITE" },
+    SPRITE_KC_BRENDAN  = { "CYNDAQUIL", "GEODUDE", "MARILL", "SPEAROW" },
+    SPRITE_KC_HILBERT  = { "CHIKORITA", "CYNDAQUIL", "TOTODILE", "SENTRET" },
+    SPRITE_KC_HILDA    = { "MEOWTH", "DROWZEE", "MAREEP", "AIPOM" },
+    SPRITE_KC_MICHAEL  = { "EEVEE", "UMBREON", "ESPEON", "TEDDIURSA" },
+    SPRITE_KC_WES      = { "UMBREON", "ESPEON", "SNEASEL", "MURKROW" },
+    SPRITE_KC_BARRY    = { "TOTODILE", "PIDGEY", "HERACROSS", "SNEASEL" },
+    SPRITE_KC_HUGH     = { "TOTODILE", "SANDSHREW", "MAREEP", "SNEASEL" },
+    SPRITE_KC_MINA     = { "CLEFAIRY", "SMOOCHUM", "JIGGLYPUFF", "TOGEPI" },
+    SPRITE_KC_ROXIE    = { "KOFFING", "GRIMER", "ZUBAT", "VOLTORB" },
+    SPRITE_KC_AJ       = { "SANDSHREW", "MACHOP", "MANKEY", "GEODUDE" },
     -- Johto leaders
     SPRITE_FALKNER  = { "PIDGEY", "PIDGEOTTO", "HOOTHOOT" },
     SPRITE_BUGSY    = { "SCYTHER", "BUTTERFREE", "LEDYBA" },
@@ -3053,7 +3120,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.29.0"
+  local VERSION = "0.29.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

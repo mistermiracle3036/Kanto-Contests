@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.29.1
+Everyone brings their own.
+
+- Every coordinator now has their own POKeMON, trainer classes
+  included -- a BUG CATCHER brings a CATERPIE, a FISHER a MAGIKARP.
+  Before, most of the field drew from one short list, which is why the
+  same few kept appearing.
+- Three guests are sitting out until their artwork is fixed; they were
+  the ones showing up as a coloured blob.
+
 ## 0.29.0
 Coordinators bring their own POKeMON.
 
