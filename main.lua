@@ -77,6 +77,34 @@ local KC_CATEGORY = {
   CONVERSION = "BEAUTY", TRI_ATTACK = "BEAUTY", SUPER_FANG = "TOUGH",
   SLASH = "COOL", SUBSTITUTE = "SMART", STRUGGLE = "TOUGH",
 }
+-- TODO(intake): DELETE this shim when the transcribed Gen 3 tables land
+-- (work order kanto_contests-gen3-move-data). Until then every move is a
+-- plain 40-point appeal in its recalled category, so the engine runs on
+-- the same data the mod always had; no effects, no combos, no jams.
+local KC_CONTEST_EFFECTS = {
+  HIGHLY_APPEALING = { appeal = 40, jam = 0, text = "A highly\nappealing move." },
+}
+local KC_CONTEST_MOVES = {}
+for id, cat in pairs(KC_CATEGORY) do
+  KC_CONTEST_MOVES[id] = { cat = cat, effect = "HIGHLY_APPEALING" }
+end
+
+-- The four Gen 3 ranks. A mon's rank in a category is one above its wins
+-- there (mon.contestWins[kind]), capped at MASTER -- the Gen 3 shape, on
+-- the field Kanto Ribbons already reads, so no save migration. Rivals'
+-- POKeMON come in at a level per rank (developer, 2026-09-01: "consistently
+-- higher as you get to harder contests"); appeals ignore level, so this is
+-- cosmetic except that Mon.new hands a higher-level mon a better moveset.
+local KC_RANKS = { "NORMAL", "SUPER", "HYPER", "MASTER" }
+local KC_RANK_LEVEL = { NORMAL = 15, SUPER = 25, HYPER = 35, MASTER = 45 }
+-- the crowd's stage hearts for a rival, lo..hi, by rank
+local KC_RANK_STAGE_HEARTS = {
+  NORMAL = { 1, 4 }, SUPER = { 2, 6 }, HYPER = { 4, 7 }, MASTER = { 5, 8 },
+}
+-- Bulbapedia: one appeal heart is worth 20 round-1 points; a stage heart
+-- is scored at the same rate so the two rounds weigh the same.
+local KC_STAGE_HEART_POINTS = 20
+
 -- "do not use" pairs per contest, from the R/S rules
 local KC_OPPOSED = {
   COOL   = { BEAUTY = true, TOUGH = true },
@@ -1077,67 +1105,178 @@ local function kcGold(mod, VERSION)
   -- UI path this is queued by GoldBattleUI.new, after the HUD has captured the
   -- meter's full HP, so the opening head start visibly drains. goldAppeal calls
   -- it as a fallback for headless drivers and any alternate battle screen.
+  -- ------------------------------------------------------------------
+  -- THE JUDGING is the Gen 3 appeal round, run by contest_engine.lua.
+  -- The battle UI is the input device: the player's FIGHT pick is their
+  -- appeal for the turn, then all four contestants resolve in turn order
+  -- and the round is narrated as battle messages. The APPEAL meter is
+  -- display only -- it drains by the player's hearts -- and the winner is
+  -- decided at the end of turn 5 by round-1 + 2 x appeals.
+  -- ------------------------------------------------------------------
+  local KCE
+  do
+    local src = mod:read("contest_engine.lua")
+    if src then
+      local chunk, compileErr = load(src, "@" .. mod.path .. "/contest_engine.lua")
+      if chunk then
+        local ok, result = pcall(chunk)
+        if ok then KCE = result
+        else mod.log:error("contest_engine.lua failed to run: %s", tostring(result)) end
+      else
+        mod.log:error("contest_engine.lua did not compile: %s", tostring(compileErr))
+      end
+    else
+      mod.log:error("contest_engine.lua missing from %s -- reinstall the mod", mod.path)
+    end
+  end
+
+  -- Gen 3 condition is 0..30 in tens; the mod's contest stats are 0..100.
+  local function kcConditionBand(mon, kind)
+    local c = kcCondition(mon)
+    local v = (c and c[KC_STAT_KEY[kind]]) or 0
+    if v >= 90 then return 30 elseif v >= 60 then return 20
+    elseif v >= 30 then return 10 end
+    return 0
+  end
+
+  -- 18 columns: a rival's name shares a row with a verb, so clip it
+  local function short(name)
+    name = tostring(name or "?")
+    if #name > 10 then name = name:sub(1, 10) end
+    return name
+  end
+
+  local function meterMax(meter)
+    return meter.maxHp or (meter.stats and meter.stats.hp) or meter.hp or 1
+  end
+
+  local function buildContest(b)
+    local kind = tostring(inContest(b))
+    local rank = b.trainer.kcRank or "NORMAL"
+    local entrant = b.player
+    local hearts = kcIntroHearts(entrant, kind, rank)
+    b.kcHearts = hearts
+    local staged = b.trainer.kcAppealHearts or {}
+    local rivals = b.trainer.kcRivals or {}
+    local Mon = require("src.battle.gen2.Mon")
+    local lvl = KC_RANK_LEVEL[rank] or KC_RANK_LEVEL.NORMAL
+    local contestants = {
+      { name = b.trainer.kcPlayerName or "YOU", mon = entrant,
+        round1 = hearts * KC_STAGE_HEART_POINTS,
+        condition = kcConditionBand(entrant, kind), ai = "player" },
+    }
+    for i = 1, 3 do
+      local r = rivals[i] or KC_RIVALS[i]
+      local mon = r.species and Mon.new(b.data, r.species, lvl + b.rng(-2, 2))
+      if not mon then
+        -- no species on record (headless tests, or a stage skipped): a
+        -- plain mon with one ordinary move, so the round still runs
+        mon = { moves = { { id = "POUND", pp = 20 } } }
+      end
+      local h = staged[i] or b.rng(2, 6)
+      contestants[#contestants + 1] = {
+        name = r.name, mon = mon, round1 = h * KC_STAGE_HEART_POINTS,
+        condition = 0, ai = rank,
+      }
+    end
+    b.kcState = KCE.new({
+      contest = kind, moves = KC_CONTEST_MOVES, effects = KC_CONTEST_EFFECTS,
+      rng = b.rng, contestants = contestants,
+    })
+    return b.kcState
+  end
+
   local function applyGoldIntro(b)
     if not inContest(b) or b.kcIntroDone then return end
     b.kcIntroDone = true
     local entrant, meter = b.player, b.enemy
     if not (entrant and meter) then return end
-
-    local kind = tostring(inContest(b))
-
-    -- The rivals go first, so the player's score lands as the answer.
-    -- One emit per page: Gold's battle box wraps to two 18-tile rows and
-    -- CUTS the rest (gen2/BattleState.lua:3636-3639 printMessage), and it
-    -- has no \f -- the multi-page trick sayPages does on Gen 1 has to be
-    -- separate emits here.
-    -- Prefer what the crowd actually gave them on stage. Falls back to
-    -- a fresh roll when there was no appeal round -- the headless tests
-    -- build their own judge with no kcAppealHearts, and so does a
-    -- contest entered any way that skips the stage scene.
-    local staged = b.trainer and b.trainer.kcAppealHearts
-    if staged and #staged >= #KC_RIVALS then
-      b.kcRivalHearts = {}
-      for i = 1, #KC_RIVALS do b.kcRivalHearts[i] = staged[i] end
-    else
-      b.kcRivalHearts = kcRollRivalHearts(b.rng)
-    end
-    b.kcRivalScore, b.kcPlayerScore = {}, 0
-    b:emit({ kind = "message", text = "Rival entrants\ntake the stage!" })
-    for i, rival in ipairs(KC_RIVALS) do
-      b:emit({ kind = "message",
-        text = ("%s scores\n%d hearts!"):format(rival.name,
-                                                b.kcRivalHearts[i]) })
-    end
-    b:emit({ kind = "message", text = "Now, your\nentrant..." })
-
-    local hearts = kcIntroHearts(entrant, kind, b.kcRank or "NORMAL")
-    b.kcHearts = hearts
-    local scarf = KC_SCARF_BY_CATEGORY[kcScarfCategory(entrant)]
-    if scarf and scarf.category == kind then
-      -- two emits, not one string with \f: battle messages have no pages
-      b:emit({ kind = "message",
-        text = ("%s\nshines!"):format(scarf.name) })
-      b:emit({ kind = "message", text = "The audience\ntakes notice!" })
-    end
-    if hearts <= 0 then
-      b:emit({ kind = "message", text = "The audience is silent..." })
+    if not KCE then
+      b:emit({ kind = "message", text = "KC error: no\ncontest engine" })
       return
     end
-
+    local s = buildContest(b)
+    local kind = s.contest
+    b:emit({ kind = "message", text = "The stage scores\nare in!" })
+    for i = 2, 4 do
+      local c = s.c[i]
+      b:emit({ kind = "message",
+        text = ("%s:\n%d hearts."):format(short(c.name), c.round1 / KC_STAGE_HEART_POINTS) })
+    end
+    local hearts = b.kcHearts or 0
+    local scarf = KC_SCARF_BY_CATEGORY[kcScarfCategory(entrant)]
+    if scarf and scarf.category == kind then
+      b:emit({ kind = "message", text = ("%s\nshines!"):format(scarf.name) })
+    end
+    if hearts <= 0 then
+      b:emit({ kind = "message", text = "You: the crowd\nwas silent..." })
+      return
+    end
     b:emit({ kind = "message",
-             text = "The audience holds up its score..." })
-    b:emit({ kind = "message",
-             text = ("%d %s!"):format(hearts,
-               hearts == 1 and "heart" or "hearts") })
-    local maxhp = meter.maxHp or (meter.stats and meter.stats.hp)
-                  or meter.hp or 1
+             text = ("You: %d %s!"):format(hearts, hearts == 1 and "heart" or "hearts") })
     local dmg = math.max(1, math.floor(
-      maxhp * KC_INTRO_METER_FRACTION * hearts / 8))
+      meterMax(meter) * KC_INTRO_METER_FRACTION * hearts / 8))
     b:dealDamage(entrant, meter, dmg, { effectiveness = 10 })
+  end
+
+  -- one contestant's events -> battle messages (18 cols x 2 rows each)
+  local function narrate(b, s, ci, moveId, ev)
+    local me = short(s.c[ci].name)
+    local def = b:moveDef(moveId)
+    local mv = (def and def.name) or tostring(moveId or "?")
+    for _, e in ipairs(ev) do
+      local k, t = e.kind, nil
+      if k == "used" then t = ("%s used\n%s!"):format(me, mv)
+      elseif k == "skipped" then t = ("%s is\ncatching breath."):format(me)
+      elseif k == "no_more" then t = ("%s has\nnothing left!"):format(me)
+      elseif k == "attention" then t = ("The judge eyes\n%s."):format(me)
+      elseif k == "combo" then t = "A combo!\nThe judge beams!"
+      elseif k == "startled" then
+        t = ("%s loses\n%d hearts!"):format(short(s.c[e.who].name), math.floor(e.jam / 10))
+      elseif k == "missed" then t = "It fell flat."
+      elseif k == "repeat" then t = ("Same move again.\n-%d hearts"):format(e.penalty / 10)
+      elseif k == "too_nervous" then t = ("%s froze!\nToo nervous."):format(me)
+      elseif k == "nervous" then t = ("%s looks\nnervous..."):format(short(s.c[e.who].name))
+      elseif k == "attention_lost" then
+        -- dialogue-ok: %s is short(), at most 10 glyphs -> 18
+        t = ("The judge\nignores %s"):format(short(s.c[e.who].name))
+      elseif k == "condition_up" then t = ("%s looks\nsharper!"):format(me)
+      elseif k == "condition_lost" then t = ("%s looks\nrattled."):format(short(s.c[e.who].name))
+      elseif k == "crowd_up" then t = "The crowd\nwarms up!"
+      elseif k == "crowd_wild" then t = "The crowd goes\nwild! +6 hearts!"
+      elseif k == "crowd_down" then t = "That did not\ngo over well."
+      elseif k == "crowd_frozen" then t = "The crowd stays\nquiet."
+      elseif k == "scored" then
+        local h = e.hearts or 0
+        if h >= 0 then t = ("%s scores\n%d hearts!"):format(me, h)
+        else t = ("%s: %d\nhearts..."):format(me, h) end
+      end
+      if t then b:emit({ kind = "message", text = t }) end
+    end
+  end
+
+  local function finishContest(b)
+    local s = b.kcState
+    if not s or b.over then return end
+    local final = KCE.final(s)
+    b:emit({ kind = "message", text = "The judge tallies\nthe scores..." })
+    local place
+    for _, r in ipairs(final) do
+      -- dialogue-ok: place is 3 glyphs, short() is at most 10 -> 15
+      b:emit({ kind = "message",
+        text = ("%s: %s\n%d points"):format(KC_PLACES[r.place], short(s.c[r.who].name), r.total) })
+      if r.who == 1 then place = r.place end
+    end
+    b.kcPlace = place
+    -- dialogue-ok: %s is a placement, three glyphs
+    b:emit({ kind = "message", text = ("You place %s\nof 4!"):format(KC_PLACES[place] or "4th") })
+    b:endBattle(place == 1 and "win" or "run")
   end
 
   local function goldAppeal(b, attacker, meter, moveId)
     applyGoldIntro(b)
+    local s = b.kcState
+    if not s then return end
     local move = b:findMove(attacker, moveId)
     local def = b:moveDef(moveId)
     local name = b:monName(attacker)
@@ -1150,13 +1289,10 @@ local function kcGold(mod, VERSION)
       return
     end
     if move then move.pp = (move.pp or 1) - 1 end
-
-    -- Preserve Gold's normal move announcement and the public event, but stop
-    -- before the move's effect list. Growl cannot lower a stat, Thunder Wave
-    -- cannot paralyze, and damaging moves cannot hit on top of their appeal.
+    -- Gold's move announcement and the public event stay; the move's own
+    -- effect list is never reached (this replaces useMove wholesale)
     b.moveEvent = b:emit({ kind = "move", side = b:sideOf(attacker),
-      move = moveId,
-      text = ("%s\nused %s!"):format(name, def.name or moveId) })
+      move = moveId, text = ("%s\nused %s!"):format(name, def.name or moveId) })
     if Runtime.wants("battle.move_used") then
       Runtime.emit("battle.move_used", {
         battle = b, user = attacker, target = meter, move = def,
@@ -1164,94 +1300,39 @@ local function kcGold(mod, VERSION)
       })
     end
 
-    local cat = KC_CATEGORY[moveId] or "TOUGH"
-    local kind = inContest(b)
-    local maxhp = meter.maxHp or (meter.stats and meter.stats.hp)
-                  or meter.hp or 1
-    b.kcRound = (b.kcRound or 0) + 1
-    local dmg
-    if cat == kind then
-      dmg = math.ceil(maxhp * 0.25)
-    elseif KC_OPPOSED[kind] and KC_OPPOSED[kind][cat] then
-      dmg = 0
-    else
-      dmg = math.ceil(maxhp * 0.10)
+    local order = KCE.beginTurn(s)
+    b.kcRound = s.turn
+    b:emit({ kind = "message", text = ("Appeal %d of %d!"):format(s.turn, KCE.TURNS) })
+    for slot = 0, KCE.CONTESTANTS - 1 do
+      local ci = order[slot]
+      local id = (ci == 1) and moveId or KCE.chooseMove(s, ci)
+      local ev = KCE.appeal(s, ci, id)
+      narrate(b, s, ci, id, ev)
     end
-    -- the same points the rivals earn, for the placement at the end
-    b.kcPlayerScore = (b.kcPlayerScore or 0) + kcAppealPoints(cat, kind)
+    local standings = KCE.endTurn(s)
+    mod.log:info("contest turn %d: %s appeal %d, total %d, rank %d",
+                 s.turn, tostring(moveId), s.c[1].appeal, s.c[1].total, standings[1].rank)
 
-    mod.log:info("contest appeal %d: %s (%s) in %s -> %d of %d",
-                 b.kcRound, tostring(moveId), cat, kind, dmg, maxhp)
-    if dmg > 0 then
-      b:dealDamage(attacker, meter, dmg, {
-        effectiveness = 10, move = def, moveId = moveId,
-      })
-    end
-    -- Each emit is one box-fill: the Gold battle box shows TWO 18-tile
-    -- rows and CUTS anything past them rather than scrolling
-    -- (gen2/BattleState.lua:3636-3639). These three ran to a third
-    -- wrapped row -- "is delighted!", "frowns." and the verdict tail were
-    -- being cut on device -- so each reaction is now two short emits.
-    if cat == kind then
-      b:emit({ kind = "message",
-               text = ("A perfect\n%s appeal!"):format(kind) })
-      b:emit({ kind = "message", text = "The judge is\ndelighted!" })
-    elseif dmg == 0 then
-      -- dialogue-ok: both %s are contest categories, six glyphs at most
-      b:emit({ kind = "message",
-               text = ("A %s move in\na %s contest?"):format(cat, kind) })
-      b:emit({ kind = "message", text = "The judge frowns." })
-    else
-      b:emit({ kind = "message", text = "The judge nods\npolitely." })
-      b:emit({ kind = "message",
-               text = ("A %s move,\nbut it works."):format(cat) })
-    end
-    if (meter.hp or 0) <= 0 then
-      -- Stop before runTurn reaches resolveFaints. That vanilla path would
-      -- faint the hidden Chansey, print a trainer defeat and award money.
-      -- The captured damage event still animates the APPEAL bar to zero; the
-      -- live stand-in is restored to 1 HP as a belt against later sweep calls.
-      b.kcMeterComplete = true
-      meter.hp = 1
-      b:emit({ kind = "message", text = "The APPEAL meter\nis full!" })
-      b:emit({ kind = "message", text = "The judge declares\na winner!" })
-      b:emit({ kind = "message", text = "You place 1st\nof 4!" })
-      b:endBattle("win")
-      return
-    end
-
-    -- Slice 4: a rival may jam, rounds 2..4, at most twice a contest.
-    -- AFTER the win check on purpose -- a jam pressures the rounds you
-    -- have left, it never snatches back a meter you just filled.
-    local rival = kcJamRoll(b, b.rng)
-    if rival then
-      local heal = math.ceil(maxhp * KC_JAM_HEAL)
-      -- direct write, not dealDamage: heals have no damage event. The bar
-      -- redraws from hp next frame; it steps rather than animates, noted
-      -- in NOTES.md as cosmetic.
-      meter.hp = math.min(maxhp, (meter.hp or 0) + heal)
-      b:emit({ kind = "message",
-               text = ("%s cuts in\nand jams you!"):format(rival.name) })
-      b:emit({ kind = "message",
-               text = "The judge's meter\nrecovers a little!" })
-    end
-
-    -- A rival takes their turn after yours, rotating. This is the beat
-    -- that makes them read as competitors rather than set dressing.
-    if b.kcRound < KC_ROUNDS then
-      local next_, roll = kcRivalTurn(b, b.rng)
-      if next_ then
-        b:emit({ kind = "message",
-                 text = ("%s appeals\nnext!"):format(next_.name) })
-        b:emit({ kind = "message", text = roll.text })
+    -- the meter is the player's hearts, drawn as damage on the stand-in
+    local hearts = KCE.hearts(s.c[1].appeal)
+    local maxhp = meterMax(meter)
+    if hearts > 0 then
+      local dmg = math.max(1, math.floor(maxhp * hearts / 40))
+      if (meter.hp or 0) - dmg < 1 then dmg = math.max(0, (meter.hp or 1) - 1) end
+      if dmg > 0 then
+        b:dealDamage(attacker, meter, dmg, { effectiveness = 10, move = def, moveId = moveId })
       end
-      -- dialogue-ok: both %d are round counts, one digit each
+    elseif hearts < 0 then
+      meter.hp = math.min(maxhp, (meter.hp or 0) + math.floor(maxhp * -hearts / 40))
+    end
+    if s.turn < KCE.TURNS then
+      -- dialogue-ok: %s is a placement, three glyphs
       b:emit({ kind = "message",
-               text = ("The judge has seen\n%d of %d appeals."):format(
-                 b.kcRound, KC_ROUNDS) })
+        text = ("You stand %s\nafter %d."):format(KC_PLACES[standings[1].rank] or "4th", s.turn) })
+    else
+      finishContest(b)
     end
   end
-
   GoldBattle.useMove = function(self, attacker, defender, moveId)
     if not inContest(self) then
       return vanillaGoldUseMove(self, attacker, defender, moveId)
@@ -1383,19 +1464,10 @@ local function kcGold(mod, VERSION)
       local b = ev and ev.battle
       if not (b and inContest(b)) then return end
       if b.over then return end
-      if (b.kcRound or 0) >= KC_ROUNDS then
-        mod.log:info("contest over: %d appeals, meter %d left",
-                     b.kcRound, (b.enemy and b.enemy.hp) or -1)
-        -- was ONE ~70-char line into a box that cuts after two wrapped
-        -- rows: the player saw "The routine is over... The judge" and the
-        -- verdict never displayed
-        b:emit({ kind = "message", text = "The routine is\nover..." })
-        b:emit({ kind = "message", text = "The judge shakes\nhis head." })
-        -- where you actually finished against the other three
-        -- dialogue-ok: %s is a placement, three glyphs
-        b:emit({ kind = "message",
-                 text = ("You place %s\nof 4!"):format(kcPlacement(b)) })
-        b:endBattle("run")
+      -- goldAppeal ends the contest itself after the fifth appeal; this
+      -- is the net for a turn that got there some other way
+      if b.kcState and b.kcState.turn >= KCE.TURNS then
+        finishContest(b)
       end
     end)
     if not ok then mod.log:warn("kc gold limit: %s", tostring(err)) end
@@ -1928,6 +2000,14 @@ local function kcGold(mod, VERSION)
   -- Put the party back. Safe to call any time: it is a no-op with no
   -- stash, so it can be wired to every map entry as a net rather than
   -- relying on one exit path being taken.
+  -- Ranks a mon may enter in a category: NORMAL always, then one more per
+  -- win there. Wins live on mon.contestWins[kind] (the Ribbons contract).
+  local function eligibleRanks(mon, kind)
+    local wins = (mon and mon.contestWins and mon.contestWins[kind]) or 0
+    local out = {}
+    for i = 1, math.min(#KC_RANKS, wins + 1) do out[i] = KC_RANKS[i] end
+    return out
+  end
   local function restoreParty(world)
     local save = world and world.game and world.game.save
     if not (save and save.kcPartyStash) then return false end
@@ -2207,6 +2287,10 @@ local function kcGold(mod, VERSION)
   -- before this the battle re-rolled its own rival hearts and the whole
   -- scene on stage decided nothing.
   local appealHearts = {}
+  -- who the three coordinators were, so the judging fights the same
+  -- people the stage introduced (it used to fight PIPER/REX/FIONA
+  -- whoever was actually standing there)
+  local stageRivals = {}
 
   local function popHearts(world, n)
     local crowd = castOnStage(world, false)
@@ -2312,8 +2396,11 @@ local function kcGold(mod, VERSION)
         -- engine emote is a single slot. 2..6 is the existing rival
         -- band, under the player's ceiling of 8, so the field can be beaten.
         world.pokePic = nil
-        local hearts = rnd(5) + 1
+        local band = KC_RANK_STAGE_HEARTS[pendingRank or "NORMAL"]
+                     or KC_RANK_STAGE_HEARTS.NORMAL
+        local hearts = band[1] + rnd(band[2] - band[1] + 1) - 1
         appealHearts[n] = hearts
+        stageRivals[n] = { name = who, species = species }
         -- Ask the room FIRST, let the hearts answer, and only then read
         -- the score. The score line used to come before the hearts, so
         -- it told you the number and the crowd then mimed it.
@@ -2338,6 +2425,8 @@ local function kcGold(mod, VERSION)
   -- contest actually starts; it is what the stage judge reads to know
   -- which of the five he is about to judge.
   local pendingContest
+  -- ...and at which rank; NORMAL when the menu was skipped.
+  local pendingRank
 
   -- Set on stage entry, cleared when the announcement actually starts.
   local introArmed = false
@@ -2354,10 +2443,13 @@ local function kcGold(mod, VERSION)
     local sp = game and game.save and game.save.player
     local name = (sp and sp.name) or "YOU"
     local kind = tostring(pendingContest or "CONTEST")
+    local rank = pendingRank or "NORMAL"
     appealHearts = {}
+    stageRivals = {}
     local steps = {
       function(next_) world:showText("Hello! Let's get\nstarted with this", next_) end,
-      function(next_) world:showText(("NORMAL %s\nCONTEST!"):format(kind), next_) end,
+      -- dialogue-ok: rank and category are both at most 6 glyphs -> 13
+      function(next_) world:showText(("%s %s\nCONTEST!"):format(rank, kind), next_) end,
       function(next_) world:showText("These are our\ncoordinators and", next_) end,
       function(next_) world:showText("their partners.", next_) end,
     }
@@ -2441,10 +2533,11 @@ local function kcGold(mod, VERSION)
         return
       end
       pendingContest = nil
+      local rank2 = pendingRank or "NORMAL"
       -- If this throws, runSteps swallows it and the player is left
       -- standing on the stage with nothing happening -- which is exactly
       -- how the last failure presented. Say so.
-      local ok, err = pcall(runGoldContest, world, kind2)
+      local ok, err = pcall(runGoldContest, world, kind2, rank2)
       if not ok then
         mod.log:warn("kc: contest failed to start: %s", tostring(err))
         world:showText("KC error: the\ncontest failed")
@@ -2757,8 +2850,9 @@ local function kcGold(mod, VERSION)
     items = { "COOL", "BEAUTY", "CUTE", "SMART", "TOUGH", "CANCEL" },
   }
 
-  runGoldContest = function(world, kind)
+  runGoldContest = function(world, kind, rank)
     local game = world.game
+    rank = rank or "NORMAL"
     local Mon = require("src.battle.gen2.Mon")
     local meter = Mon.new(game.data, "CHANSEY", 30)
     if not meter then
@@ -2771,8 +2865,12 @@ local function kcGold(mod, VERSION)
     -- on the shared judge table, so the category the player chose is the one
     -- scoring, reacting and being recorded.
     judge.kcContest = kind
-    -- carries the stage appeal scores into the judging
+    judge.kcRank = rank
+    -- carries the stage appeal scores, the coordinators and the rank into the judging
     judge.kcAppealHearts = appealHearts
+    judge.kcRivals = stageRivals
+    local sp = game.save and game.save.player
+    judge.kcPlayerName = (sp and sp.name) or "YOU"
     world:startBattle({ trainer = judge, save = game.save },
       function(outcome)
         -- Off the stage and back to the lobby afterwards, win or lose:
@@ -2796,6 +2894,7 @@ local function kcGold(mod, VERSION)
           end
         end
         -- dialogue-ok: %s is a contest category, six glyphs at most
+        pendingRank = nil
         world:showText(("Magnificent!\nTruly %s!"):format(kind), backToLobby)
       end)
   end
@@ -2840,6 +2939,8 @@ local function kcGold(mod, VERSION)
             world:showText("KC error: party\nnot available")
             return
           end
+          local function proceed(rank)
+          pendingRank = rank
           pendingContest = kind
           -- Advance the crowd seed BEFORE the warp, so map.entered draws
           -- a new audience for this contest. Reloading back into the same
@@ -2866,6 +2967,32 @@ local function kcGold(mod, VERSION)
                 world:showText("KC error: stage\nentrance failed")
               end
         end)
+          end -- proceed
+          -- Which ranks this POKeMON may enter: one above its wins in the
+          -- category. A single eligible rank asks no question.
+          local elig = eligibleRanks(party[slot], kind)
+          if #elig == 1 then
+            proceed(elig[1])
+          else
+            local items = {}
+            for i, r in ipairs(elig) do items[i] = r end
+            items[#items + 1] = "CANCEL"
+            local menu = { top = 1, left = 3, bottom = 2 + 2 * #items,
+                           right = 17, dataFlags = 0xc0, cursor = 1,
+                           items = items }
+            world:showText("Which rank?", function()
+              world:openScriptMenu(menu, "vertical", function(choice)
+                local r = elig[tonumber(choice) or 0]
+                if not r then
+                  -- the party is already parked: give it back
+                  restoreParty(world)
+                  world:showText("Take your time.\nThe stage waits.")
+                  return
+                end
+                proceed(r)
+              end)
+            end)
+          end
       end)
           end)
         end)
@@ -2886,7 +3013,7 @@ local function kcGold(mod, VERSION)
       ("The %s\nCONTEST!\fTake the stage!"):format(kind),
       function()
         pendingContest = nil
-        runGoldContest(world, kind)
+        runGoldContest(world, kind, pendingRank or "NORMAL")
       end)
   end
 
@@ -3138,7 +3265,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.30.4"
+  local VERSION = "0.31.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

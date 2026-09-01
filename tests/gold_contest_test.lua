@@ -61,6 +61,10 @@ local MOVES = {
   PAY_DAY      = move("PAY_DAY",      "NORMAL",   40),
   POUND        = move("POUND",        "NORMAL",   40),
   STRUGGLE     = move("STRUGGLE",     "NORMAL",   40),
+  -- BEAUTY like FIRE_PUNCH; the type is irrelevant here (contest damage is
+  -- zeroed by the battle.damage hook), it just has to exist for mkmon
+  ICE_PUNCH    = move("ICE_PUNCH",    "FIRE",     75),
+  SWIFT        = move("SWIFT",        "NORMAL",   60),   -- COOL, like THUNDERPUNCH
 }
 local POKEMON = {
   growthRates = { GROWTH_MEDIUM_FAST = { numerator = 1, denominator = 1,
@@ -94,162 +98,145 @@ local function mkmon(species, level, moves)
 end
 
 -- Battle.random(n) -> 0..n-1, and Battle.rng is loveStyleRng over it
--- (Battle.lua:86-105): rng(lo,hi) = lo + random(hi-lo+1).
--- neverJam maxes every roll: rng(1,100) -> 100 > 30, so no rival ever
--- jams and the category assertions below measure pure appeal scoring.
--- alwaysJam floors every roll: rng(1,100) -> 1, rng(1,3) -> 1 (PIPER),
--- rng(2,6) -> 2 hearts.
-local function neverJam(n) return (n or 1) - 1 end
-local function alwaysJam(_) return 0 end
+-- (Battle.lua:95-105): rng(lo,hi) = lo + random(hi-lo+1).
+-- highRoll maxes every roll (rng(lo,hi) -> hi); lowRoll floors it (-> lo).
+-- Under the data shim every move is a plain 40-point appeal, so nothing
+-- here rolls for a jam or a nervous check -- the rng only decides the
+-- rivals' stage hearts and tie-breaks. Both directions are exercised.
+local function highRoll(n) return (n or 1) - 1 end
+local function lowRoll(_) return 0 end
 
--- one contest, returning how far the meter moved for each move
-local function runContest(kind, moveIds, random)
+local E = dofile("../Kanto-Contests/contest_engine.lua")
+
+-- one contest; `judge` extras (kcRank, kcRivals, kcAppealHearts,
+-- kcPlayerName) ride the trainer table exactly as runGoldContest sets them
+local function runContest(kind, moveIds, random, extra)
   local player = mkmon("PIKACHU", 30, moveIds)
   local meter = mkmon("CHANSEY", 30, { "POUND" })
   meter.nickname = "APPEAL"
   local judge = { name = "JUDGE", baseMoney = 0, party = { meter },
                   kcContest = kind }
+  for k, v in pairs(extra or {}) do judge[k] = v end
   local save = { party = { player }, player = { id = 1, badges = {} } }
   local battle = Battle.new({ data = DATA, party = { player },
                               trainer = judge, save = save,
-                              random = random or neverJam })
+                              random = random or highRoll })
   return battle, meter, player
 end
 
+local function drainFor(meter, hearts)
+  return math.max(1, math.floor(meter.stats.hp * hearts / 40))
+end
+
+-- Every category: a move OF the contest's category earns the crowd's
+-- +1 heart on top of its 4 (40 points); an OPPOSED move keeps its 4 but
+-- the crowd gives nothing. Gen 3 never zeroes an appeal for category --
+-- the old "opposed scores nothing" rule is gone.
 for _, case in ipairs(CASES) do
   local battle, meter = runContest(case.kind, { case.match, case.opposed })
-
-  -- a move OF the contest's category drains the meter
   local before = meter.hp
   battle:takeTurn({ kind = "move", move = case.match })
-  local matched = before - meter.hp
-  T.check(matched > 0,
-    ("%s: %s is a %s move and must score (drained %d)")
-      :format(case.kind, case.match, case.kind, matched))
-
-  -- a move of an OPPOSED category scores nothing
+  T.eq(before - meter.hp, drainFor(meter, 5),
+    ("%s: %s matches -> 4 hearts + 1 from the crowd"):format(case.kind, case.match))
   before = meter.hp
   battle:takeTurn({ kind = "move", move = case.opposed })
-  local opposedDrain = before - meter.hp
-  T.eq(opposedDrain, 0,
-    ("%s: %s is opposed and must score nothing")
-      :format(case.kind, case.opposed))
-
+  T.eq(before - meter.hp, drainFor(meter, 4),
+    ("%s: %s is opposed -> 4 hearts, no crowd"):format(case.kind, case.opposed))
+  T.eq(battle.kcState.turn, 2, ("%s: two appeals in"):format(case.kind))
   T.check(not battle.over,
     ("%s: two appeals in, the contest is still running"):format(case.kind))
 end
 
--- The two ways a contest ends, both in a NON-COOL contest -- the whole point
--- of 0.11.0 is that these no longer only work for COOL.
-
--- 1. Out of appeals. Five OPPOSED moves score nothing, so the meter never
---    fills and the round limit is what stops it: a clean "run", no blackout.
+-- 1. Five appeals end the contest, whatever the meter shows. The verdict is
+--    E.final's, and the outcome string follows the placing.
 do
   local battle, meter = runContest("TOUGH", { "THUNDERPUNCH" })
   for _ = 1, 5 do battle:takeTurn({ kind = "move", move = "THUNDERPUNCH" }) end
   T.check(battle.over, "TOUGH: contest ends after five appeals")
-  T.eq(battle.outcome, "run",
-    "TOUGH: running out of appeals ends as a run, not a knockout")
+  T.eq(battle.kcState.turn, 5, "TOUGH: the engine counted five turns")
   T.check(meter.hp > 0, "TOUGH: the meter mon never faints")
+  T.check(battle.kcPlace ~= nil, "a placing was decided")
+  T.eq(battle.outcome, battle.kcPlace == 1 and "win" or "run",
+    "win exactly when placed 1st, otherwise a clean run")
 end
 
--- 2. The meter fills. Five MATCHING moves score every time, which is a win --
---    and it must arrive as a win rather than as the meter mon fainting
---    (0.10.7: the contest ends before Gold's normal faint resolver, so the
---    judge is never announced as defeated and no prize money is paid).
+-- 2. The repeat penalty. Five THUNDERPUNCH in TOUGH (opposed: 40, no
+--    crowd) go 40, 20, 10, 0, -10 -- pokeemerald's (repeatCount+1)*10.
 do
-  local battle, meter = runContest("TOUGH", { "POUND" })
-  for _ = 1, 5 do
-    if not battle.over then battle:takeTurn({ kind = "move", move = "POUND" }) end
+  local battle = runContest("TOUGH", { "THUNDERPUNCH" })
+  for _ = 1, 5 do battle:takeTurn({ kind = "move", move = "THUNDERPUNCH" }) end
+  T.eq(battle.kcState.c[1].total, 60, "40+20+10+0-10: the repeat penalty bites")
+end
+
+-- 3. The crowd. Two COOL moves alternated in a COOL contest never
+--    repeat, so the meter climbs 1,2,3,4 and the fifth matching appeal
+--    tips it: +60 instead of +10, then it resets. COOL on purpose: the
+--    headless rivals only know POUND (TOUGH), and TOUGH is exactly 0 to a
+--    COOL crowd, so the meter is the player's alone and the arithmetic
+--    does not depend on who appealed first. (A first draft used BEAUTY,
+--    where TOUGH is -1: three rivals then LOWER the meter by 3 a turn,
+--    which is Gen 3 behaving correctly and the test being wrong.)
+do
+  local battle = runContest("COOL", { "THUNDERPUNCH", "SWIFT" })
+  local seq = { "THUNDERPUNCH", "SWIFT", "THUNDERPUNCH", "SWIFT", "THUNDERPUNCH" }
+  for i = 1, 4 do
+    battle:takeTurn({ kind = "move", move = seq[i] })
+    T.eq(battle.kcState.applause, i, ("applause meter at %d after appeal %d"):format(i, i))
   end
-  T.check(battle.over, "TOUGH: filling the meter ends the contest")
-  T.eq(battle.outcome, "win", "TOUGH: a filled meter is a win")
+  battle:takeTurn({ kind = "move", move = seq[5] })
+  T.eq(battle.kcState.applause, 0, "the meter resets after going wild")
+  T.eq(battle.kcState.c[1].total, 50 * 4 + 100, "4 x 50, then 40 + 60: the crowd went wild")
 end
 
--- 3. Rival jams (0.12.0). With every roll floored, a rival jams each
---    eligible round: never round 1, then rounds 2 and 3, then the cap of
---    two stops rounds 4 and 5. FIRE_PUNCH is BEAUTY, neutral in TOUGH
---    (opposed there is COOL/SMART), so every appeal drains exactly 10%
---    and the arithmetic below is closed-form.
+-- 4. What the stage hands the judging: the three coordinators by name and
+--    their stage hearts (x20 points), the rank, and the player's name.
 do
-  local battle, meter = runContest("TOUGH", { "FIRE_PUNCH" }, alwaysJam)
-  local maxhp = meter.stats.hp
-  local appeal = math.ceil(maxhp * 0.10)
-  local heal = math.ceil(maxhp * 0.08)
-
-  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
-  T.eq(battle.kcJams or 0, 0, "round 1 never jams, even with the roll floored")
-  T.eq(meter.hp, maxhp - appeal, "round 1 is pure appeal drain")
-  T.same(battle.kcRivalHearts, { 2, 2, 2 },
-    "rival hearts rolled through the battle rng (floored -> 2 each)")
-
-  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
-  T.eq(battle.kcJams, 1, "round 2 jams")
-  T.eq(meter.hp, maxhp - 2 * appeal + heal,
-    "the jam healed 8% of the meter back")
-
-  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
-  T.eq(battle.kcJams, 2, "round 3 jams again")
-
-  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
-  T.eq(battle.kcJams, 2, "the cap of two holds from round 4 on")
-  T.eq(meter.hp, maxhp - 4 * appeal + 2 * heal,
-    "meter arithmetic exact across appeals and jams")
-
-  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
-  T.check(battle.over, "the five-appeal limit still ends the contest")
-  T.eq(battle.outcome, "run", "jammed contest still exits as a clean run")
+  local battle = runContest("TOUGH", { "POUND" }, nil, {
+    kcRank = "MASTER",
+    kcRivals = { { name = "WHITNEY" }, { name = "BUG CATCHER" }, { name = "LYRA" } },
+    kcAppealHearts = { 3, 4, 5 },
+    kcPlayerName = "GOLD",
+  })
+  battle:takeTurn({ kind = "move", move = "POUND" })
+  local s = battle.kcState
+  T.eq(s.c[1].name, "GOLD", "the player appeals under their own name")
+  T.same({ s.c[2].name, s.c[3].name, s.c[4].name },
+         { "WHITNEY", "BUG CATCHER", "LYRA" }, "the stage's coordinators are the judging's rivals")
+  T.same({ s.c[2].round1, s.c[3].round1, s.c[4].round1 }, { 60, 80, 100 },
+         "stage hearts carry over at 20 points each")
+  T.eq(s.c[2].ai, "MASTER", "rivals think at the contest's rank")
+  T.eq(s.c[1].ai, "player", "the player is never driven by the AI")
 end
 
--- 3b. The rivals APPEAL every round (0.13.2). Before this they were
---     announced once and then only surfaced on a jam roll, so a whole
---     contest could pass with them doing nothing -- which is how it read
---     on device. One rival performs per round, rotating, and their
---     scores accumulate toward the final placement.
+-- 5. Without a stage (headless, or a contest entered some other way) the
+--    rivals fall back to the legacy names and roll their stage hearts on
+--    the battle rng -- high roll 6, low roll 2 -- and the round still runs.
 do
-  local battle, meter = runContest("TOUGH", { "FIRE_PUNCH" })
-  T.eq(battle.kcRivalScore, nil, "no rival scores before the contest opens")
+  local hi = runContest("TOUGH", { "POUND" }, highRoll)
+  hi:takeTurn({ kind = "move", move = "POUND" })
+  T.eq(hi.kcState.c[2].name, "PIPER", "no stage: legacy rival names")
+  T.eq(hi.kcState.c[2].round1, 120, "no stage, high roll: 6 hearts x 20")
+  local lo = runContest("TOUGH", { "POUND" }, lowRoll)
+  lo:takeTurn({ kind = "move", move = "POUND" })
+  T.eq(lo.kcState.c[2].round1, 40, "no stage, low roll: 2 hearts x 20")
+end
 
-  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
-  T.check(type(battle.kcRivalScore) == "table",
-    "the introduction seeds the rival scoreboard")
-  local scored = 0
-  for i = 1, 3 do
-    if (battle.kcRivalScore[i] or 0) > 0 then scored = scored + 1 end
+-- 6. The final tally is E.final's: round1 + 2 x appeals for all four, and
+--    the player's placing is where their row landed.
+do
+  local battle = runContest("TOUGH", { "POUND", "STRUGGLE" })
+  local seq = { "POUND", "STRUGGLE", "POUND", "STRUGGLE", "POUND" }
+  for i = 1, 5 do battle:takeTurn({ kind = "move", move = seq[i] }) end
+  local s = battle.kcState
+  local final = E.final(s)
+  for _, r in ipairs(final) do
+    T.eq(r.total, s.c[r.who].round1 + 2 * s.c[r.who].total,
+      ("final total for contestant %d = round1 + 2 x appeals"):format(r.who))
   end
-  T.eq(scored, 1, "exactly ONE rival appeals in round 1, not all three")
-  T.check((battle.kcRivalScore[1] or 0) > 0,
-    "the rotation starts with the first coordinator")
-  T.check((battle.kcPlayerScore or 0) > 0,
-    "the player's own appeal scores in the same currency")
-
-  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
-  T.check((battle.kcRivalScore[2] or 0) > 0,
-    "round 2 hands the turn to the next coordinator")
-
-  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
-  T.check((battle.kcRivalScore[3] or 0) > 0,
-    "round 3 reaches the third, so all three are seen in one contest")
-
-  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
-  battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" })
-  T.check(battle.over, "five appeals still end it")
-  -- neutral appeals only: 5 x 10 points, which the rivals can beat, so a
-  -- placement is computed rather than assumed
-  T.check(battle.kcPlayerScore == 50,
-    "five neutral appeals score 50 (10 each)")
-end
-
--- 4. And with sane rolls, jams never fire here: the neverJam default
---    maxes rng(1,100), so scoring stays exactly the pre-0.12.0 numbers --
---    which is also what keeps every assertion above this block honest.
-do
-  local battle, meter = runContest("TOUGH", { "FIRE_PUNCH" })
-  local maxhp = meter.stats.hp
-  for _ = 1, 4 do battle:takeTurn({ kind = "move", move = "FIRE_PUNCH" }) end
-  T.eq(battle.kcJams or 0, 0, "no jam at 100-roll: chance gate works")
-  T.eq(meter.hp, maxhp - 4 * math.ceil(maxhp * 0.10),
-    "pure drain when no rival interferes")
+  local mine
+  for _, r in ipairs(final) do if r.who == 1 then mine = r end end
+  T.eq(mine.total, s.c[1].round1 + 2 * s.c[1].total, "player's final = round1 + 2 x appeals")
+  T.check(battle.kcPlace >= 1 and battle.kcPlace <= 4, "placing is 1..4")
 end
 
 T.finish("gold contest")

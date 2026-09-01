@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.31.0
+The judging is a real appeal round now.
+
+- Contests follow the Ruby/Sapphire rules. Four coordinators take five
+  turns each; every move is worth a set number of hearts, the crowd warms
+  to moves that suit the contest and goes wild when it gets excited enough,
+  repeating a move costs more each time, and the winner is whoever has the
+  most points from the stage round plus double their appeal hearts.
+- The three coordinators you met on stage are the three you compete
+  against. They bring their own POKeMON, choose their own moves, and their
+  scores from the stage carry into the judging.
+- Ranks. Winning a category with a POKeMON opens the next rank for it:
+  NORMAL, then SUPER, HYPER and MASTER. Higher ranks bring stronger rivals
+  with better-trained POKeMON. If more than one rank is open, the counter
+  asks which.
+- Your contest condition counts for more the better it is, and a scarf in
+  the right colour still shines.
+- Move effects (startling rivals, combos, and so on) arrive with the next
+  update once every move's contest data is in; for now every move appeals
+  plainly in its category.
+
 ## 0.30.4
 The judging actually starts.
 
