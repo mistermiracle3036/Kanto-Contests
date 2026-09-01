@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.30.3
+
+- DAWN's spring and winter outfits are pink and red.
+
 ## 0.30.2
 
 - DAWN wears her proper colours: blue in spring, pink in winter.
