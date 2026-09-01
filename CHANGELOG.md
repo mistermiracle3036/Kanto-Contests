@@ -5,6 +5,9 @@
 - The two Rocket Grunts now use Gold's own grunt sprites instead of custom
   copies. They looked almost identical to the originals, and the copies had
   a cut edge on one frame that the real ones do not.
+- Lorelei's sprite was missing nearly half her width from the side and
+  back views -- the original crop sliced her down one edge. Re-cut from the
+  artist's sheet; 205 pixels of her come back.
 
 ## 0.23.1
 The queue really is the field now.
