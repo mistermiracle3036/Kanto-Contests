@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.23.0
+Walk in through your own front door.
+
+- The woman who used to walk you into the Contest Hall is gone. The hall
+  has a door now, so you just go in.
+- The stairs on the stage floor no longer turn you around -- they were
+  never stairs, and should never have grabbed you.
+- The coordinators queueing in the hall are the ones you actually compete
+  against, instead of three strangers.
+- At most one Gym Leader or Elite Four member enters a contest at a time.
+  Three at once made it a gauntlet.
+
 ## 0.22.3
 
 - Reverted nine sprites to the untouched canonical art. Agatha, Brendan,
