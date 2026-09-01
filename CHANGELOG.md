@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.30.4
+The judging actually starts.
+
+- The announcer names the contest properly. He was saying "NORMAL
+  CONTEST CONTEST" instead of "NORMAL COOL CONTEST".
+- After "Now -- the judging!" the battle begins, instead of leaving you
+  standing on the stage with nothing happening.
+
+Both were the same fault: the mod noted which of the five contests you
+had entered, but the announcement was written above the place that note
+was kept, so it read an empty one. The title fell back to the word
+"CONTEST", and the judging had no contest to start.
+
+If it ever does fail again it now says so on screen rather than only in
+a log that phones cannot show.
+
 ## 0.30.3
 
 - DAWN's spring and winter outfits are pink and red.

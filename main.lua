@@ -2334,6 +2334,11 @@ local function kcGold(mod, VERSION)
     }
   end
 
+  -- Set when the judge takes an entry in the lobby and cleared when the
+  -- contest actually starts; it is what the stage judge reads to know
+  -- which of the five he is about to judge.
+  local pendingContest
+
   -- Set on stage entry, cleared when the announcement actually starts.
   local introArmed = false
 
@@ -2429,6 +2434,10 @@ local function kcGold(mod, VERSION)
       local kind2 = pendingContest
       if not kind2 then
         mod.log:warn("kc: intro finished with no pending contest")
+        -- mod.log has no console on iOS, so this failure was SILENT:
+        -- the announcement ended and the player just stood there. Same
+        -- visible channel the throw case below uses.
+        world:showText("KC error: no\ncontest picked")
         return
       end
       pendingContest = nil
@@ -2444,11 +2453,6 @@ local function kcGold(mod, VERSION)
     runSteps(steps)
   end
 
-
-  -- Set when the judge takes an entry in the lobby and cleared when the
-  -- contest actually starts; it is what the stage judge reads to know
-  -- which of the five he is about to judge.
-  local pendingContest
 
   -- ---------------------------------------------------------------
   -- The Goldenrod Contest Hall facade.
@@ -3134,7 +3138,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.30.3"
+  local VERSION = "0.30.4"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
