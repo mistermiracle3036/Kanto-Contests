@@ -957,7 +957,18 @@ local function kcGold(mod, VERSION)
     { "SPRITE_KC_ROXIE", "roxie.png", "PAL_OW_PINK", 4 },
     { "SPRITE_KC_RUIN_MANIAC", "ruin_maniac.png", "PAL_OW_BROWN", 3 },
     { "SPRITE_KC_SANTA", "santa.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_STADIUM_PLAYER", "stadium_player.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_STADIUM_BOY", "stadium_boy.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_STADIUM_GIRL", "stadium_girl.png", "PAL_OW_RED", 0 },
+    -- Alt COSTUMES. Registered so they exist for later, deliberately NOT
+    -- in any cast pool: they are the same person in a different outfit,
+    -- and at 16x16 on a three-colour palette they differ from the base by
+    -- a few pixels of shading, so a crowd drawing them would look like it
+    -- had seated the same character twice.
+    { "SPRITE_KC_DAWN_WINTER", "dawn_winter.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_BRENDAN_GREEN", "brendan_green.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_BRENDAN_BLUE", "brendan_blue.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_MAY_GREEN", "may_green.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_MAY_BLUE", "may_blue.png", "PAL_OW_RED", 0 },
     { "SPRITE_KC_SUZIE", "suzie.png", "PAL_OW_BLUE", 1 },
     { "SPRITE_KC_VOLKNER", "volkner.png", "PAL_OW_BROWN", 3 },
     { "SPRITE_KC_WALLY", "wally.png", "PAL_OW_GREEN", 2 },
@@ -1601,7 +1612,7 @@ local function kcGold(mod, VERSION)
     -- That is a canonical-store inconsistency (10 masters are non-L), not
     -- something to paper over in this mod, so they sit out until it is
     -- fixed at the source.
-    "KC_STADIUM_PLAYER",
+    "KC_STADIUM_BOY", "KC_STADIUM_GIRL",
     -- KC_LARRY is deliberately NOT here: he has his own once-in-a-blue-
     -- moon roll below, and listing him again would make him common.
     "KC_ASH", "KC_JULIANA", "KC_LEAF", "KC_LEAR",
@@ -2008,7 +2019,8 @@ local function kcGold(mod, VERSION)
     SPRITE_RED         = { "PIKACHU", "CHARIZARD", "LAPRAS", "SNORLAX" },
     SPRITE_CAL         = { "TOTODILE", "CYNDAQUIL", "CHIKORITA", "SENTRET" },
     -- remaining custom cast
-    SPRITE_KC_STADIUM_PLAYER = { "TAUROS", "SNORLAX", "GENGAR", "RHYDON" },
+    SPRITE_KC_STADIUM_BOY  = { "TAUROS", "SNORLAX", "RHYDON", "KANGASKHAN" },
+    SPRITE_KC_STADIUM_GIRL = { "GENGAR", "STARMIE", "NIDOQUEEN", "LAPRAS" },
     SPRITE_KC_GISELLE  = { "CUBONE", "PERSIAN", "NIDORINA", "CLEFAIRY" },
     SPRITE_KC_SUZIE    = { "VULPIX", "NINETALES", "GROWLITHE", "PERSIAN" },
     SPRITE_KC_JULIANA  = { "SENTRET", "HOPPIP", "MARILL", "PIKACHU" },
@@ -3120,7 +3132,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.29.2"
+  local VERSION = "0.30.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

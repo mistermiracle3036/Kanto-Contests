@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.30.0
+Nobody is on a bicycle any more.
+
+- Dawn, Brendan and May are off their bikes too, which completes the
+  set -- eleven guests had the wrong half of their artwork.
+- The two POKeMON STADIUM trainers are both here now, a boy and a girl,
+  each with their own POKeMON.
+- Their alternate outfits are in the mod but not in the crowd, so you
+  will not see the same person twice.
+
 ## 0.29.2
 Seven guests got off their bikes.
 
