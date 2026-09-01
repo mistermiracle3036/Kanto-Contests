@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.18.1
+The missing rows are back.
+
+- The top of every room was being drawn as empty void -- the row the judge
+  stands on and the wall behind him. The game reads block number 0 in a map
+  as "use the void block", not as the first block of the room's own tiles,
+  and the rooms numbered their blocks from 0. Every room now starts its
+  numbering at 1 and keeps 0 for the void, which is what the game expects.
+
 ## 0.18.0
 The halls are finally right on Crystal.
 

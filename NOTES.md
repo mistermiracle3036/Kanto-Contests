@@ -789,3 +789,28 @@ tiles 92/94 where the developer wanted 77/91. The earlier transplant was
 faithful to what was SAVED at the time -- the saved data itself had the
 wrong tiles -- which is worth remembering when a device report and a
 read-back disagree: check the save's timestamp before doubting the reader.
+
+## THE VOID BUG (0.18.1) -- block id 0 in a map means BORDER
+
+Reported as "void" through five builds and I kept chasing the border
+block's art instead of reading the draw loop. The cause is one line in
+World:bakeMapImage (gen2/World.lua:8080-8082):
+
+    -- LoadMetatiles reads block id 0 as the map header's border block,
+    -- not as tileset block 0
+    local blockId = BorderFill.blockFor(map.blocks[...], map.borderBlock)
+
+and BorderFill.blockFor (:36-39) returns the BORDER for `blockId == 0`.
+
+So **a map's blocks array must never contain 0 for real content.** Our
+composed rooms numbered their blocks from 0, so every cell using block 0 --
+the whole back-wall row -- was painted as void. That is exactly the "two
+missing rows, the one the old man stands on and the row behind him".
+
+Rule for any composed tileset from here: **reserve index 0 for the void
+block** and number room blocks from 1. `borderBlock = 0` then means what it
+says on every map, vanilla or ours.
+
+It is invisible to the geometry verifier, which reads collision, not the
+draw path -- collision for block 0 was correct all along, so the room was
+walkable exactly where it looked empty.
