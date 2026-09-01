@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.27.0
+You enter a POKeMON, and the MC knows your name.
+
+- Pick which POKeMON you are entering at the desk. It is the only one
+  with you until you leave the hall.
+- The MC calls you by name and shows your POKeMON like everyone else's.
+- You stand in the line facing the room, the same as the other
+  coordinators.
+- The text box clears before the crowd's hearts, so you can see all of
+  them.
+
 ## 0.26.1
 A different room every time you walk in.
 

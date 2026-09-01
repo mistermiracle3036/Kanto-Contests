@@ -1703,8 +1703,7 @@ local function kcGold(mod, VERSION)
   -- kcContestCount is advanced when the player accepts a category and is
   -- warped to the stage -- which is AFTER they have already walked into
   -- the lobby and the queue has been drawn. So the lobby must look one
-  -- ahead, or it shows the previous contest's line-up and the "queue up
-  -- behind the people you compete against" promise quietly breaks. It
+  -- ahead, or it shows the previous contest's line-up and the "queue up\n-- behind the people you compete against" promise quietly breaks. It
   -- did exactly that until the developer asked whether the crowd
   -- changes between contests.
   local function nextContestSeed()
@@ -2003,6 +2002,20 @@ local function kcGold(mod, VERSION)
   -- calls that out as a bug they already had once).
   local kcHearts = {}
 
+  -- A plain frame wait, so a step in the appeal can hold with nothing on
+  -- screen. showText is the only other way to pause a chain, and it puts
+  -- a box over the bottom third -- which is where half the crowd is.
+  local kcWait = nil
+  local function waitFrames(n, done) kcWait = { left = n or 60, done = done } end
+  local function tickWait()
+    if not kcWait then return end
+    kcWait.left = kcWait.left - 1
+    if kcWait.left > 0 then return end
+    local done = kcWait.done
+    kcWait = nil
+    if done then pcall(done) end
+  end
+
   -- What each coordinator scored in the appeal round. Filled on stage,
   -- read by the judging afterwards so the appeals actually COUNT --
   -- before this the battle re-rolled its own rival hearts and the whole
@@ -2112,8 +2125,14 @@ local function kcGold(mod, VERSION)
         world.pokePic = nil
         local hearts = rnd(5) + 1
         appealHearts[n] = hearts
-        popHearts(world, hearts)
-        world:showText(("%s scores\n%d hearts!"):format(who, hearts), next_)
+        world:showText(("%s scores\n%d hearts!"):format(who, hearts),
+          function()
+            -- the box is DOWN by the time this runs, so the hearts have
+            -- the whole room to themselves -- they were popping behind
+            -- it before, and half of them were under the text.
+            popHearts(world, hearts)
+            waitFrames(70 + hearts * 12, next_)
+          end)
       end,
       function(next_)
         if not id then return next_() end
@@ -2131,7 +2150,11 @@ local function kcGold(mod, VERSION)
   -- player talks to the judge.
   local function runStageIntro(world)
     local game = mod.game
-    local name = (game and game.player and game.player.name) or "YOU"
+    -- save.player.name, NOT game.player.name -- the latter is the world
+    -- ENTITY (position, facing, sprite), which has no name, so the
+    -- fallback fired every time and the MC announced "YOU".
+    local sp = game and game.save and game.save.player
+    local name = (sp and sp.name) or "YOU"
     local kind = tostring(pendingContest or "CONTEST")
     appealHearts = {}
     local steps = {
@@ -2164,7 +2187,19 @@ local function kcGold(mod, VERSION)
     end
     steps[#steps + 1] = function(next_)
       pcall(world.turnObject, world, 0, "down")
-      world:showText(("And %s!"):format(name), next_)
+      -- The player presents like the other three: dex picture, cry, and
+      -- the POKeMON they actually picked at the desk.
+      local mine = (game.save and game.save.party and game.save.party[1])
+      local myName = monLabel(game, mine)
+      local myIndex = mine and speciesIndexOf(mine.species)
+      if myIndex then
+        world:showPokePic(myIndex)
+        world:playCry(myIndex)
+      end
+      world:showText(("%s\nand %s!"):format(name, myName), function()
+        world.pokePic = nil
+        next_()
+      end)
     end
     -- ...then back to the line. The judging is not something the player
     -- walks over and asks for -- everyone has presented, so everyone
@@ -2294,6 +2329,13 @@ local function kcGold(mod, VERSION)
     local ok, err = pcall(function()
       local mapId = ev and ev.mapId
       local world = mod.world:overworld()
+      -- Give the party back the moment the player is anywhere but the
+      -- stage. Deliberately not tied to one exit: a contest can end by
+      -- winning, losing, walking out over the carpet, or a reload, and
+      -- only this catches all four. No-op when nothing is stashed.
+      if not (STAGE_DEF and mapId == STAGE_DEF.id) then
+        pcall(restoreParty, world)
+      end
       if mapId == KCG.map then
         ensureGoldenrodFacade()
         -- The street attendant is GONE. She existed to walk the player in
@@ -2375,6 +2417,7 @@ local function kcGold(mod, VERSION)
     -- this one missing line, lost when an earlier edit threw on a
     -- later assertion and never wrote the file.
     tickHearts()
+    tickWait()
     if introArmed then
       local world = mod.world:overworld()
       -- Confirm the player is STILL on the stage. introArmed is set on
@@ -2492,6 +2535,51 @@ local function kcGold(mod, VERSION)
   -- Kanto Ribbons has likewise mapped all five categories since it shipped
   -- the contest resolver; it awards only the ones its catalog has drawn, so
   -- the other four light up there with no change on this side.
+  -- ---------------------------------------------------------------
+  -- The entrant, and the party while a contest is on.
+  --
+  -- The player picks ONE POKeMON at the desk and only that one is in the
+  -- party until they come back. The rest are parked on a SAVE-LEVEL
+  -- field, not a Lua local: arbitrary top-level save keys persist on both
+  -- generations, so the stash travels with the save file. If the game is
+  -- closed mid-contest the party is still in there and the next entry to
+  -- the hall puts it back -- where a local would have been lost with the
+  -- process and taken five POKeMON with it.
+  local function partyOf(world)
+    local save = world and world.game and world.game.save
+    return save, (save and save.party) or {}
+  end
+
+  local function monLabel(game, mon)
+    if not mon then return "?" end
+    if mon.nickname and mon.nickname ~= "" then return mon.nickname end
+    local rec = game and game.data and game.data.pokemon
+      and game.data.pokemon[mon.species]
+    return (rec and rec.name) or tostring(mon.species or "?")
+  end
+
+  local function stashParty(world, keep)
+    local save, party = partyOf(world)
+    if not (save and party[keep]) then return false end
+    if save.kcPartyStash then return true end   -- already parked
+    local full = {}
+    for i, m in ipairs(party) do full[i] = m end
+    save.kcPartyStash = full
+    save.party = { party[keep] }
+    return true
+  end
+
+  -- Put the party back. Safe to call any time: it is a no-op with no
+  -- stash, so it can be wired to every map entry as a net rather than
+  -- relying on one exit path being taken.
+  local function restoreParty(world)
+    local save = world and world.game and world.game.save
+    if not (save and save.kcPartyStash) then return false end
+    save.party = save.kcPartyStash
+    save.kcPartyStash = nil
+    return true
+  end
+
   local CONTEST_MENU = {
     top = 1, left = 3, bottom = 14, right = 17,
     dataFlags = 0xc0, cursor = 1,
@@ -2562,6 +2650,32 @@ local function kcGold(mod, VERSION)
             runGoldContest(world, kind)
             return
           end
+          -- Which POKeMON is competing. Built from the party each time,
+          -- because it changes between visits.
+          local game = world.game
+          local _, party = partyOf(world)
+          local items = {}
+          for i, mon in ipairs(party) do items[i] = monLabel(game, mon) end
+          if #items == 0 then
+            world:showText("You have no\nPOKeMON to enter!")
+            return
+          end
+          items[#items + 1] = "CANCEL"
+          local PARTY_MENU = {
+            top = 1, left = 3, bottom = 2 + #items * 2, right = 17,
+            dataFlags = 0xc0, cursor = 1, items = items,
+          }
+          world:showText("And which POKeMON\nwill you show us?", function()
+          world:openScriptMenu(PARTY_MENU, "vertical", function(pick)
+          local slot = tonumber(pick) or 0
+          if slot < 1 or slot > #party then
+            world:showText("Take your time.\nThe stage waits.")
+            return
+          end
+          if not stashParty(world, slot) then
+            world:showText("KC error: party\nnot available")
+            return
+          end
           pendingContest = kind
           -- Advance the crowd seed BEFORE the warp, so map.entered draws
           -- a new audience for this contest. Reloading back into the same
@@ -2579,7 +2693,9 @@ local function kcGold(mod, VERSION)
             function()
               stageReturn = mod.world:current()
               local ok, err = mod.world:warpTo(
-                STAGE_DEF.id, STAGE_DEF.arrival.x, STAGE_DEF.arrival.y, "up")
+                -- facing DOWN, so the player stands in the line looking at
+                -- the room like the other three, not at the judge's back
+                STAGE_DEF.id, STAGE_DEF.arrival.x, STAGE_DEF.arrival.y, "down")
               if not ok then
                 pendingContest = nil
                 mod.log:warn("contest stage warp failed: %s", tostring(err))
@@ -2588,6 +2704,8 @@ local function kcGold(mod, VERSION)
             end)
         end)
       end)
+          end)
+        end)
   end
 
   -- On the stage: the judge who actually runs the contest. The category
@@ -2857,7 +2975,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.26.1"
+  local VERSION = "0.27.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -4099,8 +4217,7 @@ return function(mod)
   })
 
   -- ------------------------------------------------------------------
-  -- load banner. NOT on game.ready: Game.lua emits that while "nothing is
-  -- on the stack yet" and pushes the title screen immediately after, so a
+  -- load banner. NOT on game.ready: Game.lua emits that while "nothing is\n-- on the stack yet" and pushes the title screen immediately after, so a
   -- TextBox there is discarded (v0.1: no banner ever appeared). First map
   -- entry of the session is the first moment a box survives.
   -- ------------------------------------------------------------------
