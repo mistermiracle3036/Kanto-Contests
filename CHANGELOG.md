@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.26.1
+A different room every time you walk in.
+
+- Restarting a contest without finishing it no longer brings back the
+  same coordinators and the same crowd. Every visit to the hall draws
+  a fresh room.
+
 ## 0.26.0
 Everyone competes together.
 

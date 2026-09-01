@@ -1667,8 +1667,35 @@ local function kcGold(mod, VERSION)
   local function contestCount()
     return tonumber(mod.save and mod.save:get("kcContestCount", 0)) or 0
   end
+  -- A salt, re-rolled each time the player walks into the hall.
+  --
+  -- The contest count alone was not enough: it only advances when a
+  -- contest is ACCEPTED, so restarting without finishing one reloads the
+  -- same count and reseats exactly the same crowd -- which is what the
+  -- developer kept seeing. Steps and play time both move while the
+  -- player is walking around, so mixing them in makes each visit to the
+  -- hall a different room.
+  --
+  -- It is SNAPSHOT, not read live: the lobby queue is drawn on entry and
+  -- the stage line-up when the contest starts, and those two have to
+  -- agree. Reading the step count live would let them drift apart in the
+  -- few paces between the door and the desk.
+  local function rollSeedSalt()
+    local save = mod.game and mod.game.save
+    local t = (save and save.playTime) or {}
+    local salt = ((save and save.stepCount) or 0) * 7919
+      + ((t.seconds or 0) * 104729) + ((t.minutes or 0) * 1299709)
+      + ((t.hours or 0) * 15485863) + ((t.frames or 0) * 31)
+    salt = (salt % 100003) + 7
+    if mod.save then mod.save:set("kcSeedSalt", salt) end
+    return salt
+  end
+  local function seedSalt()
+    return tonumber(mod.save and mod.save:get("kcSeedSalt", 7)) or 7
+  end
+
   local function contestSeed()
-    return (contestCount() * 131) + 7
+    return (contestCount() * 131) + seedSalt()
   end
 
   -- The seed for the contest the player is ABOUT to enter.
@@ -1681,7 +1708,7 @@ local function kcGold(mod, VERSION)
   -- did exactly that until the developer asked whether the crowd
   -- changes between contests.
   local function nextContestSeed()
-    return ((contestCount() + 1) * 131) + 7
+    return ((contestCount() + 1) * 131) + seedSalt()
   end
 
   -- The three coordinators, drawn ONCE per contest.
@@ -1726,6 +1753,10 @@ local function kcGold(mod, VERSION)
   }
   local function ensureLobbyQueue(world)
     if markerExists(world, "kcCast") then return end
+    -- new visit, new room. The guard above means this runs once per
+    -- entry, not once per frame, so the queue does not reshuffle while
+    -- the player is standing in it.
+    rollSeedSalt()
     local coordinators = drawCoordinators(seededRng(nextContestSeed()), {})
     for i, cell in ipairs(LOBBY_QUEUE_CELLS) do
       local sprite = coordinators[i]
@@ -2826,7 +2857,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.26.0"
+  local VERSION = "0.26.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
