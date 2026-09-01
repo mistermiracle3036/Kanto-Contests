@@ -853,3 +853,17 @@ maps"). Two pieces make it work:
   (gen2/World.lua:9181) redirects to exact coordinates. The raw record
   still points somewhere safe, so a hook that never runs drops the player
   in Goldenrod rather than nowhere.
+
+### The desk counter, after any repaint
+
+The editor cannot paint COUNTER (its modes are solid/walk/grass/water/
+shore), so the lobby desk comes back SOLID from every repaint and the
+judge becomes walk-around-only. Restoring it is one edit: the desk is its
+own composed block -- currently index 3, `{7,7,0,0}` -- used on that row
+and nowhere else, so setting its TOP row to 0x90 makes it a counter and
+leaves the floor below it alone.
+
+**Re-check the index after every repaint**: a repaint renumbers the
+composed blocks, so the desk will not always be 3. Find the block used on
+the barrier row of the map's `blocks` grid, confirm it appears nowhere
+else, then set slots 1 and 2 (a quad slot is (cy%2)*2 + (cx%2) + 1).

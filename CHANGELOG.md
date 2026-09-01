@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.19.1
+Talk to the judge over his desk.
+
+- The desk is a proper counter again, so you stand at it and speak across
+  rather than walking around the end.
+
 ## 0.19.0
 The boulders are gone and the carpet is the way out.
 

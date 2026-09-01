@@ -408,7 +408,7 @@ local KC_HALLS = {
               { 7, 7, 7, 7 },
               { 7, 7, 0, 0 },
               { 7, 0, 7, 0 },
-              { 7, 7, 0, 0 },
+              { 144, 144, 0, 0 },   -- the desk: COUNTER, talk across it
               { 0, 7, 0, 7 },
               { 0, 0, 0, 0 },
               { 0, 0, 112, 112 },
@@ -445,7 +445,7 @@ local KC_HALLS = {
               { 7, 7, 7, 7 },
               { 7, 7, 0, 0 },
               { 7, 0, 7, 0 },
-              { 7, 7, 0, 0 },
+              { 144, 144, 0, 0 },   -- the desk: COUNTER, talk across it
               { 0, 7, 0, 7 },
               { 0, 0, 0, 0 },
               { 0, 0, 112, 112 },
@@ -1771,7 +1771,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.19.0"
+  local VERSION = "0.19.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
