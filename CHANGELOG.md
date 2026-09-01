@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.19.0
+The boulders are gone and the carpet is the way out.
+
+- **Those rocks were mine.** The "receptionist" I stood by each exit uses a
+  sprite that is a person in Gold and a **boulder** in Crystal -- same name,
+  different art, the same trap as the tilesets. Both are removed.
+- **You leave on the carpet now.** Step onto the carpet by the door and you
+  are put back where you belong: out of the lobby beside the attendant who
+  showed you in, out of the stage back into the lobby.
+- Every room is rebuilt from your latest save.
+
 ## 0.18.1
 The missing rows are back.
 

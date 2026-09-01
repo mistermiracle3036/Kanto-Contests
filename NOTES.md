@@ -823,3 +823,33 @@ says on every map, vanilla or ours.
 It is invisible to the geometry verifier, which reads collision, not the
 draw path -- collision for block 0 was correct all along, so the room was
 walkable exactly where it looked empty.
+
+## SPRITE IDS ARE NOT STABLE ACROSS GEN 2 VERSIONS EITHER (0.19.0)
+
+SPRITE_OLD_LINK_RECEPTIONIST exists in both caches and points at
+`sprites/old_link_receptionist.png` in both -- but on CRYSTAL that file is
+a BOULDER, not a person. Two of them shipped as the halls' exit
+attendants, and the developer read them as Rock Smash rocks placed as
+teleports, which is exactly what they look like.
+
+Same trap as the tilesets: a shared id and filename, different art per
+version. **Checking that a sprite id EXISTS proves nothing** -- the earlier
+audit did exactly that and passed. Look at the image for the version being
+played, or stay with sprites whose art is obviously stable
+(GENTLEMAN/TEACHER/BEAUTY/LASS/YOUNGSTER/COOLTRAINER_F were all fine).
+
+### Carpet exits
+The exits are now the carpet the developer painted, per the standing rule
+against obstacle-as-transition (CLAUDE.md "Moving the player between
+maps"). Two pieces make it work:
+
+- **Warp collision survives the editor.** The painter can only set
+  solid/walk, so a carpet came back as ordinary floor. The generator now
+  keeps the SOURCE block's collision wherever it is a warp kind
+  (0x70..0x7f), so a painted carpet still triggers.
+- **`warp.destination` rewrites the landing cell.** A Gen 2 warp record
+  names a destination map and a warp NUMBER, never a cell, and nothing in
+  Goldenrod warps into a hall that is not a real building. The hook
+  (gen2/World.lua:9181) redirects to exact coordinates. The raw record
+  still points somewhere safe, so a hook that never runs drops the player
+  in Goldenrod rather than nowhere.

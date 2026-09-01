@@ -364,6 +364,10 @@ local KC_HALLS = {
   GOLDENROD = {
     lobby = {
       id = "KC_JOHTO_CONTEST_HALL",
+      warps = {
+        { x = 4, y = 7, destMap = "GOLDENROD_CITY", destWarp = 1 },
+        { x = 5, y = 7, destMap = "GOLDENROD_CITY", destWarp = 1 },
+      },
       label = "GOLDENROD CONTEST HALL",
       song = "GOLDENROD_DEPT_STORE_1F",
       palette = "PALETTE_DAY",
@@ -398,6 +402,7 @@ local KC_HALLS = {
               { 30, 30, 30, 30, 26, 26, 26, 26, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 1, 1, 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53 },
               { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 11, 11, 27, 27, 27, 27 },
             },
       collision = {
               { 7, 7, 7, 7 },
@@ -406,6 +411,7 @@ local KC_HALLS = {
               { 7, 7, 0, 0 },
               { 0, 7, 0, 7 },
               { 0, 0, 0, 0 },
+              { 0, 0, 112, 112 },
             },
     },
           crystal = {
@@ -433,6 +439,7 @@ local KC_HALLS = {
               { 30, 30, 30, 30, 26, 26, 26, 26, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 1, 1, 34, 35, 1, 1, 50, 51, 1, 1, 36, 37, 1, 1, 52, 53 },
               { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 11, 11, 27, 27, 27, 27 },
             },
       collision = {
               { 7, 7, 7, 7 },
@@ -441,6 +448,7 @@ local KC_HALLS = {
               { 7, 7, 0, 0 },
               { 0, 7, 0, 7 },
               { 0, 0, 0, 0 },
+              { 0, 0, 112, 112 },
             },
     },
         },
@@ -449,7 +457,7 @@ local KC_HALLS = {
         1, 1, 1, 1, 1,
         2, 3, 3, 3, 4,
         2, 5, 5, 5, 4,
-        2, 5, 5, 5, 4,
+        2, 5, 6, 5, 4,
       },
       actors = {
         { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
@@ -458,8 +466,6 @@ local KC_HALLS = {
           sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
         { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
           sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
-        { name = "KC_HALL_EXIT", marker = "kcHallExit",
-          sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 6, y = 7, movement = 7 },
         { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
           sprite = "SPRITE_LASS", x = 2, y = 5, movement = 7 },
         { name = "KC_RIVAL_REX", marker = "kcRivalRex",
@@ -476,6 +482,10 @@ local KC_HALLS = {
     },
     stage = {
       id = "KC_JOHTO_CONTEST_STAGE",
+      warps = {
+        { x = 4, y = 7, destMap = "KC_JOHTO_CONTEST_HALL", destWarp = 1 },
+        { x = 5, y = 7, destMap = "KC_JOHTO_CONTEST_HALL", destWarp = 1 },
+      },
       label = "CONTEST STAGE",
       song = "GOLDENROD_GAME_CORNER",
       palette = "PALETTE_DAY",
@@ -505,9 +515,9 @@ local KC_HALLS = {
             },
       blocks = {
               { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
-              { 1, 1, 1, 1, 1, 1, 1, 1, 74, 75, 34, 35, 8, 9, 50, 51 },
-              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 34, 35, 50, 51, 50, 51 },
-              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 74, 75, 50, 51, 8, 9 },
+              { 14, 15, 14, 15, 28, 29, 28, 29, 74, 75, 34, 35, 8, 9, 50, 51 },
+              { 14, 15, 14, 15, 28, 29, 28, 29, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 14, 15, 14, 15, 28, 29, 28, 29, 34, 35, 74, 75, 50, 51, 8, 9 },
               { 74, 75, 34, 35, 8, 9, 50, 51, 74, 75, 34, 35, 8, 9, 50, 51 },
               { 34, 35, 34, 35, 50, 51, 50, 51, 34, 35, 34, 35, 50, 51, 50, 51 },
               { 34, 35, 74, 75, 50, 51, 8, 9, 34, 35, 74, 75, 50, 51, 8, 9 },
@@ -528,12 +538,12 @@ local KC_HALLS = {
               { 0, 0, 0, 0 },
               { 0, 7, 0, 7 },
               { 7, 0, 0, 0 },
+              { 122, 0, 0, 0 },
               { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
+              { 0, 122, 0, 0 },
               { 0, 7, 0, 0 },
               { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
+              { 0, 0, 112, 112 },
             },
     },
           crystal = {
@@ -556,9 +566,9 @@ local KC_HALLS = {
             },
       blocks = {
               { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
-              { 1, 1, 1, 1, 1, 1, 1, 1, 74, 75, 34, 35, 8, 9, 50, 51 },
-              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 34, 35, 50, 51, 50, 51 },
-              { 1, 1, 1, 1, 1, 1, 1, 1, 34, 35, 74, 75, 50, 51, 8, 9 },
+              { 14, 15, 14, 15, 28, 29, 28, 29, 74, 75, 34, 35, 8, 9, 50, 51 },
+              { 14, 15, 14, 15, 28, 29, 28, 29, 34, 35, 34, 35, 50, 51, 50, 51 },
+              { 14, 15, 14, 15, 28, 29, 28, 29, 34, 35, 74, 75, 50, 51, 8, 9 },
               { 74, 75, 34, 35, 8, 9, 50, 51, 74, 75, 34, 35, 8, 9, 50, 51 },
               { 34, 35, 34, 35, 50, 51, 50, 51, 34, 35, 34, 35, 50, 51, 50, 51 },
               { 34, 35, 74, 75, 50, 51, 8, 9, 34, 35, 74, 75, 50, 51, 8, 9 },
@@ -579,12 +589,12 @@ local KC_HALLS = {
               { 0, 0, 0, 0 },
               { 0, 7, 0, 7 },
               { 7, 0, 0, 0 },
+              { 122, 0, 0, 0 },
               { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
+              { 0, 122, 0, 0 },
               { 0, 7, 0, 0 },
               { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
+              { 0, 0, 112, 112 },
             },
     },
         },
@@ -608,14 +618,16 @@ local KC_HALLS = {
           sprite = "SPRITE_POKEFAN_M", x = 1, y = 6, movement = 7 },
         { name = "KC_AUD_2", marker = "kcAudience",
           sprite = "SPRITE_GRANNY", x = 8, y = 6, movement = 7 },
-        { name = "KC_STAGE_EXIT", marker = "kcStageExit",
-          sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 7, y = 7, movement = 8 },
       },
     },
   },
   ECRUTEAK = {
     lobby = {
       id = "KC_ECRUTEAK_CONTEST_HALL",
+      warps = {
+        { x = 5, y = 9, destMap = "ECRUTEAK_CITY", destWarp = 1 },
+        { x = 6, y = 9, destMap = "ECRUTEAK_CITY", destWarp = 1 },
+      },
       label = "ECRUTEAK CONTEST HALL",
       song = "DANCE_THEATER",
       palette = "PALETTE_DAY",
@@ -671,8 +683,8 @@ local KC_HALLS = {
               { 0, 0, 0, 0 },
               { 0, 0, 0, 0 },
               { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
+              { 0, 0, 0, 112 },
+              { 0, 0, 112, 0 },
               { 0, 0, 0, 0 },
             },
     },
@@ -722,8 +734,8 @@ local KC_HALLS = {
               { 0, 0, 0, 0 },
               { 0, 0, 0, 0 },
               { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
-              { 0, 0, 0, 0 },
+              { 0, 0, 0, 112 },
+              { 0, 0, 112, 0 },
               { 0, 0, 0, 0 },
             },
     },
@@ -743,8 +755,6 @@ local KC_HALLS = {
           sprite = "SPRITE_TEACHER", x = 1, y = 9, movement = 9 },
         { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
           sprite = "SPRITE_BEAUTY", x = 8, y = 9, movement = 8 },
-        { name = "KC_HALL_EXIT", marker = "kcHallExit",
-          sprite = "SPRITE_OLD_LINK_RECEPTIONIST", x = 6, y = 9, movement = 7 },
         { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
           sprite = "SPRITE_LASS", x = 2, y = 6, movement = 7 },
         { name = "KC_RIVAL_REX", marker = "kcRivalRex",
@@ -849,7 +859,10 @@ local function kcGold(mod, VERSION)
       palette = def.palette,
       environment = "INDOOR",
       phoneService = false,
-      objects = {}, warps = {}, signs = {}, connections = {},
+      -- the carpet the developer painted is the way out; its cells keep
+      -- their vanilla warp collision, and these are the records that
+      -- collision looks up
+      objects = {}, warps = def.warps or {}, signs = {}, connections = {},
       callbacks = {}, sceneScripts = {}, bgEvents = {}, coordEvents = {},
     })
     -- each hall borrows the music of the room it is dressed as, falling
@@ -1423,6 +1436,34 @@ local function kcGold(mod, VERSION)
     end
   end
 
+  -- THE CARPET IS THE EXIT.
+  --
+  -- Its cells keep their vanilla warp collision, so stepping on one makes
+  -- the engine look up this map's `warps` list. A Gen 2 warp record names a
+  -- destination MAP and a warp NUMBER on it, though -- it cannot name a
+  -- cell -- and nothing in Goldenrod warps into a hall that is not a real
+  -- building. So the record points somewhere safe and this hook rewrites
+  -- the landing spot to the exact cell (warp.destination,
+  -- gen2/World.lua:9181): out of the lobby is beside the attendant who let
+  -- you in, out of the stage is back into the lobby.
+  --
+  -- Failure mode is deliberately mild: if the hook never runs, the raw
+  -- record still lands the player in Goldenrod (or the lobby) rather than
+  -- stranding them.
+  mod.hooks:wrap("warp.destination", function(next_, warped, mapId, x, y, ctx)
+    local from = ctx and ctx.warp and ctx.warp.destMap
+    local here = mod.world:current()
+    local hereId = here and here.mapId
+    if hereId == HALL then
+      local back = hallReturn or { mapId = KCG.map,
+                                   x = entranceCell.x, y = entranceCell.y + 1 }
+      return back.mapId, back.x, back.y
+    elseif STAGE_DEF and hereId == STAGE_DEF.id then
+      return HALL, HALL_ARRIVAL_X, HALL_ARRIVAL_Y
+    end
+    return next_(warped, mapId, x, y, ctx)
+  end)
+
   local function visitHall(world)
     -- Two rows per page. This asked its question across FOUR \n-separated
     -- rows, and only \v and \f wait for a button (TextBox.lua:4-5), so rows
@@ -1730,7 +1771,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.18.1"
+  local VERSION = "0.19.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
