@@ -19,6 +19,16 @@ love = love or require("tests.love_stub")
 
 local GameVersion = require("src.core.GameVersion")
 GameVersion.current = "gold"
+-- Align GameVersion with the injected generation, exactly as
+-- gen_gate_test does and for the same reason: the harness sets
+-- loader.generation but NOT GameVersion.current, while a real boot sets
+-- both. The mod reads GameVersion when registering OPP_KC_JUDGE, so
+-- without this the trainer record comes out incomplete and the whole
+-- mod fails schema validation -- which presents as every contest
+-- assertion below failing at once, with no clue that the cause is the
+-- harness rather than the code.
+local GameVersion = require("src.core.GameVersion")
+GameVersion.current = "gold"
 local run = T.sdk.loadMod("../Kanto-Contests", { generation = 2 })
 T.eq(run.mod and run.mod.state, "loaded", "mod loaded on gen 2")
 
