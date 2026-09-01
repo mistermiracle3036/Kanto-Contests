@@ -1402,6 +1402,9 @@ local function kcGold(mod, VERSION)
   -- forward: runGoldContest ends by walking the player back off the
   -- stage, and it is defined above the lobby judge that sends them there
   local leaveStage
+  -- forward: the stage intro ends by starting the contest itself, and it
+  -- is defined above runGoldContest. Same shape as leaveStage above.
+  local runGoldContest
   local function onStageNow()
     local here = mod.world:current()
     return STAGE_DEF ~= nil and here ~= nil and here.mapId == STAGE_DEF.id
@@ -2117,13 +2120,48 @@ local function kcGold(mod, VERSION)
     steps[#steps + 1] = function(next_)
       world:showText(("Please welcome\n%s!"):format(name), next_)
     end
-    steps[#steps + 1] = function()
+    -- the player walks up to the mark, same as everyone else did
+    steps[#steps + 1] = function(next_)
       local ok = pcall(function()
-        world:beginMovement(0, STAGE_WALK, function() end)
+        world:beginMovement(0, STAGE_WALK, next_)
       end)
       if not ok then
         mod.log:warn("kc walk-on failed; warping instead")
         mod.world:warpTo(STAGE_DEF.id, STAGE_MARK.x, STAGE_MARK.y, "right")
+        next_()
+      end
+    end
+    steps[#steps + 1] = function(next_)
+      pcall(world.turnObject, world, 0, "down")
+      world:showText(("And %s!"):format(name), next_)
+    end
+    -- ...then back to the line. The judging is not something the player
+    -- walks over and asks for -- everyone has presented, so everyone
+    -- lines up and faces the judge together, which is what makes it read
+    -- as one contest rather than four separate errands.
+    steps[#steps + 1] = function(next_)
+      local ok = pcall(function()
+        world:beginMovement(0, walkBytes(STAGE_LINEUP.x - STAGE_MARK.x,
+                                        STAGE_LINEUP.y - STAGE_MARK.y, false), next_)
+      end)
+      if not ok then next_() end
+    end
+    steps[#steps + 1] = function(next_)
+      -- everyone turns to the judge at once
+      for _, npc in ipairs(castOnStage(world, true)) do
+        local cid = objectIdOf(npc)
+        if cid then pcall(world.turnObject, world, cid, "up") end
+      end
+      pcall(world.turnObject, world, 0, "up")
+      world:showText("Now -- the\njudging!", next_)
+    end
+    steps[#steps + 1] = function()
+      -- straight into the contest. stageJudge stays for anyone who
+      -- reaches the stage some other way and talks to him.
+      local kind2 = pendingContest
+      if kind2 then
+        pendingContest = nil
+        runGoldContest(world, kind2)
       end
     end
     runSteps(steps)
@@ -2429,7 +2467,7 @@ local function kcGold(mod, VERSION)
     items = { "COOL", "BEAUTY", "CUTE", "SMART", "TOUGH", "CANCEL" },
   }
 
-  local function runGoldContest(world, kind)
+  runGoldContest = function(world, kind)
     local game = world.game
     local Mon = require("src.battle.gen2.Mon")
     local meter = Mon.new(game.data, "CHANSEY", 30)
@@ -2788,7 +2826,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.25.1"
+  local VERSION = "0.26.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

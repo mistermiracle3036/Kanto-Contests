@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.26.0
+Everyone competes together.
+
+- After you present, you walk back to the line and every coordinator
+  turns to the judge with you. The judging starts there and then --
+  no walking over to ask for it.
+
 ## 0.25.1
 A fuller house, and coordinators who present properly.
 
