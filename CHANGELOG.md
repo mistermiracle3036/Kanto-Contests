@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.22.2
+The stray pixel beside the guests.
+
+- Some guests had a loose pixel floating to their right and stood a
+  little off their square -- a stray piece of the sprite next to them,
+  caught when the art was first cut out. Cleaned up, and they line up
+  properly now.
+
 ## 0.22.1
 Eight guests were standing off their square.
 
