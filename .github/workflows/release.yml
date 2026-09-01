@@ -99,6 +99,13 @@ jobs:
 
           exit $FAIL
 
+      # A walker sprite with a conversion defect must never reach a phone.
+      # Catches bleed (crop ran wide), a flat sliced silhouette (crop ran
+      # tight), and a wrong palette. Each of these has cost a device round.
+      - name: Check sprites for conversion defects
+        run: |
+          python3 -m pip install --quiet Pillow
+          python3 tools/check_sprites.py assets
       - name: Build the installable zip
         if: steps.check.outputs.new == 'true'
         id: build
