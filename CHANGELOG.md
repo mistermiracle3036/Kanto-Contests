@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.29.0
+Coordinators bring their own POKeMON.
+
+- Each familiar face now enters something that suits them -- Whitney a
+  MILTANK, Morty a GASTLY, Misty a STARYU -- instead of anything at
+  random.
+- Swimmers no longer turn up in the hall. They are drawn mid-stroke, so
+  they looked like they were swimming across the carpet.
+
 ## 0.28.1
 
 - The judging starts on its own after the line-up, and says so if it

@@ -1582,8 +1582,10 @@ local function kcGold(mod, VERSION)
     "BIKER", "TWIN", "ROCKET", "ROCKET_GIRL", "COOLTRAINER_M", "COOLTRAINER_F", "BLACK_BELT",
     "BUG_CATCHER", "TEACHER", "OFFICER", "POKEFAN_M", "POKEFAN_F",
     "YOUNGSTER", "SUPER_NERD", "SAGE", "BIRD",
-    "GENTLEMAN", "BEAUTY", "LASS", "FISHER", "SAILOR", "SWIMMER_GUY",
-    "SWIMMER_GIRL", "ROCKER", "SCIENTIST", "PHARMACIST", "GRAMPS",
+    -- no SWIMMER_GUY / SWIMMER_GIRL: those sprites are drawn mid-stroke,
+    -- so on a carpet they look like they are swimming across the floor.
+    "GENTLEMAN", "BEAUTY", "LASS", "FISHER", "SAILOR",
+    "ROCKER", "SCIENTIST", "PHARMACIST", "GRAMPS",
     "GRANNY", "CLERK", "NURSE", "GYM_GUIDE", "ELDER", "KIMONO_GIRL",
     "BILL", "OAK", "ELM", "KURT", "DAISY", "MOM", "RED", "CAL",
   }
@@ -1615,7 +1617,7 @@ local function kcGold(mod, VERSION)
   local CAST_PAIRS = {
     { "TWIN", "TWIN" }, { "ROCKET", "ROCKET_GIRL" },
     { "POKEFAN_M", "POKEFAN_F" }, { "COOLTRAINER_M", "COOLTRAINER_F" },
-    { "SWIMMER_GUY", "SWIMMER_GIRL" }, { "GRAMPS", "GRANNY" },
+    { "GRAMPS", "GRANNY" },
     { "RED", "BLUE" }, { "OAK", "ELM" }, { "KURT", "DAISY" },
     { "MISTY", "BROCK" }, { "KC_OFFICER_JENNY", "KC_NURSE_JOY" },
     { "KC_ASH", "KC_MAY" }, { "KC_BILL", "KC_LOOKER" },
@@ -1944,6 +1946,64 @@ local function kcGold(mod, VERSION)
   local LANE_Y = 7
 
   -- What each coordinator brings out. Contest-appropriate and vanilla.
+  -- Who each coordinator brings. Keyed by sprite id; anyone without an
+  -- entry falls back to KC_PARTNERS below, which is why the generic
+  -- trainers do not need listing.
+  --
+  -- Contest-appropriate rather than competitive: these are the POKeMON
+  -- a character would show off, not the one they would fight with. Every
+  -- name is checked against the player's own extracted data by
+  -- tests/partner_test.lua -- an unknown species silently shows no dex
+  -- picture and plays no cry, which is exactly the kind of failure that
+  -- reaches a device looking like nothing happened.
+  local KC_PARTNER_POOLS = {
+    -- Johto leaders
+    SPRITE_FALKNER  = { "PIDGEY", "PIDGEOTTO", "HOOTHOOT" },
+    SPRITE_BUGSY    = { "SCYTHER", "BUTTERFREE", "LEDYBA" },
+    SPRITE_WHITNEY  = { "MILTANK", "CLEFAIRY", "JIGGLYPUFF" },
+    SPRITE_MORTY    = { "GASTLY", "HAUNTER", "MISDREAVUS" },
+    SPRITE_CHUCK    = { "MACHOP", "PRIMEAPE", "POLIWRATH" },
+    SPRITE_JASMINE  = { "MAGNEMITE", "STEELIX", "AMPHAROS" },
+    SPRITE_PRYCE    = { "SEEL", "DEWGONG", "SWINUB" },
+    SPRITE_CLAIR    = { "DRATINI", "DRAGONAIR", "HORSEA" },
+    -- Kanto leaders
+    SPRITE_BROCK    = { "GEODUDE", "ONIX", "GRAVELER" },
+    SPRITE_MISTY    = { "STARYU", "STARMIE", "PSYDUCK" },
+    SPRITE_SURGE    = { "PIKACHU", "RAICHU", "ELECTRODE" },
+    SPRITE_ERIKA    = { "ODDISH", "GLOOM", "TANGELA" },
+    SPRITE_JANINE   = { "EKANS", "ARBOK", "KOFFING" },
+    SPRITE_SABRINA  = { "ABRA", "KADABRA", "DROWZEE" },
+    SPRITE_BLAINE   = { "GROWLITHE", "PONYTA", "MAGMAR" },
+    SPRITE_BLUE     = { "EEVEE", "PIDGEOT", "GROWLITHE" },
+    -- Elite Four
+    SPRITE_WILL     = { "NATU", "XATU", "JYNX" },
+    SPRITE_KOGA     = { "VENONAT", "VENOMOTH", "GRIMER" },
+    SPRITE_BRUNO    = { "HITMONLEE", "HITMONCHAN", "ONIX" },
+    SPRITE_KAREN    = { "UMBREON", "MURKROW", "VULPIX" },
+    SPRITE_LANCE    = { "DRATINI", "DRAGONAIR", "CHARIZARD" },
+    -- custom cast
+    SPRITE_KC_MAY      = { "CYNDAQUIL", "MEOWTH", "BUTTERFREE" },
+    SPRITE_KC_DAWN     = { "TOTODILE", "CLEFAIRY", "PIKACHU" },
+    SPRITE_KC_LYRA     = { "MARILL", "CHIKORITA", "TOGEPI" },
+    SPRITE_KC_ROSA     = { "CHIKORITA", "SENTRET", "MAREEP" },
+    SPRITE_KC_ASH      = { "PIKACHU", "BULBASAUR", "CHARMANDER" },
+    SPRITE_KC_YELLOW   = { "PIKACHU", "CLEFAIRY", "OMANYTE" },
+    SPRITE_KC_LEAF     = { "BULBASAUR", "JIGGLYPUFF", "VULPIX" },
+    SPRITE_KC_GREEN    = { "BLASTOISE", "NIDOQUEEN", "CLEFABLE" },
+    SPRITE_KC_WALLY    = { "ABRA", "KADABRA", "ODDISH" },
+    SPRITE_KC_LARRY    = { "PIDGEY", "SLOWPOKE", "DUNSPARCE" },
+    SPRITE_KC_LORELEI  = { "SEEL", "DEWGONG", "SHELLDER" },
+    SPRITE_KC_MAXIE    = { "SLUGMA", "MAGCARGO", "GROWLITHE" },
+    SPRITE_KC_N        = { "UMBREON", "MEOWTH", "DROWZEE" },
+    SPRITE_KC_COLRESS  = { "MAGNEMITE", "PORYGON", "MAGNETON" },
+    SPRITE_KC_VOLKNER  = { "ELEKID", "RAICHU", "JOLTEON" },
+    SPRITE_KC_PIERS    = { "MURKROW", "SNEASEL", "HOUNDOUR" },
+    SPRITE_KC_LEAR     = { "SLOWPOKE", "PERSIAN", "CHANSEY" },
+    SPRITE_KC_DUPLICA  = { "DITTO", "CLEFAIRY", "JIGGLYPUFF" },
+    SPRITE_KC_BEA      = { "MACHOP", "HITMONLEE", "SCYTHER" },
+    SPRITE_KC_GLORIA   = { "MAREEP", "CYNDAQUIL", "HOPPIP" },
+  }
+
   local KC_PARTNERS = {
     "CLEFAIRY", "JIGGLYPUFF", "VULPIX", "ODDISH", "GROWLITHE", "PIKACHU",
     "MEOWTH", "PSYDUCK", "BELLSPROUT", "SEEL", "STARYU", "EEVEE",
@@ -2136,7 +2196,10 @@ local function kcGold(mod, VERSION)
     -- the partner is seeded off the contest too, so a given entrant
     -- brings the same POKeMON every time you meet that line-up
     local rnd = seededRng(contestSeed() + n * 17)
-    local species = KC_PARTNERS[rnd(#KC_PARTNERS)]
+    -- their own POKeMON if they have a pool, otherwise the general one
+    local pool = (sprite and KC_PARTNER_POOLS[sprite]) or KC_PARTNERS
+    if #pool == 0 then pool = KC_PARTNERS end
+    local species = pool[rnd(#pool)]
     local index = speciesIndexOf(species)
     local sx, sy = npc.cellX or CENTRE.x, npc.cellY or CENTRE.y
     local id = objectIdOf(npc)
@@ -2990,7 +3053,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.28.1"
+  local VERSION = "0.29.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
