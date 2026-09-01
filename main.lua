@@ -1071,7 +1071,17 @@ local function kcGold(mod, VERSION)
     -- CUTS the rest (gen2/BattleState.lua:3636-3639 printMessage), and it
     -- has no \f -- the multi-page trick sayPages does on Gen 1 has to be
     -- separate emits here.
-    b.kcRivalHearts = kcRollRivalHearts(b.rng)
+    -- Prefer what the crowd actually gave them on stage. Falls back to
+    -- a fresh roll when there was no appeal round -- the headless tests
+    -- build their own judge with no kcAppealHearts, and so does a
+    -- contest entered any way that skips the stage scene.
+    local staged = b.trainer and b.trainer.kcAppealHearts
+    if staged and #staged >= #KC_RIVALS then
+      b.kcRivalHearts = {}
+      for i = 1, #KC_RIVALS do b.kcRivalHearts[i] = staged[i] end
+    else
+      b.kcRivalHearts = kcRollRivalHearts(b.rng)
+    end
     b.kcRivalScore, b.kcPlayerScore = {}, 0
     b:emit({ kind = "message", text = "Rival entrants\ntake the stage!" })
     for i, rival in ipairs(KC_RIVALS) do
@@ -1833,6 +1843,92 @@ local function kcGold(mod, VERSION)
     return out
   end
 
+  -- ---------------------------------------------------------------
+  -- Hearts over the crowd.
+  --
+  -- The engine's own emote is a SINGLE slot -- World:showEmote assigns
+  -- self.emote outright (World.lua:6683) -- so asking for four in a loop
+  -- just overwrites three times and one bubble draws. It also only ages
+  -- in World:step, which does not run while a text box is up, so a
+  -- bubble raised during dialogue hangs there until something else
+  -- clears it. Both of those are exactly what showed up on device.
+  --
+  -- So the hearts are ours: our own list, our own clock (ticked in the
+  -- core.update wrap, which runs regardless of text boxes), and drawing
+  -- by handing each one to the ENGINE'S drawEmote in turn rather than
+  -- blitting it here. That last part matters -- the emote goes through a
+  -- daytime palette lookup and a GbcPalette pass, and blitting the sheet
+  -- raw leaves the interior grey instead of white (World.lua:10345-10352
+  -- calls that out as a bug they already had once).
+  local kcHearts = {}
+
+  -- What each coordinator scored in the appeal round. Filled on stage,
+  -- read by the judging afterwards so the appeals actually COUNT --
+  -- before this the battle re-rolled its own rival hearts and the whole
+  -- scene on stage decided nothing.
+  local appealHearts = {}
+
+  local function popHearts(world, n)
+    local crowd = castOnStage(world, false)
+    kcHearts = {}
+    if #crowd == 0 or (n or 0) <= 0 then return end
+    -- spread across DISTINCT onlookers where there are enough of them, so
+    -- the count is readable at a glance rather than stacking on one head
+    local order, rnd = {}, seededRng(contestSeed() + n)
+    for i = 1, #crowd do order[i] = crowd[i] end
+    for i = #order, 2, -1 do
+      local j = rnd(i)
+      order[i], order[j] = order[j], order[i]
+    end
+    for i = 1, n do
+      kcHearts[#kcHearts + 1] = {
+        entity = order[((i - 1) % #order) + 1],
+        delay  = (i - 1) * 6,   -- they pop in sequence, not all at once
+        left   = 50,
+      }
+    end
+  end
+
+  local function tickHearts()
+    if #kcHearts == 0 then return end
+    local keep = {}
+    for _, h in ipairs(kcHearts) do
+      if h.delay > 0 then
+        h.delay = h.delay - 1
+        keep[#keep + 1] = h
+      else
+        h.left = h.left - 1
+        if h.left > 0 then keep[#keep + 1] = h end
+      end
+    end
+    kcHearts = keep
+  end
+
+  -- Stash-originals, never a sentinel: the World module table lives for
+  -- the whole process, so an `if wrapped then return end` guard would
+  -- keep a stale closure alive across a mod reload.
+  do
+    local okW, World = pcall(require, "src.world.gen2.World")
+    if okW and type(World) == "table" and World.drawEmote then
+      World._kcOriginals = World._kcOriginals or { drawEmote = World.drawEmote }
+      local baseDrawEmote = World._kcOriginals.drawEmote
+      World.drawEmote = function(world, s, billboard)
+        local heart = world and world.emoteImages and world.emoteImages.heart
+        if heart and #kcHearts > 0 then
+          local saved = world.emote
+          for _, h in ipairs(kcHearts) do
+            if h.delay <= 0 and h.entity then
+              world.emote = { image = heart, entity = h.entity, left = 1 }
+              baseDrawEmote(world, s, billboard)
+            end
+          end
+          world.emote = saved
+        end
+        return baseDrawEmote(world, s, billboard)
+      end
+    end
+  end
+
   -- One coordinator's appeal: walk in, send out, dex picture + cry, and
   -- the crowd answers. Returns a list of steps for runSteps.
   local function appealSteps(world, npc, n)
@@ -1863,14 +1959,16 @@ local function kcGold(mod, VERSION)
         world:showText(("%s's\n%s!"):format(who, species), next_)
       end,
       function(next_)
-        -- the crowd answers. Hearts sit above whoever is watching.
+        -- The crowd answers with the APPEAL SCORE, one heart each. It
+        -- was a hardcoded four before, which said nothing about how the
+        -- appeal actually went -- and only one ever drew, because the
+        -- engine emote is a single slot. 2..6 is the existing rival
+        -- band, under the player's ceiling of 8, so the field can be beaten.
         world.pokePic = nil
-        local crowd = castOnStage(world, false)
-        for k = 1, math.min(4, #crowd) do
-          local cid = objectIdOf(crowd[rnd(#crowd)])
-          if cid then pcall(world.showEmote, world, HEART_EMOTE, cid, 60) end
-        end
-        world:showText("The crowd\nlikes it!", next_)
+        local hearts = rnd(5) + 1
+        appealHearts[n] = hearts
+        popHearts(world, hearts)
+        world:showText(("%s scores\n%d hearts!"):format(who, hearts), next_)
       end,
       function(next_)
         if not id then return next_() end
@@ -1890,6 +1988,7 @@ local function kcGold(mod, VERSION)
     local game = mod.game
     local name = (game and game.player and game.player.name) or "YOU"
     local kind = tostring(pendingContest or "CONTEST")
+    appealHearts = {}
     local steps = {
       function(next_) world:showText("Hello! Let's get\nstarted with this", next_) end,
       function(next_) world:showText(("NORMAL %s\nCONTEST!"):format(kind), next_) end,
@@ -2225,6 +2324,8 @@ local function kcGold(mod, VERSION)
     -- on the shared judge table, so the category the player chose is the one
     -- scoring, reacting and being recorded.
     judge.kcContest = kind
+    -- carries the stage appeal scores into the judging
+    judge.kcAppealHearts = appealHearts
     world:startBattle({ trainer = judge, save = game.save },
       function(outcome)
         -- Off the stage and back to the lobby afterwards, win or lose:
@@ -2568,7 +2669,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.24.0"
+  local VERSION = "0.24.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

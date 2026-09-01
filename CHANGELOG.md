@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.24.1
+The crowd's hearts are the score now.
+
+- Each appeal gets as many hearts as it earned, popping across the
+  audience one after another, instead of a single heart that hung
+  around until the next coordinator.
+- Those hearts are what the judging uses, so what happens on stage
+  decides the placings.
+
 ## 0.24.0
 The appeal round happens on stage now.
 
