@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.27.1
+The crowd answers before the score is read.
+
+- The MC asks the room what they think, the hearts go up, and only then
+  is the score announced.
+
 ## 0.27.0
 You enter a POKeMON, and the MC knows your name.
 

@@ -2125,14 +2125,18 @@ local function kcGold(mod, VERSION)
         world.pokePic = nil
         local hearts = rnd(5) + 1
         appealHearts[n] = hearts
-        world:showText(("%s scores\n%d hearts!"):format(who, hearts),
-          function()
-            -- the box is DOWN by the time this runs, so the hearts have
-            -- the whole room to themselves -- they were popping behind
-            -- it before, and half of them were under the text.
-            popHearts(world, hearts)
-            waitFrames(70 + hearts * 12, next_)
+        -- Ask the room FIRST, let the hearts answer, and only then read
+        -- the score. The score line used to come before the hearts, so
+        -- it told you the number and the crowd then mimed it.
+        world:showText("Folks, what do\nyou think?", function()
+          -- the box is DOWN by the time this runs, so the hearts have the
+          -- whole room to themselves -- they were popping behind it
+          -- before, and half of them were under the text.
+          popHearts(world, hearts)
+          waitFrames(70 + hearts * 12, function()
+            world:showText(("%s scores\n%d hearts!"):format(who, hearts), next_)
           end)
+        end)
       end,
       function(next_)
         if not id then return next_() end
@@ -2975,7 +2979,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.27.0"
+  local VERSION = "0.27.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
