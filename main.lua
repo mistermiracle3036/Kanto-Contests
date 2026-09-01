@@ -2283,9 +2283,18 @@ local function kcGold(mod, VERSION)
       -- straight into the contest. stageJudge stays for anyone who
       -- reaches the stage some other way and talks to him.
       local kind2 = pendingContest
-      if kind2 then
-        pendingContest = nil
-        runGoldContest(world, kind2)
+      if not kind2 then
+        mod.log:warn("kc: intro finished with no pending contest")
+        return
+      end
+      pendingContest = nil
+      -- If this throws, runSteps swallows it and the player is left
+      -- standing on the stage with nothing happening -- which is exactly
+      -- how the last failure presented. Say so.
+      local ok, err = pcall(runGoldContest, world, kind2)
+      if not ok then
+        mod.log:warn("kc: contest failed to start: %s", tostring(err))
+        world:showText("KC error: the\ncontest failed")
       end
     end
     runSteps(steps)
@@ -2981,7 +2990,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.28.0"
+  local VERSION = "0.28.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

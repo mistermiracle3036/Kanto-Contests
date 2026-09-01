@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.28.1
+
+- The judging starts on its own after the line-up, and says so if it
+  ever cannot.
+
 ## 0.28.0
 Your entrant, properly.
 
