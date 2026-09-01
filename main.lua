@@ -372,7 +372,11 @@ local KC_HALLS = {
       song = "GOLDENROD_DEPT_STORE_1F",
       palette = "PALETTE_DAY",
       width = 5, height = 4,
-      arrival = { x = 5, y = 7 },
+      -- One square left of the old spot. Both 4,7 and 5,7 are COLL_CARPET
+      -- (0x70) -- the doorway is two tiles wide -- so this is the same
+      -- kind of tile, and the warp cooldown is what stops an arrival on
+      -- a carpet from bouncing straight back out.
+      arrival = { x = 4, y = 7 },
       tiles = {
         id = "KC_GOLDENROD_LOBBY_TILES",
         source = "TILESET_MART",
@@ -466,18 +470,21 @@ local KC_HALLS = {
           sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
         { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
           sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
+        -- The queue: up the RIGHT wall, all facing LEFT (movement 8), running
+        -- UP from two squares above the condition appraiser at 8,7. First
+        -- in line is nearest the desk.
         { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
-          sprite = "SPRITE_LASS", x = 2, y = 5, movement = 7 },
+          sprite = "SPRITE_LASS", x = 8, y = 5, movement = 8 },
         { name = "KC_RIVAL_REX", marker = "kcRivalRex",
-          sprite = "SPRITE_YOUNGSTER", x = 3, y = 5, movement = 7 },
+          sprite = "SPRITE_YOUNGSTER", x = 8, y = 4, movement = 8 },
         { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
-          sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 5, movement = 7 },
+          sprite = "SPRITE_COOLTRAINER_F", x = 8, y = 3, movement = 8 },
         { name = "KC_AUD_1", marker = "kcAudience",
           sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
         { name = "KC_AUD_2", marker = "kcAudience",
-          sprite = "SPRITE_GRANNY", x = 8, y = 4, movement = 8 },
+          sprite = "SPRITE_GRANNY", x = 2, y = 4, movement = 9 },
         { name = "KC_AUD_3", marker = "kcAudience",
-          sprite = "SPRITE_TWIN", x = 8, y = 6, movement = 8 },
+          sprite = "SPRITE_TWIN", x = 6, y = 6, movement = 7 },
       },
     },
     stage = {
@@ -1623,6 +1630,8 @@ local function kcGold(mod, VERSION)
         spawnMarked(STAGE_DEF.id, {
           name = ("KC_COORD_%d"):format(i), sprite = sprite,
           x = cell.x, y = cell.y, movement = FACE_DOWN,
+          -- picks the competitor line pool rather than the spectator one
+          kcCoordinator = true,
         }, "kcCast")
       end
     end
@@ -1689,6 +1698,9 @@ local function kcGold(mod, VERSION)
   -- Ending on the rightward step leaves the player facing 5,1, which is
   -- where the judge is.
   local STAGE_WALK = { STEP_UP, STEP_UP, STEP_RIGHT, STEP_END }
+
+  -- Set on stage entry, cleared when the announcement actually starts.
+  local introArmed = false
 
   local function runStageIntro(world)
     local game = mod.game
@@ -1809,7 +1821,13 @@ local function kcGold(mod, VERSION)
         ensureStageCast(world)
         -- Only announce a player who is actually competing. Wandering in
         -- off the carpet must not call somebody to the stage.
-        if pendingContest then runStageIntro(world) end
+        --
+        -- ARMED, not run. map.entered fires while the warp's fade chain is
+        -- still on screen, so calling the intro here put the announcement
+        -- up over a blank white screen -- the player heard their name
+        -- before the room existed. The core.update watcher below waits for
+        -- the fade to finish and fires it then.
+        if pendingContest then introArmed = true end
       end
     end)
     if not ok then mod.log:warn("kc gold spawn: %s", tostring(err)) end
@@ -1846,6 +1864,30 @@ local function kcGold(mod, VERSION)
       world:showText("KC error: hall\nexit failed")
     end
   end
+
+  -- Wait for the warp to finish before speaking.
+  --
+  -- There is no "fade complete" event -- the engine emits map.entered and
+  -- player.warped, both of which land DURING the transition. What does say
+  -- so is World:busy(), which stays true for the whole map-setup chain
+  -- because `mapSetup ~= nil` (World.lua:1429-1435); the cart runs the
+  -- load in the middle of that script with a fade on each side.
+  --
+  -- core.update is the only per-frame hook a mod gets
+  -- (PlatformHooks.lua:11). Always call through, and only ever peek at
+  -- state afterwards.
+  mod.hooks:wrap("core.update", function(next_, game, dt)
+    local r = next_(game, dt)
+    if introArmed then
+      local world = mod.world:overworld()
+      if world and not world:busy() then
+        introArmed = false
+        local ok, err = pcall(runStageIntro, world)
+        if not ok then mod.log:warn("kc stage intro: %s", tostring(err)) end
+      end
+    end
+    return r
+  end)
 
   -- The door the developer painted at cell 35,4. It carries COLL_DOOR
   -- (0x71) so it reads and behaves like every other Goldenrod door, but
@@ -2155,6 +2197,77 @@ local function kcGold(mod, VERSION)
     end)
   end
 
+  -- Turn to face whoever is talking to you.
+  --
+  -- NPC:scriptFace sets the drawn facing unless `fixedFacing` is set
+  -- (Npc.lua:334). The cast all use STANDING_UP/DOWN/LEFT/RIGHT, none of
+  -- which is in FIXED_FACING_MOVE (Npc.lua:64), so they all turn. The
+  -- seat facing they were spawned with is their RESTING pose, not a lock.
+  local function faceThePlayer(world, npc)
+    local p = world and world.player
+    if not (p and npc and npc.scriptFace) then return end
+    local dx = (p.cellX or 0) - (npc.cellX or 0)
+    local dy = (p.cellY or 0) - (npc.cellY or 0)
+    local dir
+    if math.abs(dx) > math.abs(dy) then
+      dir = (dx > 0) and "right" or "left"
+    else
+      dir = (dy > 0) and "down" or "up"
+    end
+    pcall(npc.scriptFace, npc, dir)
+  end
+
+  -- Lines.
+  --
+  -- KC_CAST_LINES is keyed by sprite id and is where PER-CHARACTER
+  -- dialogue goes as it is written -- May should not sound like a
+  -- spectator, and Larry should not sound like anyone. Until a character
+  -- has its own entry it falls back to the pool line below, so a cast
+  -- member is never silent and adding lines never needs code.
+  --
+  -- 18 columns, 2 rows, per page. check_dialogue.py enforces it.
+  local KC_CAST_LINES = {
+    -- ["SPRITE_KC_MAY"] = { "...", "..." },
+  }
+  local KC_LINES_COORD = {
+    "My POKeMON has\nbeen practising.",
+    "I have waited all\nweek for this.",
+    "Good luck out\nthere!",
+    "Do not smile too\nmuch. It shows.",
+    "I am next. I\nthink. Maybe.",
+  }
+  local KC_LINES_CROWD = {
+    "The hall is packed\ntoday!",
+    "I came for the\nSHEEN, honestly.",
+    "That last appeal\nwas something.",
+    "Shh! It is\nstarting!",
+    "I have a good\nfeeling about you.",
+  }
+
+  -- Stable per-actor pick: the same person says the same thing all
+  -- contest rather than a new line every A press, but different people
+  -- say different things.
+  local function lineFor(npc)
+    local def = npc and npc.def
+    local sprite = def and def.sprite
+    local own = sprite and KC_CAST_LINES[sprite]
+    if own then
+      local n = 0
+      for _ in tostring(def.name or ""):gmatch(".") do n = n + 1 end
+      return own[(n % #own) + 1]
+    end
+    local pool = (def and def.kcCoordinator) and KC_LINES_COORD or KC_LINES_CROWD
+    local sum = 0
+    for c in tostring((def and def.name) or "?"):gmatch(".") do
+      sum = sum + string.byte(c)
+    end
+    return pool[(sum % #pool) + 1]
+  end
+
+  local function talkCast(world, npc)
+    world:showText(lineFor(npc))
+  end
+
   -- World:interactBody asks this facade's talkTo after resolving an NPC.
   -- Own only the four marker fields above and chain every other actor.
   local OW = require("src.world.OverworldController")
@@ -2174,12 +2287,16 @@ local function kcGold(mod, VERSION)
       or (def.kcRivalRex and talkRex)
       or (def.kcRivalFiona and talkFiona)
       or (def.kcAudience and talkAudience)
+      or (def.kcCast and talkCast)
     )
     if not handler then
       if baseTalk then return baseTalk(world, npc) end
       return nil
     end
-    local ok, err = pcall(handler, world)
+    -- Turn BEFORE the box opens, so the sprite is already looking at the
+    -- player on the frame the text appears rather than after it closes.
+    faceThePlayer(world, npc)
+    local ok, err = pcall(handler, world, npc)
     if not ok then
       mod.log:warn("kc gold talk: %s", tostring(err))
       pcall(function() world:showText("KC error: hall\ninteraction failed") end)
@@ -2206,7 +2323,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.21.0"
+  local VERSION = "0.22.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

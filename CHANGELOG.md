@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.22.0
+The hall queue, and people who look at you.
+
+- The contest hall queue now lines the right-hand wall, facing in, and
+  you come in one step further left.
+- Everyone in the hall and on the stage turns to face you when you talk
+  to them, and has something to say.
+- The announcer waits for you to actually be on the stage before calling
+  your name, instead of talking over the doorway.
+
 ## 0.21.0
 A crowd, rival coordinators, and a walk-on.
 
