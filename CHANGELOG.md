@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.21.0
+A crowd, rival coordinators, and a walk-on.
+
+- The contest stage has an audience now: twelve seats and three rival
+  coordinators, drawn fresh for each contest, so the room is never quite
+  the same twice.
+- Over fifty guest characters can turn up, competing or watching --
+  familiar faces from across the series alongside the gym leaders and
+  the Elite Four. Friends sometimes sit together.
+- You line up with the other coordinators and get called to the stage by
+  name, walking up on your own like a Gauntlet challenger.
+- Larry competes once in a blue moon.
+- The same contest always draws the same crowd, so reloading one does
+  not reshuffle the room.
+
 ## 0.20.0
 The Contest Hall has a building in Goldenrod.
 

@@ -1,6 +1,33 @@
 # Third-party notices
 
 
+- **Contest cast overworld sprites** — the custom characters in the
+  contest hall use the project's canonical sprite assets, copied
+  byte-for-byte from the shared store and registered with the palette
+  recorded there, so a character looks the same in every mod that uses
+  them. Sheets that are visual SUBSTITUTES are credited as the sheet,
+  never as bespoke art of the character they stand in for. Art by:
+  - **ArtsyAlraune** — breeder
+  - **Bani** — Ash, Chef, Eusine, Larry, Leaf, Lear, Looker, Nate, Ranger, Yellow, juliana, lillie, santa
+  - **Bani (visual substitute)** — duplica, giselle, suzie
+  - **Blaklyte** — N, Nurse_Joy
+  - **CyUzi** — BallGuy
+  - **KiravelSoul** — Volkner
+  - **KIRB/YOSHI** — bea
+  - **MOLLY** — brendan, dawn, hilbert, hilda, lyra, michael, rosa, stadium_player, wes
+  - **Molly** — Green
+  - **NolanKrawczak** — Barry, May
+  - **RoyalGuard** — Bill, Colress, Hugh, Lorelei, Maxie, Wally
+  - **Santiago Speedpaints (Rojimenez)** — mina
+  - **artist not recorded here — see the Indigo Plateau Conference notices** — ingo
+  - **SirWhibbles** — agatha, archer, ariana, giovanni, petrel, proton, rocket_executive, rocket_grunt_f, rocket_grunt_m
+  - **TeamHistoryWaffles** — Gloria, Officer_Jenny, Ruin Maniac
+  - **tharkka (commissioned)** — roxie
+  - **TheBrawlUnit** — aj
+  - **Yogurcomics (commissioned)** — piers
+  Every other character in the contest hall — the gym leaders, the
+  Elite Four and the ordinary trainers in the seats — is drawn from the
+  player's own game and is not redistributed here.
 - **gen1recomp** â€” this mod targets the
   [gen1recomp](https://github.com/bryanthaboi/gen1recomp) engine (mod
   API 2) and reaches engine internals under the `engine_internals`

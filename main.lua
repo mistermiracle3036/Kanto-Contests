@@ -490,7 +490,9 @@ local KC_HALLS = {
       song = "GOLDENROD_GAME_CORNER",
       palette = "PALETTE_DAY",
       width = 5, height = 4,
-      arrival = { x = 5, y = 7 },
+      -- The player walks in at the END OF THE LINE (3,3), beside the
+      -- three coordinators, and is called up to 4,1 by name.
+      arrival = { x = 3, y = 3 },
       tiles = {
         id = "KC_GOLDENROD_STAGE_TILES",
         source = "TILESET_MART",
@@ -605,19 +607,13 @@ local KC_HALLS = {
         7, 8, 9, 10, 11,
         12, 12, 13, 12, 12,
       },
+      -- Only the judge is fixed. The rest of the stage -- three
+      -- coordinators and twelve seats -- is drawn per contest by
+      -- ensureStageCast, so it is not the same room twice. He stands on
+      -- the developer's cell facing LEFT, which is the player's mark.
       actors = {
         { name = "KC_STAGE_JUDGE", marker = "kcStageJudge",
-          sprite = "SPRITE_GENTLEMAN", x = 4, y = 2, movement = 6 },
-        { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
-          sprite = "SPRITE_LASS", x = 2, y = 4, movement = 7 },
-        { name = "KC_RIVAL_REX", marker = "kcRivalRex",
-          sprite = "SPRITE_YOUNGSTER", x = 3, y = 4, movement = 7 },
-        { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
-          sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 4, movement = 7 },
-        { name = "KC_AUD_1", marker = "kcAudience",
-          sprite = "SPRITE_POKEFAN_M", x = 1, y = 6, movement = 7 },
-        { name = "KC_AUD_2", marker = "kcAudience",
-          sprite = "SPRITE_GRANNY", x = 8, y = 6, movement = 7 },
+          sprite = "SPRITE_GENTLEMAN", x = 5, y = 1, movement = 8 },
       },
     },
   },
@@ -890,6 +886,94 @@ local function kcGold(mod, VERSION)
   -- movement is NUMERIC on Gen 2 -- 6 = STANDING_DOWN (Npc.lua's MOVE
   -- table). 0.10.0 passed the Gen 1 string "STAY", which means nothing
   -- here; every vanilla Goldenrod object uses a number (7, 2, 8, 5, ...).
+  -- Custom cast, from the project's canonical sprite store.
+  --
+  -- THE RULE (sprites/README.md): one character, one conversion, one
+  -- palette, across every mod. These files are COPIED byte-for-byte from
+  -- sprites/canonical/ and the palette/paletteId below come from
+  -- sprites/REGISTRY.json -- they are not chosen here and must never be.
+  -- This mod already got that wrong once: it converted Larry fresh from
+  -- the artist's sheet and picked PAL_OW_BLUE/0 where canonical is
+  -- PAL_OW_BROWN/3, so the same man would have been a different colour
+  -- depending on which mod drew him. Run
+  -- `python exchange/sprite_registry.py check` before shipping.
+  --
+  -- No gym leader or Elite Four member appears here: where the game has
+  -- canon art for a character, the cast uses the GAME's sprite. Custom
+  -- art is only for characters Gen 2 has none for.
+  --
+  -- Artists are credited in THIRD_PARTY_NOTICES.md, per sheet.
+  local KC_CUSTOM_SPRITES = {
+    { "SPRITE_KC_AGATHA", "agatha.png", "PAL_OW_PINK", 4 },
+    { "SPRITE_KC_AJ", "aj.png", "PAL_OW_GREEN", 2 },
+    { "SPRITE_KC_ARCHER", "archer.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_ARIANA", "ariana.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_ASH", "ash.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_BALLGUY", "ballguy.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_BARRY", "barry.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_BEA", "bea.png", "PAL_OW_PINK", 4 },
+    { "SPRITE_KC_BILL", "bill.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_BREEDER", "breeder.png", "PAL_OW_GREEN", 2 },
+    { "SPRITE_KC_BRENDAN", "brendan.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_CHEF", "chef.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_COLRESS", "colress.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_DAWN", "dawn.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_DUPLICA", "duplica.png", "PAL_OW_PINK", 4 },
+    { "SPRITE_KC_EUSINE", "eusine.png", "PAL_OW_PINK", 4 },
+    { "SPRITE_KC_GIOVANNI", "giovanni.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_GISELLE", "giselle.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_GLORIA", "gloria.png", "PAL_OW_GREEN", 2 },
+    { "SPRITE_KC_GREEN", "green.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_HILBERT", "hilbert.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_HILDA", "hilda.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_HUGH", "hugh.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_INGO", "ingo.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_JULIANA", "juliana.png", "PAL_OW_PINK", 4 },
+    { "SPRITE_KC_LARRY", "larry.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_LEAF", "leaf.png", "PAL_OW_GREEN", 2 },
+    { "SPRITE_KC_LEAR", "lear.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_LILLIE", "lillie.png", "PAL_OW_PINK", 4 },
+    { "SPRITE_KC_LOOKER", "looker.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_LORELEI", "lorelei.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_LYRA", "lyra.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_MAXIE", "maxie.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_MAY", "may.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_MICHAEL", "michael.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_MINA", "mina.png", "PAL_OW_PINK", 4 },
+    { "SPRITE_KC_N", "n.png", "PAL_OW_GREEN", 2 },
+    { "SPRITE_KC_NATE", "nate.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_NURSE_JOY", "nurse_joy.png", "PAL_OW_PINK", 4 },
+    { "SPRITE_KC_OFFICER_JENNY", "officer_jenny.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_PETREL", "petrel.png", "PAL_OW_GREEN", 2 },
+    { "SPRITE_KC_PIERS", "piers.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_PROTON", "proton.png", "PAL_OW_PINK", 4 },
+    { "SPRITE_KC_RANGER", "ranger.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_ROCKET_EXECUTIVE", "rocket_executive.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_ROCKET_GRUNT_F", "rocket_grunt_f.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_ROCKET_GRUNT_M", "rocket_grunt_m.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_ROSA", "rosa.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_ROXIE", "roxie.png", "PAL_OW_PINK", 4 },
+    { "SPRITE_KC_RUIN_MANIAC", "ruin_maniac.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_SANTA", "santa.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_STADIUM_PLAYER", "stadium_player.png", "PAL_OW_RED", 0 },
+    { "SPRITE_KC_SUZIE", "suzie.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_VOLKNER", "volkner.png", "PAL_OW_BROWN", 3 },
+    { "SPRITE_KC_WALLY", "wally.png", "PAL_OW_GREEN", 2 },
+    { "SPRITE_KC_WES", "wes.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_YELLOW", "yellow.png", "PAL_OW_BROWN", 3 },
+  }
+  for _, row in ipairs(KC_CUSTOM_SPRITES) do
+    mod.content.sprites:register(row[1], {
+      id = row[1],
+      image = mod.path .. "/assets/" .. row[2],
+      frames = 6,
+      walker = true,
+      spriteType = "WALKING_SPRITE",
+      palette = row[3],
+      paletteId = row[4],
+    })
+  end
+
   local KCG = { map = "GOLDENROD_CITY", x = 22, y = 8,
                 sprite = "SPRITE_TEACHER", movement = 6 }
 
@@ -1384,6 +1468,250 @@ local function kcGold(mod, VERSION)
     end
   end
 
+  -- ---------------------------------------------------------------
+  -- The stage crowd.
+  --
+  -- Seat and mark cells are the developer's, given exactly; nothing here
+  -- picks a position. Audience face UP toward the stage, coordinators
+  -- face DOWN, and the row ends turn inward so the crowd does not read
+  -- as a wall of identical backs.
+  --
+  -- movement is NUMERIC on Gen 2 (Npc.lua:23 MOVE): 6 STANDING_DOWN,
+  -- 7 STANDING_UP, 8 STANDING_LEFT, 9 STANDING_RIGHT.
+  local FACE_DOWN, FACE_UP, FACE_LEFT, FACE_RIGHT = 6, 7, 8, 9
+  local STAGE_SEATS = {
+    { x = 1, y = 5, face = FACE_UP    }, { x = 3, y = 5, face = FACE_UP    },
+    { x = 4, y = 5, face = FACE_UP    }, { x = 5, y = 5, face = FACE_UP    },
+    { x = 6, y = 5, face = FACE_UP    }, { x = 8, y = 5, face = FACE_LEFT  },
+    { x = 0, y = 7, face = FACE_RIGHT }, { x = 1, y = 7, face = FACE_UP    },
+    { x = 2, y = 7, face = FACE_UP    }, { x = 7, y = 7, face = FACE_UP    },
+    { x = 8, y = 7, face = FACE_UP    }, { x = 9, y = 7, face = FACE_LEFT  },
+  }
+  -- Seats that sit shoulder to shoulder, so a PAIR can be seated
+  -- together. Indices into STAGE_SEATS above.
+  local SEAT_PAIRS = { { 2, 3 }, { 4, 5 }, { 7, 8 }, { 8, 9 }, { 10, 11 }, { 11, 12 } }
+  local STAGE_COORD_CELLS = {
+    { x = 4, y = 3 }, { x = 5, y = 3 }, { x = 6, y = 3 },
+  }
+  local STAGE_LINEUP = { x = 3, y = 3 }   -- where the player waits
+  local STAGE_MARK   = { x = 4, y = 1 }   -- where the player performs
+
+  -- Every sprite below is VANILLA Gen 2 except Larry, so the crowd
+  -- carries no attribution burden at all: no conversion, no credit line,
+  -- nothing to clear. Larry is the single exception and is credited.
+  --
+  -- Gym leaders and the Elite Four sit in BOTH pools by the developer's
+  -- call -- a leader can be competing that day or just watching -- so
+  -- they are drawn from one list and assigned to whichever pool needs
+  -- filling.
+  local CAST_GYM = {
+    "WHITNEY", "FALKNER", "BUGSY", "MORTY", "CHUCK", "JASMINE", "PRYCE",
+    "CLAIR", "BROCK", "MISTY", "SURGE", "ERIKA", "JANINE", "SABRINA",
+    "BLAINE", "BLUE", "WILL", "KOGA", "BRUNO", "KAREN", "LANCE",
+  }
+  local CAST_FOLK = {
+    "BIKER", "TWIN", "COOLTRAINER_M", "COOLTRAINER_F", "BLACK_BELT",
+    "BUG_CATCHER", "TEACHER", "OFFICER", "POKEFAN_M", "POKEFAN_F",
+    "YOUNGSTER", "SUPER_NERD", "SAGE", "BIRD",
+    "GENTLEMAN", "BEAUTY", "LASS", "FISHER", "SAILOR", "SWIMMER_GUY",
+    "SWIMMER_GIRL", "ROCKER", "SCIENTIST", "PHARMACIST", "GRAMPS",
+    "GRANNY", "CLERK", "NURSE", "GYM_GUIDE", "ELDER", "KIMONO_GIRL",
+    "BILL", "OAK", "ELM", "KURT", "DAISY", "MOM", "RED", "CAL",
+  }
+  -- Custom characters, stored WITHOUT the "SPRITE_" prefix so they draw
+  -- through exactly the same path as the vanilla pools.
+  --
+  -- Split by whether the character has a reason to be COMPETING. The
+  -- rival set can also just be watching; the crowd set never competes.
+  local CAST_CUSTOM_RIVAL = {
+    "KC_STADIUM_PLAYER", "KC_DUPLICA", "KC_GISELLE", "KC_SUZIE",
+    -- KC_LARRY is deliberately NOT here: he has his own once-in-a-blue-
+    -- moon roll below, and listing him again would make him common.
+    "KC_ASH", "KC_JULIANA", "KC_LEAF", "KC_LEAR",
+    "KC_LILLIE", "KC_NATE", "KC_YELLOW", "KC_N", "KC_VOLKNER",
+    "KC_BEA", "KC_BRENDAN", "KC_DAWN", "KC_GREEN", "KC_HILBERT",
+    "KC_HILDA", "KC_LYRA", "KC_MICHAEL", "KC_ROSA", "KC_WES",
+    "KC_BARRY", "KC_MAY", "KC_COLRESS", "KC_HUGH", "KC_LORELEI",
+    "KC_MAXIE", "KC_WALLY", "KC_MINA", "KC_GLORIA", "KC_ROXIE",
+    "KC_AJ", "KC_PIERS",
+  }
+  local CAST_CUSTOM_CROWD = {
+    "KC_BREEDER", "KC_ROCKET_EXECUTIVE", "KC_ROCKET_GRUNT_F",
+    "KC_ROCKET_GRUNT_M", "KC_CHEF", "KC_EUSINE", "KC_LOOKER",
+    "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BALLGUY", "KC_BILL",
+    "KC_INGO", "KC_AGATHA", "KC_ARCHER", "KC_ARIANA", "KC_GIOVANNI",
+    "KC_PETREL", "KC_PROTON", "KC_OFFICER_JENNY", "KC_RUIN_MANIAC",
+  }
+
+  -- Pairs that read as a pair when seated together. Purely cosmetic.
+  local CAST_PAIRS = {
+    { "TWIN", "TWIN" }, { "ROCKET", "ROCKET_GIRL" },
+    { "POKEFAN_M", "POKEFAN_F" }, { "COOLTRAINER_M", "COOLTRAINER_F" },
+    { "SWIMMER_GUY", "SWIMMER_GIRL" }, { "GRAMPS", "GRANNY" },
+    { "RED", "BLUE" }, { "OAK", "ELM" }, { "KURT", "DAISY" },
+    { "MISTY", "BROCK" }, { "KC_OFFICER_JENNY", "KC_NURSE_JOY" },
+    { "KC_ASH", "KC_MAY" }, { "KC_BILL", "KC_LOOKER" },
+  }
+
+  -- Larry. The ONLY non-vanilla sprite in the cast, and the developer
+  -- asked for him by name: he competes once in a blue moon rather than
+  -- sitting in the crowd, so he is weighted into the coordinator draw at
+  -- a low rate and never appears twice running.
+  --
+  -- Sheet: Bani, from the project sprite library, cropped at the
+  -- inventory's verified walk box (375,53)-(391,149) and put through the
+  -- documented 4-to-4 luminance pass. That mapping is not a guess about
+  -- which grey is which: on Gen 2 the MID shade is the one every object
+  -- palette tints as skin, so his face lands on 170, his suit on 85 (the
+  -- hue slot) and hair/outline on 0. Verified frame by frame against the
+  -- source before shipping.
+  local LARRY = "SPRITE_KC_LARRY"
+  local LARRY_ODDS = 8      -- 1 in 8 contests
+
+  -- Seeded so a retry shows the SAME crowd: a contest the player reloads
+  -- into should not quietly reshuffle its audience. Plain LCG -- the
+  -- engine exposes no RNG convention for mods to share.
+  local function seededRng(seed)
+    local s = (seed or 1) % 2147483647
+    if s <= 0 then s = s + 2147483646 end
+    return function(n)
+      s = (s * 16807) % 2147483647
+      return (s % n) + 1
+    end
+  end
+
+  local function drawFrom(pool, used, rnd)
+    for _ = 1, 40 do
+      local pick = pool[rnd(#pool)]
+      if pick and not used[pick] then used[pick] = true return pick end
+    end
+    return nil
+  end
+
+  -- How many contests have been run; the crowd seed rides on it so each
+  -- contest has its own crowd but a RELOAD of the same one repeats it.
+  local function contestSeed()
+    local s = mod.save or {}
+    return ((s.kcContestCount or 0) * 131) + (s.kcSeedSalt or 7)
+  end
+
+  local function ensureStageCast(world)
+    if markerExists(world, "kcCast") then return end
+    local rnd  = seededRng(contestSeed())
+    local used = {}
+
+    -- Coordinators first: they are the ones with a reason to be here, so
+    -- they get first call on the gym leaders before the crowd does.
+    local coordinators = {}
+    if rnd(LARRY_ODDS) == 1 then
+      coordinators[#coordinators + 1] = LARRY
+      used[LARRY] = true
+    end
+    while #coordinators < #STAGE_COORD_CELLS do
+      -- Coordinators lean on characters with a reason to compete: the
+      -- custom rival set and the gym leaders before the ordinary crowd.
+      local roll = rnd(10)
+      local pool = (roll <= 4) and CAST_CUSTOM_RIVAL
+        or ((roll <= 7) and CAST_GYM or CAST_FOLK)
+      local pick = drawFrom(pool, used, rnd) or drawFrom(CAST_FOLK, used, rnd)
+      if not pick then break end
+      coordinators[#coordinators + 1] = "SPRITE_" .. pick
+    end
+    for i, cell in ipairs(STAGE_COORD_CELLS) do
+      local sprite = coordinators[i]
+      if sprite then
+        spawnMarked(STAGE_DEF.id, {
+          name = ("KC_COORD_%d"):format(i), sprite = sprite,
+          x = cell.x, y = cell.y, movement = FACE_DOWN,
+        }, "kcCast")
+      end
+    end
+
+    -- The crowd. One pair sometimes sits together in adjacent seats --
+    -- the developer asked for it and it is the cheapest thing that makes
+    -- a row of strangers look like an audience.
+    local seatFor = {}
+    if rnd(2) == 1 then
+      local slot = SEAT_PAIRS[rnd(#SEAT_PAIRS)]
+      local pair = CAST_PAIRS[rnd(#CAST_PAIRS)]
+      -- `used` matters here, not just the seats: the coordinators were
+      -- drawn FIRST and are already marked, so seating a pair without
+      -- this check put the same character on stage and in the crowd at
+      -- once. It showed up as ~5% of crowds having a duplicate.
+      if slot and pair and not seatFor[slot[1]] and not seatFor[slot[2]]
+         and not used[pair[1]] and not used[pair[2]] then
+        seatFor[slot[1]] = "SPRITE_" .. pair[1]
+        seatFor[slot[2]] = "SPRITE_" .. pair[2]
+        used[pair[1]], used[pair[2]] = true, true
+      end
+    end
+    for i, seat in ipairs(STAGE_SEATS) do
+      local sprite = seatFor[i]
+      if not sprite then
+        -- The crowd is people only -- no Pokemon in the seats. Roughly a
+        -- third of it is named characters (custom art or a gym leader),
+        -- the rest ordinary trainers, so a famous face is a treat rather
+        -- than the norm.
+        local roll = rnd(10)
+        local pool = (roll <= 2) and CAST_CUSTOM_CROWD
+          or ((roll == 3) and CAST_CUSTOM_RIVAL
+          or ((roll == 4) and CAST_GYM or CAST_FOLK))
+        local pick = drawFrom(pool, used, rnd) or drawFrom(CAST_FOLK, used, rnd)
+        sprite = pick and ("SPRITE_" .. pick)
+      end
+      if sprite then
+        spawnMarked(STAGE_DEF.id, {
+          name = ("KC_AUD_%d"):format(i), sprite = sprite,
+          x = seat.x, y = seat.y, movement = seat.face,
+        }, "kcCast")
+      end
+    end
+  end
+
+  -- The walk-on.
+  --
+  -- queueScript cannot do this: it has exactly five verbs (start_battle,
+  -- warp, text, setflag, clearflag -- WorldAPI.lua:376-415) and none of
+  -- them moves anybody. The engine's own mover is World:beginMovement,
+  -- which is what the script VM's `applymovement` ends up calling
+  -- (World.lua:967), and object id 0 is the PLAYER (World.lua:3727). It
+  -- freezes every other NPC for the duration and calls back when the
+  -- walk finishes, which is exactly the Elite Four escort feel.
+  --
+  -- Movement bytes are cart constants (Movement.lua:13,186): step is
+  -- 0x0c + direction, with down 0, up 1, left 2, right 3; 0x47 ends the
+  -- stream. Written as literals rather than required, so the Gen 1 arm
+  -- never pulls a Gen 2-only module in.
+  local STEP_UP, STEP_RIGHT, STEP_END = 0x0d, 0x0f, 0x47
+
+  -- 3,3 -> 4,1 goes UP FIRST on purpose: a coordinator is standing on
+  -- 4,3, so stepping right out of the line-up would walk into them.
+  -- Ending on the rightward step leaves the player facing 5,1, which is
+  -- where the judge is.
+  local STAGE_WALK = { STEP_UP, STEP_UP, STEP_RIGHT, STEP_END }
+
+  local function runStageIntro(world)
+    local game = mod.game
+    local name = (game and game.player and game.player.name) or "YOU"
+    -- 18 columns, 2 rows. The name is the player's, so keep the line it
+    -- sits on short enough that a long name cannot push past the edge.
+    world:showText(
+      "And now.. our\nnext coordinator!",
+      function()
+        world:showText(
+          ("Please welcome\n%s!"):format(name),
+          function()
+            local ok = pcall(function()
+              world:beginMovement(0, STAGE_WALK, function() end)
+            end)
+            if not ok then
+              mod.log:warn("kc walk-on failed; warping instead")
+              mod.world:warpTo(STAGE_DEF.id, STAGE_MARK.x, STAGE_MARK.y, "right")
+            end
+          end)
+      end)
+  end
+
   -- Set when the judge takes an entry in the lobby and cleared when the
   -- contest actually starts; it is what the stage judge reads to know
   -- which of the five he is about to judge.
@@ -1478,6 +1806,10 @@ local function kcGold(mod, VERSION)
         ensureRoomActors(world, HALL_DEF)
       elseif STAGE_DEF and mapId == STAGE_DEF.id then
         ensureRoomActors(world, STAGE_DEF)
+        ensureStageCast(world)
+        -- Only announce a player who is actually competing. Wandering in
+        -- off the carpet must not call somebody to the stage.
+        if pendingContest then runStageIntro(world) end
       end
     end)
     if not ok then mod.log:warn("kc gold spawn: %s", tostring(err)) end
@@ -1661,6 +1993,13 @@ local function kcGold(mod, VERSION)
             return
           end
           pendingContest = kind
+          -- Advance the crowd seed BEFORE the warp, so map.entered draws
+          -- a new audience for this contest. Reloading back into the same
+          -- contest re-reads the same count and therefore reseats exactly
+          -- the same crowd, which is the point of seeding it at all.
+          if mod.save then
+            mod.save.kcContestCount = (mod.save.kcContestCount or 0) + 1
+          end
           -- The walk out is a WARP, not a scene script. Gold scene
           -- scripts that walk the player are what stranded Colosseum
           -- visitors in a void when one stayed armed; nothing here arms
@@ -1867,7 +2206,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.20.0"
+  local VERSION = "0.21.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
