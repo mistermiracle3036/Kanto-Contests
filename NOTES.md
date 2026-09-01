@@ -622,11 +622,20 @@ stage front. Facts that make it work (identical both caches):
 Set up 2026-08-31 at the developer's request, on the pattern the Olivine
 agent proved with `oc_layout`.
 
-- Bridge project: `C:\Users\dwitt\ce-trial\mods\kc_layout`, seeded with all
+> **The editor saves to `ce-new`, NOT `ce-trial`.** There are two Content
+> Editor installs on this machine and both hold a `kc_layout` project. The
+> editor's own status bar is the authority — it prints
+> `Saved C:\Users\dwitt\ce-new\mods\kc_layout` after every save. On
+> 2026-08-31 the `ce-trial` copy was 44 minutes stale, and reading it gives
+> you the developer's *previous* paint with no error and no warning.
+> **Check the mtime of both before reading either**, and if `ce-trial` is
+> ever the newer one, ask rather than guessing.
+
+- Bridge project: `C:\Users\dwitt\ce-new\mods\kc_layout`, seeded with all
   three current rooms so the editor opens on what is shipping, not a blank
   grid. **NEVER install kc_layout as a real mod** -- it would double-register
   the room ids against kanto_contests.
-- Launch: `C:\Users\dwitt\ce-trial\ContentEditor.bat`. Its prefs already say
+- Launch: `C:\Users\dwitt\ce-new\ContentEditor.bat`. Its prefs already say
   mode=imported, lastVersion=gold, recompRoot=%APPDATA%\pokemon-love2d, so it
   reads the real Gold cache and no staging step is needed.
 - Read back: `luajit ../Kanto-Contests/tests/read_editor_layout.lua` from the
@@ -660,7 +669,7 @@ attendant spawn.
 Symptom: every room reported "map tileset is unavailable: TILESET_*",
 and reloading Gold did not help.
 
-Cause was NOT the project or the prefs. `ce-trial`'s pinned copy of the
+Cause was NOT the project or the prefs. `ce-new`'s pinned copy of the
 engine predates an upstream fix: Gold's extractor emits no
 `text_pointers` and no `trainer_headers` (the Gen 1 pointer/header tables
 have no Gold counterpart -- Gen2Compat.DATA_UNBACKED says so), but that
@@ -672,7 +681,7 @@ Engine v0.2.4 already fixes this with
 `GEN2_OPTIONAL = { text_pointers, trainer_headers, field }`, substituting
 empty tables on Gen 2 -- and its comment names this exact case ("Empty
 tables are enough for seedDefaults / the editor"). Backported into
-`ce-trial/runtime/gen1recomp/src/core/Data.lua` AND the
+`ce-new/runtime/gen1recomp/src/core/Data.lua` AND the
 `.content-editor-runtime` copy, both marked BACKPORTED.
 
 Two traps around this, both hit while diagnosing:

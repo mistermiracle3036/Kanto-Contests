@@ -1,7 +1,7 @@
 -- Read a room back out of the Content Editor and check it before it is
 -- transplanted into main.lua.
 --
---   1. developer paints in the editor (ce-trial/mods/kc_layout) and Saves
+--   1. developer paints in the editor (see CANDIDATES below) and Saves
 --   2. this reads editor_project.lua back, recovers each room as VANILLA
 --      block ids, and walks the geometry against the real imported cache
 --   3. only then does the layout go into KC_HALLS
@@ -36,13 +36,58 @@
 package.path = "./?.lua;./?/init.lua;" .. package.path
 local Perm = require("src.world.gen2.Permissions")
 
-local PROJECT = "C:/Users/dwitt/ce-new/mods/kc_layout/editor_project.lua"
+-- There are TWO Content Editor installs on this machine and both carry a
+-- kc_layout project. Reading the wrong one silently hands you the
+-- developer's PREVIOUS paint -- no error, no warning, and the transplant
+-- looks like it worked. On 2026-08-31 ce-trial was 44 minutes stale and
+-- that is exactly what happened. So do not trust one hardcoded path:
+-- take whichever project was saved most recently, and say which.
+local CANDIDATES = {
+  "C:/Users/dwitt/ce-new/mods/kc_layout/editor_project.lua",
+  "C:/Users/dwitt/ce-trial/mods/kc_layout/editor_project.lua",
+}
 local CACHE = "C:/Users/dwitt/AppData/Roaming/pokemon-love2d/crystal/data/generated/"
+
+-- os.time is sandbox-safe and this file never ships (tests/ is excluded).
+local function mtime(path)
+  local p = io.popen('powershell -NoProfile -Command "'
+    .. '(Get-Item -LiteralPath \'' .. path .. '\').LastWriteTimeUtc.Ticks" 2>NUL')
+  if not p then return nil end
+  local out = p:read("*a"); p:close()
+  return tonumber((out or ""):match("%d+"))
+end
+
+local PROJECT, best, seen = nil, -1, {}
+for _, path in ipairs(CANDIDATES) do
+  local f = io.open(path, "r")
+  if f then
+    f:close()
+    local t = mtime(path) or 0
+    seen[#seen + 1] = { path = path, t = t }
+    if t > best then best, PROJECT = t, path end
+  end
+end
+
+if not PROJECT then
+  print("no editor project found. Looked in:")
+  for _, p in ipairs(CANDIDATES) do print("  " .. p) end
+  print("open the Content Editor, load kc_layout, and Save once.")
+  os.exit(1)
+end
+
+print("reading: " .. PROJECT)
+if #seen > 1 then
+  print("NOTE: " .. #seen .. " installs carry a kc_layout project. Using the")
+  print("      most recently saved one. The editor's status bar after a Save")
+  print("      is the authority -- if it names a different path, stop.")
+  for _, s in ipairs(seen) do
+    print(string.format("      %s%s", s.path, s.path == PROJECT and "   <- using" or "   (older)"))
+  end
+end
 
 local chunk = loadfile(PROJECT)
 if not chunk then
-  print("no editor project at " .. PROJECT)
-  print("open the Content Editor, load kc_layout, and Save once.")
+  print("could not load " .. PROJECT)
   os.exit(1)
 end
 local project = chunk()
