@@ -470,15 +470,6 @@ local KC_HALLS = {
           sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
         { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
           sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
-        -- The queue: up the RIGHT wall, all facing LEFT (movement 8), running
-        -- UP from two squares above the condition appraiser at 8,7. First
-        -- in line is nearest the desk.
-        { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
-          sprite = "SPRITE_LASS", x = 8, y = 5, movement = 8 },
-        { name = "KC_RIVAL_REX", marker = "kcRivalRex",
-          sprite = "SPRITE_YOUNGSTER", x = 8, y = 4, movement = 8 },
-        { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
-          sprite = "SPRITE_COOLTRAINER_F", x = 8, y = 3, movement = 8 },
         { name = "KC_AUD_1", marker = "kcAudience",
           sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
         { name = "KC_AUD_2", marker = "kcAudience",
@@ -547,9 +538,9 @@ local KC_HALLS = {
               { 0, 0, 0, 0 },
               { 0, 7, 0, 7 },
               { 7, 0, 0, 0 },
-              { 122, 0, 0, 0 },
               { 0, 0, 0, 0 },
-              { 0, 122, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
               { 0, 7, 0, 0 },
               { 0, 0, 0, 0 },
               { 0, 0, 112, 112 },
@@ -598,9 +589,9 @@ local KC_HALLS = {
               { 0, 0, 0, 0 },
               { 0, 7, 0, 7 },
               { 7, 0, 0, 0 },
-              { 122, 0, 0, 0 },
               { 0, 0, 0, 0 },
-              { 0, 122, 0, 0 },
+              { 0, 0, 0, 0 },
+              { 0, 0, 0, 0 },
               { 0, 7, 0, 0 },
               { 0, 0, 0, 0 },
               { 0, 0, 112, 112 },
@@ -1401,7 +1392,11 @@ local function kcGold(mod, VERSION)
     local here = mod.world:current()
     return STAGE_DEF ~= nil and here ~= nil and here.mapId == STAGE_DEF.id
   end
-  local entranceCell = { x = KCG.x, y = KCG.y }
+  -- Where the player is put back on the street when they leave the hall.
+  -- This is the DOOR the developer painted (35,4), not the old attendant's
+  -- cell -- she has been removed, so landing beside her would be landing
+  -- beside nothing. y+1 is the pavement square below the door.
+  local entranceCell = { x = 35, y = 4 }
   -- The cast for the town this build leads into, from the same table that
   -- describes its room. Movement values are Npc.lua MOVE numerics:
   -- 6/7/8/9 = standing DOWN/UP/LEFT/RIGHT. Every cell and every talk
@@ -1602,28 +1597,67 @@ local function kcGold(mod, VERSION)
     return ((s.kcContestCount or 0) * 131) + (s.kcSeedSalt or 7)
   end
 
+  -- The three coordinators, drawn ONCE per contest.
+  --
+  -- Both the lobby queue and the stage line-up call this with the same
+  -- seed, so the people you queue behind are the people you compete
+  -- against -- they were different sets before, which made the queue
+  -- look like set dressing.
+  --
+  -- AT MOST ONE gym leader or Elite Four member. Three at once read as a
+  -- gauntlet rather than a contest; a single famous face is the treat.
+  local function drawCoordinators(rnd, used)
+    local out, heavy = {}, false
+    if rnd(LARRY_ODDS) == 1 then
+      out[#out + 1] = LARRY
+      used[LARRY] = true
+    end
+    while #out < #STAGE_COORD_CELLS do
+      local roll = rnd(10)
+      local pool
+      if roll <= 5 then
+        pool = CAST_CUSTOM_RIVAL
+      elseif roll <= 7 and not heavy then
+        pool = CAST_GYM
+      else
+        pool = CAST_FOLK
+      end
+      local pick = drawFrom(pool, used, rnd) or drawFrom(CAST_FOLK, used, rnd)
+      if not pick then break end
+      if pool == CAST_GYM then heavy = true end
+      out[#out + 1] = "SPRITE_" .. pick
+    end
+    return out
+  end
+
+  -- The queue in the lobby: the same three people, on the same seed, up
+  -- the right-hand wall facing LEFT. Previously three fixed NPCs, which
+  -- meant the coordinators you queued behind had nothing to do with the
+  -- ones you then competed against.
+  local LOBBY_QUEUE_CELLS = {
+    { x = 8, y = 5 }, { x = 8, y = 4 }, { x = 8, y = 3 },
+  }
+  local function ensureLobbyQueue(world)
+    if markerExists(world, "kcCast") then return end
+    local coordinators = drawCoordinators(seededRng(contestSeed()), {})
+    for i, cell in ipairs(LOBBY_QUEUE_CELLS) do
+      local sprite = coordinators[i]
+      if sprite then
+        spawnMarked(HALL, {
+          name = ("KC_QUEUE_%d"):format(i), sprite = sprite,
+          x = cell.x, y = cell.y, movement = FACE_LEFT,
+          kcCoordinator = true,
+        }, "kcCast")
+      end
+    end
+  end
+
   local function ensureStageCast(world)
     if markerExists(world, "kcCast") then return end
     local rnd  = seededRng(contestSeed())
     local used = {}
 
-    -- Coordinators first: they are the ones with a reason to be here, so
-    -- they get first call on the gym leaders before the crowd does.
-    local coordinators = {}
-    if rnd(LARRY_ODDS) == 1 then
-      coordinators[#coordinators + 1] = LARRY
-      used[LARRY] = true
-    end
-    while #coordinators < #STAGE_COORD_CELLS do
-      -- Coordinators lean on characters with a reason to compete: the
-      -- custom rival set and the gym leaders before the ordinary crowd.
-      local roll = rnd(10)
-      local pool = (roll <= 4) and CAST_CUSTOM_RIVAL
-        or ((roll <= 7) and CAST_GYM or CAST_FOLK)
-      local pick = drawFrom(pool, used, rnd) or drawFrom(CAST_FOLK, used, rnd)
-      if not pick then break end
-      coordinators[#coordinators + 1] = "SPRITE_" .. pick
-    end
+    local coordinators = drawCoordinators(rnd, used)
     for i, cell in ipairs(STAGE_COORD_CELLS) do
       local sprite = coordinators[i]
       if sprite then
@@ -1813,9 +1847,15 @@ local function kcGold(mod, VERSION)
       local world = mod.world:overworld()
       if mapId == KCG.map then
         ensureGoldenrodFacade()
-        ensureGoldenrodAttendant(world)
+        -- The street attendant is GONE. She existed to walk the player in
+        -- when the hall had no building; now it has a door at 35,4 and an
+        -- NPC standing outside offering the same thing is just clutter.
+        -- ensureGoldenrodAttendant is left defined but unused rather than
+        -- deleted, because the Gen 1 arm still has its own attendant and
+        -- ripping the shared helper out would touch that too.
       elseif mapId == HALL then
         ensureRoomActors(world, HALL_DEF)
+        ensureLobbyQueue(world)
       elseif STAGE_DEF and mapId == STAGE_DEF.id then
         ensureRoomActors(world, STAGE_DEF)
         ensureStageCast(world)
