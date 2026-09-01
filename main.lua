@@ -502,6 +502,7 @@ local KC_HALLS = {
             border = 0,
             tilePalettes = { 1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1, 1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6 },
             blocks = {
+              { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
               { 14, 15, 14, 15, 28, 29, 28, 29, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
@@ -525,6 +526,7 @@ local KC_HALLS = {
               { 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 11, 11, 27, 27, 27, 27 },
             },
             collision = {
+              { 0x07, 0x07, 0x07, 0x07 },
               { 0x07, 0x07, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0xB0 },
@@ -554,6 +556,7 @@ local KC_HALLS = {
             border = 0,
             tilePalettes = { 1, 5, 1, 1, 1, 1, 1, 1, 3, 3, 4, 2, 1, 1, 7, 7, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 2, 7, 7, 1, 5, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 1, 3, 3, 1, 1, 1, 1, 1, 1, 2, 5, 5, 5, 7, 7, 7, 7, 7, 7, 2, 2, 6, 6, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 2, 2, 4, 4, 7, 1, 1, 1, 5, 5, 5, 7, 1, 1, 1, 4, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 2, 4, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 4, 1, 4, 2, 6, 6 },
             blocks = {
+              { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 },
               { 14, 15, 14, 15, 28, 29, 28, 29, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
               { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
@@ -577,6 +580,7 @@ local KC_HALLS = {
               { 1, 1, 1, 1, 1, 1, 1, 1, 11, 11, 11, 11, 27, 27, 27, 27 },
             },
             collision = {
+              { 0x07, 0x07, 0x07, 0x07 },
               { 0x07, 0x07, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0xB0 },
@@ -603,13 +607,13 @@ local KC_HALLS = {
         },
       },
       blocks = {
-        0, 0, 0, 0, 0,
         1, 1, 1, 1, 1,
-        2, 3, 4, 5, 6,
-        7, 8, 9, 10, 11,
-        12, 13, 14, 15, 16,
-        1, 17, 18, 19, 1,
-        1, 1, 20, 1, 1,
+        2, 2, 2, 2, 2,
+        3, 4, 5, 6, 7,
+        8, 9, 10, 11, 12,
+        13, 14, 15, 16, 17,
+        2, 18, 19, 20, 2,
+        2, 2, 21, 2, 2,
       },
       actors = {
         { name = "KC_STAGE_JUDGE", marker = "kcStageJudge",
@@ -1529,7 +1533,12 @@ local function kcGold(mod, VERSION)
     { x = 7, y = 12, face = FACE_UP     },
     { x = 8, y = 12, face = FACE_UP     },
   }
-  local CROWD_MIN, CROWD_MAX = 10, 15
+  -- 15-20 in the room. The FIRST dozen carry the named faces; everyone
+  -- after that is drawn almost entirely from the vanilla trainers, so a
+  -- bigger crowd reads as a bigger crowd rather than as more celebrities
+  -- -- there are already plenty of custom characters in the mix.
+  local CROWD_MIN, CROWD_MAX = 15, 20
+  local CROWD_NAMED_UNTIL = 12
 
   -- Adjacency is computed from the seats actually CHOSEN, not a fixed
   -- index table -- the seat list changes whenever the room does, and a
@@ -1784,9 +1793,16 @@ local function kcGold(mod, VERSION)
         -- the rest ordinary trainers, so a famous face is a treat rather
         -- than the norm.
         local roll = rnd(10)
-        local pool = (roll <= 2) and CAST_CUSTOM_CROWD
-          or ((roll == 3) and CAST_CUSTOM_RIVAL
-          or ((roll == 4) and CAST_GYM or CAST_FOLK))
+        local pool
+        if i > CROWD_NAMED_UNTIL then
+          -- the back of the room: ordinary trainers, with the occasional
+          -- gym leader so it is not completely anonymous
+          pool = (roll == 1) and CAST_GYM or CAST_FOLK
+        else
+          pool = (roll <= 2) and CAST_CUSTOM_CROWD
+            or ((roll == 3) and CAST_CUSTOM_RIVAL
+            or ((roll == 4) and CAST_GYM or CAST_FOLK))
+        end
         local pick = drawFrom(pool, used, rnd) or drawFrom(CAST_FOLK, used, rnd)
         sprite = pick and ("SPRITE_" .. pick)
       end
@@ -1841,8 +1857,13 @@ local function kcGold(mod, VERSION)
   -- assigns one), and objectEntity looks up `objectId - 1`, so an actor
   -- we spawned is addressed as def.index + 1.
   local HEART_EMOTE = 4
-  -- Mid-platform, between the line-up on y=8 and the judge on 5,6.
-  local CENTRE = { x = 5, y = 7 }
+  -- Where a coordinator presents: the player's own mark, right beside the
+  -- judge on 5,6. LANE_Y is the empty row they travel along -- the three
+  -- of them stand shoulder to shoulder on y=8, so a straight run to the
+  -- mark goes through a neighbour, and straight up from 5,8 walks into
+  -- the judge. Out is up-across-up, back is the reverse.
+  local CENTRE = { x = 4, y = 6 }
+  local LANE_Y = 7
 
   -- What each coordinator brings out. Contest-appropriate and vanilla.
   local KC_PARTNERS = {
@@ -1877,6 +1898,22 @@ local function kcGold(mod, VERSION)
       for _ = 1, math.abs(dy) do out[#out + 1] = (dy > 0) and 0x0c or 0x0d end
     end
     if vertFirst then vert() horiz() else horiz() vert() end
+    out[#out + 1] = 0x47
+    return out
+  end
+
+  -- up to the lane, across, then up to the mark (and the reverse home).
+  local function legPath(fromX, fromY, toX, toY)
+    local out = {}
+    local function vert(n, dir)
+      for _ = 1, n do out[#out + 1] = (dir > 0) and 0x0c or 0x0d end
+    end
+    local function horiz(n, dir)
+      for _ = 1, n do out[#out + 1] = (dir > 0) and 0x0f or 0x0e end
+    end
+    vert(math.abs(LANE_Y - fromY), (LANE_Y > fromY) and 1 or -1)
+    horiz(math.abs(toX - fromX), (toX > fromX) and 1 or -1)
+    vert(math.abs(toY - LANE_Y), (toY > LANE_Y) and 1 or -1)
     out[#out + 1] = 0x47
     return out
   end
@@ -2014,9 +2051,13 @@ local function kcGold(mod, VERSION)
     return {
       function(next_)
         if not id then return next_() end
-        world:beginMovement(id, walkBytes(CENTRE.x - sx, CENTRE.y - sy, true), next_)
+        world:beginMovement(id, legPath(sx, sy, CENTRE.x, CENTRE.y), next_)
       end,
       function(next_)
+        -- Face the audience to present. Arriving at the mark means
+        -- walking UP, so without this they announce with their back
+        -- to the room.
+        if id then pcall(world.turnObject, world, id, "down") end
         -- 18 columns, 2 rows. `who` is a sprite-derived name, so it gets
         -- the line to itself and the species goes on the row below.
         world:showText(("Entry No. %d!\n%s"):format(n, who), next_)
@@ -2042,7 +2083,7 @@ local function kcGold(mod, VERSION)
       end,
       function(next_)
         if not id then return next_() end
-        world:beginMovement(id, walkBytes(sx - CENTRE.x, sy - CENTRE.y, false), next_)
+        world:beginMovement(id, legPath(CENTRE.x, CENTRE.y, sx, sy), next_)
       end,
     }
   end
@@ -2747,7 +2788,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.25.0"
+  local VERSION = "0.25.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

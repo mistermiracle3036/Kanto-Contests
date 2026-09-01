@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.25.1
+A fuller house, and coordinators who present properly.
+
+- The hall no longer tiles itself across the edges of the screen.
+- Fifteen to twenty in the crowd, with the back of the room filled by
+  ordinary trainers so a bigger audience reads as a crowd rather than a
+  reunion.
+- Each coordinator walks up beside the judge to present, turns to face
+  the room, and goes back to their place.
+
 ## 0.25.0
 The new contest stage.
 
