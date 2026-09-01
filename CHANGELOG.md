@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.29.2
+Seven guests got off their bikes.
+
+- Green, Hilda, Hilbert, Lyra, Michael, Rosa and Wes were riding
+  bicycles around the contest hall. Their artwork had been cut from the
+  wrong half of the sheet.
+
 ## 0.29.1
 Everyone brings their own.
 
