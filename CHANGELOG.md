@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.23.1
+The queue really is the field now.
+
+- The coordinators waiting in the hall are genuinely the ones you are
+  about to face. In 0.23.0 they were still a contest behind, so the
+  queue and the stage rarely agreed.
+
 ## 0.23.0
 Walk in through your own front door.
 

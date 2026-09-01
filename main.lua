@@ -1597,6 +1597,20 @@ local function kcGold(mod, VERSION)
     return ((s.kcContestCount or 0) * 131) + (s.kcSeedSalt or 7)
   end
 
+  -- The seed for the contest the player is ABOUT to enter.
+  --
+  -- kcContestCount is advanced when the player accepts a category and is
+  -- warped to the stage -- which is AFTER they have already walked into
+  -- the lobby and the queue has been drawn. So the lobby must look one
+  -- ahead, or it shows the previous contest's line-up and the "queue up
+  -- behind the people you compete against" promise quietly breaks. It
+  -- did exactly that until the developer asked whether the crowd
+  -- changes between contests.
+  local function nextContestSeed()
+    local s = mod.save or {}
+    return (((s.kcContestCount or 0) + 1) * 131) + (s.kcSeedSalt or 7)
+  end
+
   -- The three coordinators, drawn ONCE per contest.
   --
   -- Both the lobby queue and the stage line-up call this with the same
@@ -1639,7 +1653,7 @@ local function kcGold(mod, VERSION)
   }
   local function ensureLobbyQueue(world)
     if markerExists(world, "kcCast") then return end
-    local coordinators = drawCoordinators(seededRng(contestSeed()), {})
+    local coordinators = drawCoordinators(seededRng(nextContestSeed()), {})
     for i, cell in ipairs(LOBBY_QUEUE_CELLS) do
       local sprite = coordinators[i]
       if sprite then
@@ -2363,7 +2377,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.23.0"
+  local VERSION = "0.23.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
