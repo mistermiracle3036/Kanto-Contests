@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.22.1
+Eight guests were standing off their square.
+
+- Ariana, Giovanni, Archer, Petrel, Proton and the Team Rocket grunts
+  were drawn a pixel or two too far left, so they did not line up with
+  anyone else and their side view looked cut off. They stand straight
+  now.
+
 ## 0.22.0
 The hall queue, and people who look at you.
 
