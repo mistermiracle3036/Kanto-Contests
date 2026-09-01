@@ -1589,9 +1589,17 @@ local function kcGold(mod, VERSION)
 
   -- How many contests have been run; the crowd seed rides on it so each
   -- contest has its own crowd but a RELOAD of the same one repeats it.
+  -- mod.save is an OBJECT with :get/:set, not a plain table. This read it
+  -- as a field -- `mod.save.kcContestCount` -- so the write went nowhere
+  -- the read could see it and the count was permanently 0. Two things
+  -- broke silently: every contest drew the SAME crowd, and the lobby
+  -- (count+1) could never match the stage (count), which is exactly the
+  -- mismatch the developer kept seeing after I "fixed" it twice.
+  local function contestCount()
+    return tonumber(mod.save and mod.save:get("kcContestCount", 0)) or 0
+  end
   local function contestSeed()
-    local s = mod.save or {}
-    return ((s.kcContestCount or 0) * 131) + (s.kcSeedSalt or 7)
+    return (contestCount() * 131) + 7
   end
 
   -- The seed for the contest the player is ABOUT to enter.
@@ -1604,8 +1612,7 @@ local function kcGold(mod, VERSION)
   -- did exactly that until the developer asked whether the crowd
   -- changes between contests.
   local function nextContestSeed()
-    local s = mod.save or {}
-    return (((s.kcContestCount or 0) + 1) * 131) + (s.kcSeedSalt or 7)
+    return ((contestCount() + 1) * 131) + 7
   end
 
   -- The three coordinators, drawn ONCE per contest.
@@ -1744,30 +1751,174 @@ local function kcGold(mod, VERSION)
   -- where the judge is.
   local STAGE_WALK = { STEP_UP, STEP_UP, STEP_RIGHT, STEP_END }
 
+  -- ---------------------------------------------------------------
+  -- The appeal round, before the battle.
+  --
+  -- Gen 3 runs appeals as their own scene: each coordinator walks to the
+  -- middle, sends the POKeMON out, the dex picture and cry play, and the
+  -- crowd answers with hearts. Only after all of that does the judging
+  -- proper begin. Doing it inside the battle -- which is how this mod
+  -- did it -- meant the appeals were four text boxes over a battle
+  -- background and the crowd may as well not have been there.
+  --
+  -- Every piece is an engine seam, verified rather than assumed:
+  --   World:beginMovement(id, bytes, done)  walk anybody (World.lua:3826)
+  --   World:showPokePic(index)              the dex picture (4037)
+  --   World:playCry(index)                  the cry (7185)
+  --   World:showEmote(4, id, frames)        heart bubble (6675; the
+  --                                         emote order puts heart at 4)
+  -- Runtime-spawned NPCs DO get an object index (addRuntimeObject
+  -- assigns one), and objectEntity looks up `objectId - 1`, so an actor
+  -- we spawned is addressed as def.index + 1.
+  local HEART_EMOTE = 4
+  local CENTRE = { x = 5, y = 2 }
+
+  -- What each coordinator brings out. Contest-appropriate and vanilla.
+  local KC_PARTNERS = {
+    "CLEFAIRY", "JIGGLYPUFF", "VULPIX", "ODDISH", "GROWLITHE", "PIKACHU",
+    "MEOWTH", "PSYDUCK", "BELLSPROUT", "SEEL", "STARYU", "EEVEE",
+    "MARILL", "HOPPIP", "SUNFLORA", "TOGEPI", "FLAAFFY", "SNUBBULL",
+  }
+
+  local function prettyName(sprite)
+    local n = tostring(sprite):gsub("^SPRITE_KC_", ""):gsub("^SPRITE_", "")
+    return (n:gsub("_", " "))
+  end
+
+  local function speciesIndexOf(name)
+    local data = mod.game and mod.game.data
+    local rec = data and data.pokemon and data.pokemon[name]
+    return rec and rec.index
+  end
+
+  -- step bytes for a straight run: horizontal first, then vertical.
+  -- 0x0c + dir (down 0, up 1, left 2, right 3), 0x47 ends (Movement.lua).
+  local function walkBytes(dx, dy)
+    local out = {}
+    for _ = 1, math.abs(dx) do out[#out + 1] = (dx > 0) and 0x0f or 0x0e end
+    for _ = 1, math.abs(dy) do out[#out + 1] = (dy > 0) and 0x0c or 0x0d end
+    out[#out + 1] = 0x47
+    return out
+  end
+
+  local function objectIdOf(npc)
+    local idx = npc and npc.def and npc.def.index
+    return idx and (idx + 1)
+  end
+
+  -- Run a list of one-argument functions in order; each calls its `next`.
+  local function runSteps(steps, done)
+    local i = 0
+    local function step()
+      i = i + 1
+      local fn = steps[i]
+      if not fn then if done then done() end return end
+      local ok, err = pcall(fn, step)
+      if not ok then
+        mod.log:warn("kc appeal step %d: %s", i, tostring(err))
+        if done then done() end
+      end
+    end
+    step()
+  end
+
+  local function castOnStage(world, wantCoordinator)
+    local out = {}
+    for _, npc in ipairs((world and world.npcs) or {}) do
+      local d = npc.def
+      if d and d.kcCast and ((d.kcCoordinator and true or false) == wantCoordinator) then
+        out[#out + 1] = npc
+      end
+    end
+    return out
+  end
+
+  -- One coordinator's appeal: walk in, send out, dex picture + cry, and
+  -- the crowd answers. Returns a list of steps for runSteps.
+  local function appealSteps(world, npc, n)
+    local sprite = npc.def and npc.def.sprite
+    local who = prettyName(sprite)
+    -- the partner is seeded off the contest too, so a given entrant
+    -- brings the same POKeMON every time you meet that line-up
+    local rnd = seededRng(contestSeed() + n * 17)
+    local species = KC_PARTNERS[rnd(#KC_PARTNERS)]
+    local index = speciesIndexOf(species)
+    local sx, sy = npc.cellX or CENTRE.x, npc.cellY or CENTRE.y
+    local id = objectIdOf(npc)
+    return {
+      function(next_)
+        if not id then return next_() end
+        world:beginMovement(id, walkBytes(CENTRE.x - sx, CENTRE.y - sy), next_)
+      end,
+      function(next_)
+        -- 18 columns, 2 rows. `who` is a sprite-derived name, so it gets
+        -- the line to itself and the species goes on the row below.
+        world:showText(("Entry No. %d!\n%s"):format(n, who), next_)
+      end,
+      function(next_)
+        if index then
+          world:showPokePic(index)
+          world:playCry(index)
+        end
+        world:showText(("%s's\n%s!"):format(who, species), next_)
+      end,
+      function(next_)
+        -- the crowd answers. Hearts sit above whoever is watching.
+        world.pokePic = nil
+        local crowd = castOnStage(world, false)
+        for k = 1, math.min(4, #crowd) do
+          local cid = objectIdOf(crowd[rnd(#crowd)])
+          if cid then pcall(world.showEmote, world, HEART_EMOTE, cid, 60) end
+        end
+        world:showText("The crowd\nlikes it!", next_)
+      end,
+      function(next_)
+        if not id then return next_() end
+        world:beginMovement(id, walkBytes(sx - CENTRE.x, sy - CENTRE.y), next_)
+      end,
+    }
+  end
+
   -- Set on stage entry, cleared when the announcement actually starts.
   local introArmed = false
 
+  -- The whole opening: the judge welcomes the room, all three
+  -- coordinators appeal in turn, and only then is the player called up.
+  -- The battle -- the actual judging -- starts after this, when the
+  -- player talks to the judge.
   local function runStageIntro(world)
     local game = mod.game
     local name = (game and game.player and game.player.name) or "YOU"
-    -- 18 columns, 2 rows. The name is the player's, so keep the line it
-    -- sits on short enough that a long name cannot push past the edge.
-    world:showText(
-      "And now.. our\nnext coordinator!",
-      function()
-        world:showText(
-          ("Please welcome\n%s!"):format(name),
-          function()
-            local ok = pcall(function()
-              world:beginMovement(0, STAGE_WALK, function() end)
-            end)
-            if not ok then
-              mod.log:warn("kc walk-on failed; warping instead")
-              mod.world:warpTo(STAGE_DEF.id, STAGE_MARK.x, STAGE_MARK.y, "right")
-            end
-          end)
+    local kind = tostring(pendingContest or "CONTEST")
+    local steps = {
+      function(next_) world:showText("Hello! Let's get\nstarted with this", next_) end,
+      function(next_) world:showText(("NORMAL %s\nCONTEST!"):format(kind), next_) end,
+      function(next_) world:showText("These are our\ncoordinators and", next_) end,
+      function(next_) world:showText("their partners.", next_) end,
+    }
+    for n, npc in ipairs(castOnStage(world, true)) do
+      for _, fn in ipairs(appealSteps(world, npc, n)) do
+        steps[#steps + 1] = fn
+      end
+    end
+    steps[#steps + 1] = function(next_)
+      world:showText("And now.. our\nnext coordinator!", next_)
+    end
+    steps[#steps + 1] = function(next_)
+      world:showText(("Please welcome\n%s!"):format(name), next_)
+    end
+    steps[#steps + 1] = function()
+      local ok = pcall(function()
+        world:beginMovement(0, STAGE_WALK, function() end)
       end)
+      if not ok then
+        mod.log:warn("kc walk-on failed; warping instead")
+        mod.world:warpTo(STAGE_DEF.id, STAGE_MARK.x, STAGE_MARK.y, "right")
+      end
+    end
+    runSteps(steps)
   end
+
 
   -- Set when the judge takes an entry in the lobby and cleared when the
   -- contest actually starts; it is what the stage judge reads to know
@@ -2128,7 +2279,7 @@ local function kcGold(mod, VERSION)
           -- contest re-reads the same count and therefore reseats exactly
           -- the same crowd, which is the point of seeding it at all.
           if mod.save then
-            mod.save.kcContestCount = (mod.save.kcContestCount or 0) + 1
+            mod.save:set("kcContestCount", contestCount() + 1)
           end
           -- The walk out is a WARP, not a scene script. Gold scene
           -- scripts that walk the player are what stranded Colosseum
@@ -2417,7 +2568,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.23.3"
+  local VERSION = "0.24.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

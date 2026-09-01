@@ -17,8 +17,6 @@ package.path = "./?.lua;./?/init.lua;" .. package.path
 local T = require("tests.modkit")
 love = love or require("tests.love_stub")
 
-local GameVersion = require("src.core.GameVersion")
-GameVersion.current = "gold"
 -- Align GameVersion with the injected generation, exactly as
 -- gen_gate_test does and for the same reason: the harness sets
 -- loader.generation but NOT GameVersion.current, while a real boot sets

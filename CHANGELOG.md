@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.24.0
+The appeal round happens on stage now.
+
+- Before any judging starts, the MC welcomes the room and each
+  coordinator walks to the middle in turn, sends out their POKeMON,
+  and the crowd answers with hearts. You are called up last.
+- Every contest really does draw a different crowd now, and the
+  coordinators queueing in the hall really are the ones you face --
+  both were broken by the same bug and neither ever worked.
+
 ## 0.23.3
 Five fixes from a code review.
 
