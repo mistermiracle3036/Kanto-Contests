@@ -1389,11 +1389,90 @@ local function kcGold(mod, VERSION)
   -- which of the five he is about to judge.
   local pendingContest
 
+  -- ---------------------------------------------------------------
+  -- The Goldenrod Contest Hall facade.
+  --
+  -- Hand-painted by the developer in the Content Editor a QUARTER BLOCK
+  -- at a time, which is the entire reason this code exists. A quarter
+  -- block edit cannot be named by a vanilla block id, so there is
+  -- nothing a maps:patch could say: all fifteen blocks below are
+  -- composed from tiles belonging to several different vanilla blocks
+  -- each. Read back out of the editor project, never hand-typed.
+  --
+  -- Only NUMBERS are ours. Every tile id indexes the player's own
+  -- extracted johto_modern sheet, which Assets.resolve finds in their
+  -- cache (Assets.lua:36-54) -- no ROM art is redistributed, exactly as
+  -- the halls already do it.
+  --
+  -- Why runtime and not map data: a map's `blocks` is a LIST, and lists
+  -- replace WHOLESALE (Merge.lua:29-49). Patching Goldenrod's blocks
+  -- would erase every other mod's edits to the city -- the same trap as
+  -- writing a bare `objects` list. replaceBlock touches single cells and
+  -- never enters the merge, so two mods can both build here.
+  local KC_GOLDENROD_FACADE = {
+    { bx = 16, by = 0, tiles = { 6, 6, 16, 17, 6, 6, 13, 14, 6, 6, 13, 14, 6, 6, 10, 11 }, coll = { 0x00, 0x07, 0x00, 0x07 } },
+    { bx = 17, by = 0, tiles = { 17, 17, 17, 17, 14, 14, 14, 14, 14, 14, 14, 14, 11, 11, 11, 11 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 18, by = 0, tiles = { 17, 17, 17, 18, 14, 14, 14, 15, 14, 14, 14, 15, 11, 11, 11, 12 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 16, by = 1, tiles = { 5, 5, 26, 7, 5, 3, 26, 7, 90, 90, 26, 7, 74, 89, 26, 7 }, coll = { 0x00, 0x07, 0x07, 0x07 } },
+    { bx = 17, by = 1, tiles = { 7, 7, 7, 7, 7, 7, 7, 7, 38, 38, 7, 7, 7, 7, 7, 7 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 18, by = 1, tiles = { 7, 7, 7, 28, 7, 7, 7, 28, 38, 38, 7, 28, 7, 7, 7, 28 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 16, by = 2, tiles = { 5, 5, 26, 7, 5, 3, 1, 2, 3, 5, 3, 5, 5, 5, 5, 5 }, coll = { 0x00, 0x07, 0x00, 0x00 } },
+    { bx = 17, by = 2, tiles = { 7, 7, 55, 56, 2, 2, 57, 58, 3, 5, 3, 5, 5, 5, 5, 5 }, coll = { 0x07, 0x71, 0x00, 0x00 } },
+    { bx = 18, by = 2, tiles = { 7, 7, 7, 28, 2, 2, 2, 22, 78, 79, 5, 5, 94, 95, 5, 5 }, coll = { 0x07, 0x07, 0x07, 0x00 } },
+    { bx = 16, by = 3, tiles = { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+    { bx = 17, by = 3, tiles = { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+    { bx = 18, by = 3, tiles = { 5, 5, 5, 5, 5, 5, 5, 5, 16, 17, 17, 18, 10, 11, 11, 12 }, coll = { 0x00, 0x00, 0x07, 0x07 } },
+    { bx = 18, by = 4, tiles = { 26, 27, 27, 28, 1, 2, 2, 22, 5, 5, 5, 5, 5, 3, 5, 5 }, coll = { 0x07, 0x07, 0x00, 0x00 } },
+    { bx = 18, by = 5, tiles = { 5, 5, 3, 5, 5, 5, 5, 5, 90, 90, 90, 90, 89, 89, 89, 89 }, coll = { 0x00, 0x00, 0x07, 0x07 } },
+    { bx = 19, by = 5, tiles = { 5, 5, 6, 6, 5, 5, 6, 6, 90, 90, 90, 90, 89, 89, 89, 89 }, coll = { 0x00, 0x00, 0x07, 0x07 } },
+  }
+
+  -- The tileset GAINS our blocks and never loses one: vanilla ids 0..127
+  -- keep their meaning, so another mod's Goldenrod block edits still
+  -- resolve to the art they meant.
+  --
+  -- The base offset is READ, never assumed to be 128. If another mod
+  -- appended first, #blocks is already past it and a hardcoded 128 would
+  -- point our placements at their tiles.
+  local facadeBase = nil
+  local function ensureGoldenrodFacade()
+    local data = mod.game and mod.game.data
+    local tsets = data and (data.gen2Tilesets or data.tilesets)
+    local ts = tsets and tsets.TILESET_JOHTO_MODERN
+    -- gen2Tilesets is populated at GAME construction (Game2.lua:949),
+    -- which happens AFTER mods load. 0.16.0 read tileset data at load
+    -- time, got nothing, and shipped grey rooms; map.entered is late
+    -- enough that the table is really there.
+    if not (ts and ts.blocks) then
+      mod.log:warn("kc facade: johto_modern tileset unavailable")
+      return
+    end
+    if not facadeBase then
+      facadeBase = #ts.blocks
+      ts.collision = ts.collision or {}
+      for i, e in ipairs(KC_GOLDENROD_FACADE) do
+        -- blocks are addressed id+1 (BorderFill.lua:79), so entry i is
+        -- block id facadeBase + i - 1.
+        ts.blocks[facadeBase + i] = e.tiles
+        ts.collision[facadeBase + i] = e.coll
+      end
+    end
+    -- World:restoreBlocks undoes every replaceBlock on EVERY map load
+    -- (World.lua:5513) because the cart refills the block buffer from
+    -- ROM -- which is why a cut tree is standing again next visit. A
+    -- building is not a cut tree: re-stamp on each entry or it appears
+    -- once and is gone for the rest of the session.
+    for i, e in ipairs(KC_GOLDENROD_FACADE) do
+      mod.world:replaceBlock(e.bx, e.by, facadeBase + i - 1)
+    end
+  end
+
   mod.events:on("map.entered", function(ev)
     local ok, err = pcall(function()
       local mapId = ev and ev.mapId
       local world = mod.world:overworld()
       if mapId == KCG.map then
+        ensureGoldenrodFacade()
         ensureGoldenrodAttendant(world)
       elseif mapId == HALL then
         ensureRoomActors(world, HALL_DEF)
@@ -1435,6 +1514,23 @@ local function kcGold(mod, VERSION)
       world:showText("KC error: hall\nexit failed")
     end
   end
+
+  -- The door the developer painted at cell 35,4. It carries COLL_DOOR
+  -- (0x71) so it reads and behaves like every other Goldenrod door, but
+  -- a 0x71 cell only WARPS if the map has a warp record on it, and
+  -- adding one would mean patching Goldenrod's `warps` -- another LIST,
+  -- another wholesale replace over every other mod's warps. So the step
+  -- onto the tile is the trigger instead, and no map data is touched.
+  --
+  -- The cell is checked exactly, not by collision byte: 0x71 appears on
+  -- every door in the city and a byte test would fire on all of them.
+  local DOOR_X, DOOR_Y = 35, 4
+  mod.events:on("world.stepped", function(ev)
+    if not (ev and ev.mapId == KCG.map) then return end
+    if ev.x ~= DOOR_X or ev.y ~= DOOR_Y then return end
+    local ok, err = pcall(enterHall, mod.world:overworld())
+    if not ok then mod.log:warn("kc door: %s", tostring(err)) end
+  end)
 
   -- THE CARPET IS THE EXIT.
   --
@@ -1771,7 +1867,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.19.1"
+  local VERSION = "0.20.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

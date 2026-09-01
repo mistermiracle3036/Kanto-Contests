@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.20.0
+The Contest Hall has a building in Goldenrod.
+
+- The hall is a real building on the Goldenrod street now, drawn from
+  the developer's own layout, with a door you walk into instead of only
+  an attendant to talk to. The attendant is still there.
+- The building is stamped a cell at a time rather than by rewriting the
+  city's map data, so other mods that change Goldenrod keep working.
+
 ## 0.19.1
 Talk to the judge over his desk.
 
