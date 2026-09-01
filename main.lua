@@ -2187,6 +2187,14 @@ local function kcGold(mod, VERSION)
   -- state afterwards.
   mod.hooks:wrap("core.update", function(next_, game, dt)
     local r = next_(game, dt)
+    -- Our own clock. The engine ages its emote only in World:step,
+    -- which does not run while dialogue is up -- which is exactly when
+    -- appeal hearts are on screen. Without this NOTHING ticks: the
+    -- staggered hearts never reach delay 0 so only the first ever
+    -- draws, and it never expires either. Both device symptoms were
+    -- this one missing line, lost when an earlier edit threw on a
+    -- later assertion and never wrote the file.
+    tickHearts()
     if introArmed then
       local world = mod.world:overworld()
       -- Confirm the player is STILL on the stage. introArmed is set on
@@ -2669,7 +2677,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.24.1"
+  local VERSION = "0.24.2"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

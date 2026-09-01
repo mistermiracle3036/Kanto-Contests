@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.24.2
+The hearts really do appear and fade now.
+
+- All of an appeal's hearts pop across the audience one after another
+  and then fade. Before, only the first ever appeared and it stayed on
+  screen while you walked around afterwards.
+
 ## 0.24.1
 The crowd's hearts are the score now.
 
