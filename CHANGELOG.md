@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.30.1
+
+- The alternate outfits are actually green and blue now, rather than
+  three near-identical versions of the same person.
+
 ## 0.30.0
 Nobody is on a bicycle any more.
 

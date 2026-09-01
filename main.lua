@@ -961,14 +961,16 @@ local function kcGold(mod, VERSION)
     { "SPRITE_KC_STADIUM_GIRL", "stadium_girl.png", "PAL_OW_RED", 0 },
     -- Alt COSTUMES. Registered so they exist for later, deliberately NOT
     -- in any cast pool: they are the same person in a different outfit,
-    -- and at 16x16 on a three-colour palette they differ from the base by
-    -- a few pixels of shading, so a crowd drawing them would look like it
-    -- had seated the same character twice.
-    { "SPRITE_KC_DAWN_WINTER", "dawn_winter.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_BRENDAN_GREEN", "brendan_green.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_BRENDAN_BLUE", "brendan_blue.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_MAY_GREEN", "may_green.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_MAY_BLUE", "may_blue.png", "PAL_OW_RED", 0 },
+    -- Each draws on its OWN OBJ palette -- green on PAL_OW_GREEN, blue on
+    -- PAL_OW_BLUE, winter on PAL_OW_BLUE -- so the outfit actually reads
+    -- in the overworld. The art is near-identical to the base (a costume
+    -- differs by a few shading pixels at 16x16); the palette is what
+    -- carries it.
+    { "SPRITE_KC_DAWN_WINTER", "dawn_winter.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_BRENDAN_GREEN", "brendan_green.png", "PAL_OW_GREEN", 2 },
+    { "SPRITE_KC_BRENDAN_BLUE", "brendan_blue.png", "PAL_OW_BLUE", 1 },
+    { "SPRITE_KC_MAY_GREEN", "may_green.png", "PAL_OW_GREEN", 2 },
+    { "SPRITE_KC_MAY_BLUE", "may_blue.png", "PAL_OW_BLUE", 1 },
     { "SPRITE_KC_SUZIE", "suzie.png", "PAL_OW_BLUE", 1 },
     { "SPRITE_KC_VOLKNER", "volkner.png", "PAL_OW_BROWN", 3 },
     { "SPRITE_KC_WALLY", "wally.png", "PAL_OW_GREEN", 2 },
@@ -3132,7 +3134,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.30.0"
+  local VERSION = "0.30.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
