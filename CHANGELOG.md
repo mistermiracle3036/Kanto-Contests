@@ -11,6 +11,10 @@ Walk in through your own front door.
   against, instead of three strangers.
 - At most one Gym Leader or Elite Four member enters a contest at a time.
   Three at once made it a gauntlet.
+- Ariana's sprite no longer looks sliced down one side. Her side-facing
+  frames had been cut two pixels too narrow when the art was first
+  converted, which flattened her hair into a straight vertical line. She
+  is re-cut from the artist's own sheet and now matches it exactly.
 
 ## 0.22.3
 
