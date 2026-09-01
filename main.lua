@@ -1832,7 +1832,15 @@ local function kcGold(mod, VERSION)
       mod.log:warn("kc facade: johto_modern tileset unavailable")
       return
     end
-    if not facadeBase then
+    -- Check the blocks are STILL THERE rather than trusting a flag.
+    -- game.data is rebuilt when a new Game is constructed (quit to menu,
+    -- load a save), which re-reads tilesets.lua from disk WITHOUT our
+    -- appended blocks -- while this closure survives, because module
+    -- tables live for the whole process. A one-shot `if not facadeBase`
+    -- then skipped the re-append and left replaceBlock pointing at block
+    -- ids that no longer resolve; TileRenderer draws nothing for a nil
+    -- block, so the building came back as holes in the street.
+    if not (facadeBase and ts.blocks[facadeBase + 1] == KC_GOLDENROD_FACADE[1].tiles) then
       facadeBase = #ts.blocks
       ts.collision = ts.collision or {}
       for i, e in ipairs(KC_GOLDENROD_FACADE) do
@@ -1931,7 +1939,22 @@ local function kcGold(mod, VERSION)
     local r = next_(game, dt)
     if introArmed then
       local world = mod.world:overworld()
-      if world and not world:busy() then
+      -- Confirm the player is STILL on the stage. introArmed is set on
+      -- entry and only cleared when the intro fires, so a warp landing
+      -- during the fade would otherwise announce them by name in
+      -- whichever room they ended up in -- and then walk them two
+      -- squares up and one right from wherever that is.
+      -- Disarm only on a map we can POSITIVELY see is not the stage. A
+      -- nil `current()` mid-fade means "not known yet", not "elsewhere";
+      -- treating it as elsewhere would clear the flag during the very
+      -- transition this watcher exists to wait out, and the player would
+      -- never be announced at all.
+      local here = mod.world:current()
+      local elsewhere = here and here.mapId and STAGE_DEF
+        and here.mapId ~= STAGE_DEF.id
+      if elsewhere then
+        introArmed = false
+      elseif world and not world:busy() then
         introArmed = false
         local ok, err = pcall(runStageIntro, world)
         if not ok then mod.log:warn("kc stage intro: %s", tostring(err)) end
@@ -1976,10 +1999,24 @@ local function kcGold(mod, VERSION)
     local here = mod.world:current()
     local hereId = here and here.mapId
     if hereId == HALL then
-      local back = hallReturn or { mapId = KCG.map,
-                                   x = entranceCell.x, y = entranceCell.y + 1 }
-      return back.mapId, back.x, back.y
+      -- Land on the pavement BELOW the door, never on the door itself.
+      -- hallReturn is where the player stood when they came in, and
+      -- since the entrance is now a door tile that is the door -- so
+      -- returning it verbatim put the player back on the trigger. The
+      -- y+1 square was always the intended landing spot; it was just
+      -- unreachable while hallReturn was non-nil.
+      local back = hallReturn
+      local bx = (back and back.x) or entranceCell.x
+      local by = ((back and back.y) or entranceCell.y) + 1
+      return (back and back.mapId) or KCG.map, bx, by
     elseif STAGE_DEF and hereId == STAGE_DEF.id then
+      -- The carpet is the ONLY way off the stage now, so this path has
+      -- to do what leaveStage does. It did not, and a player who walked
+      -- out instead of talking to the judge kept pendingContest set --
+      -- so re-entering announced them by name again for a contest they
+      -- had already abandoned, with the stale category still armed.
+      pendingContest = nil
+      introArmed = false
       return HALL, HALL_ARRIVAL_X, HALL_ARRIVAL_Y
     end
     return next_(warped, mapId, x, y, ctx)
@@ -2301,8 +2338,14 @@ local function kcGold(mod, VERSION)
   local function lineFor(npc)
     local def = npc and npc.def
     local sprite = def and def.sprite
+    -- `#own > 0` matters: KC_CAST_LINES is where per-character dialogue
+    -- gets added, so a placeholder entry like ["SPRITE_KC_MAY"] = {} is
+    -- the expected half-finished state. Without the length check `n % 0`
+    -- is nan, the index returns nil, and showText(nil) throws inside
+    -- talkTo's pcall -- surfacing as a generic "KC error" box rather
+    -- than pointing at the empty table.
     local own = sprite and KC_CAST_LINES[sprite]
-    if own then
+    if own and #own > 0 then
       local n = 0
       for _ in tostring(def.name or ""):gmatch(".") do n = n + 1 end
       return own[(n % #own) + 1]
@@ -2374,7 +2417,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.23.2"
+  local VERSION = "0.23.3"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

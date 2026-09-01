@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.23.3
+Five fixes from a code review.
+
+- Leaving the Contest Hall now puts you on the pavement outside instead
+  of standing in the doorway.
+- Walking off the stage without competing no longer leaves the contest
+  armed, so you are not announced again for one you abandoned.
+- The hall keeps its building after you load a save.
+- Nobody gets announced in the wrong room.
+
 ## 0.23.2
 
 - The two Rocket Grunts now use Gold's own grunt sprites instead of custom
