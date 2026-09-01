@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.28.0
+Your entrant, properly.
+
+- Pick your POKeMON from the real party screen, the one a trade or a TM
+  uses.
+- Your POKeMON gets its picture, its cry and the crowd's hearts, the
+  same as the other coordinators. None of that was appearing.
+- Your party is given back when you leave the hall. It was not being
+  restored at all.
+
 ## 0.27.1
 The crowd answers before the score is read.
 

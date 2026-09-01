@@ -1871,6 +1871,51 @@ local function kcGold(mod, VERSION)
   local STAGE_WALK = { STEP_UP, STEP_UP, STEP_RIGHT, STEP_END }
 
   -- ---------------------------------------------------------------
+  -- The entrant, and the party while a contest is on.
+  --
+  -- The player picks ONE POKeMON at the desk and only that one is in the
+  -- party until they come back. The rest are parked on a SAVE-LEVEL
+  -- field, not a Lua local: arbitrary top-level save keys persist on both
+  -- generations, so the stash travels with the save file. If the game is
+  -- closed mid-contest the party is still in there and the next entry to
+  -- the hall puts it back -- where a local would have been lost with the
+  -- process and taken five POKeMON with it.
+  local function partyOf(world)
+    local save = world and world.game and world.game.save
+    return save, (save and save.party) or {}
+  end
+
+  local function monLabel(game, mon)
+    if not mon then return "?" end
+    if mon.nickname and mon.nickname ~= "" then return mon.nickname end
+    local rec = game and game.data and game.data.pokemon
+      and game.data.pokemon[mon.species]
+    return (rec and rec.name) or tostring(mon.species or "?")
+  end
+
+  local function stashParty(world, keep)
+    local save, party = partyOf(world)
+    if not (save and party[keep]) then return false end
+    if save.kcPartyStash then return true end   -- already parked
+    local full = {}
+    for i, m in ipairs(party) do full[i] = m end
+    save.kcPartyStash = full
+    save.party = { party[keep] }
+    return true
+  end
+
+  -- Put the party back. Safe to call any time: it is a no-op with no
+  -- stash, so it can be wired to every map entry as a net rather than
+  -- relying on one exit path being taken.
+  local function restoreParty(world)
+    local save = world and world.game and world.game.save
+    if not (save and save.kcPartyStash) then return false end
+    save.party = save.kcPartyStash
+    save.kcPartyStash = nil
+    return true
+  end
+
+  -- ---------------------------------------------------------------
   -- The appeal round, before the battle.
   --
   -- Gen 3 runs appeals as their own scene: each coordinator walks to the
@@ -2201,8 +2246,17 @@ local function kcGold(mod, VERSION)
         world:playCry(myIndex)
       end
       world:showText(("%s\nand %s!"):format(name, myName), function()
-        world.pokePic = nil
-        next_()
+        -- and the room answers for the player too, the same beat the
+        -- other three got: ask, hearts, then the number.
+        world:showText("Folks, what do\nyou think?", function()
+          world.pokePic = nil
+          local mineRnd = seededRng(contestSeed() + 991)
+          local myHearts = mineRnd(5) + 1
+          popHearts(world, myHearts)
+          waitFrames(70 + myHearts * 12, function()
+            world:showText(("%s scores\n%d hearts!"):format(name, myHearts), next_)
+          end)
+        end)
       end)
     end
     -- ...then back to the line. The judging is not something the player
@@ -2539,50 +2593,6 @@ local function kcGold(mod, VERSION)
   -- Kanto Ribbons has likewise mapped all five categories since it shipped
   -- the contest resolver; it awards only the ones its catalog has drawn, so
   -- the other four light up there with no change on this side.
-  -- ---------------------------------------------------------------
-  -- The entrant, and the party while a contest is on.
-  --
-  -- The player picks ONE POKeMON at the desk and only that one is in the
-  -- party until they come back. The rest are parked on a SAVE-LEVEL
-  -- field, not a Lua local: arbitrary top-level save keys persist on both
-  -- generations, so the stash travels with the save file. If the game is
-  -- closed mid-contest the party is still in there and the next entry to
-  -- the hall puts it back -- where a local would have been lost with the
-  -- process and taken five POKeMON with it.
-  local function partyOf(world)
-    local save = world and world.game and world.game.save
-    return save, (save and save.party) or {}
-  end
-
-  local function monLabel(game, mon)
-    if not mon then return "?" end
-    if mon.nickname and mon.nickname ~= "" then return mon.nickname end
-    local rec = game and game.data and game.data.pokemon
-      and game.data.pokemon[mon.species]
-    return (rec and rec.name) or tostring(mon.species or "?")
-  end
-
-  local function stashParty(world, keep)
-    local save, party = partyOf(world)
-    if not (save and party[keep]) then return false end
-    if save.kcPartyStash then return true end   -- already parked
-    local full = {}
-    for i, m in ipairs(party) do full[i] = m end
-    save.kcPartyStash = full
-    save.party = { party[keep] }
-    return true
-  end
-
-  -- Put the party back. Safe to call any time: it is a no-op with no
-  -- stash, so it can be wired to every map entry as a net rather than
-  -- relying on one exit path being taken.
-  local function restoreParty(world)
-    local save = world and world.game and world.game.save
-    if not (save and save.kcPartyStash) then return false end
-    save.party = save.kcPartyStash
-    save.kcPartyStash = nil
-    return true
-  end
 
   local CONTEST_MENU = {
     top = 1, left = 3, bottom = 14, right = 17,
@@ -2654,24 +2664,17 @@ local function kcGold(mod, VERSION)
             runGoldContest(world, kind)
             return
           end
-          -- Which POKeMON is competing. Built from the party each time,
-          -- because it changes between visits.
-          local game = world.game
+          -- The real party screen -- the one a trade, a TM or an item
+          -- uses -- rather than a list of names in a text box.
+          -- World:selectPartyMon pushes Gen2PartyMenu and hands back
+          -- (index, mon), with nil for a cancel.
           local _, party = partyOf(world)
-          local items = {}
-          for i, mon in ipairs(party) do items[i] = monLabel(game, mon) end
-          if #items == 0 then
+          if #party == 0 then
             world:showText("You have no\nPOKeMON to enter!")
             return
           end
-          items[#items + 1] = "CANCEL"
-          local PARTY_MENU = {
-            top = 1, left = 3, bottom = 2 + #items * 2, right = 17,
-            dataFlags = 0xc0, cursor = 1, items = items,
-          }
-          world:showText("And which POKeMON\nwill you show us?", function()
-          world:openScriptMenu(PARTY_MENU, "vertical", function(pick)
-          local slot = tonumber(pick) or 0
+          world:selectPartyMon("which", function(slot)
+          slot = tonumber(slot) or 0
           if slot < 1 or slot > #party then
             world:showText("Take your time.\nThe stage waits.")
             return
@@ -2705,7 +2708,6 @@ local function kcGold(mod, VERSION)
                 mod.log:warn("contest stage warp failed: %s", tostring(err))
                 world:showText("KC error: stage\nentrance failed")
               end
-            end)
         end)
       end)
           end)
@@ -2979,7 +2981,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.27.1"
+  local VERSION = "0.28.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
