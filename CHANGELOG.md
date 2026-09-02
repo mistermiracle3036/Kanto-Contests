@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.34.14
+
+- The applause: one notch more crushed, and it trails off more slowly.
+
 ## 0.34.13
 
 - The applause is crushed harder still and a touch quieter.

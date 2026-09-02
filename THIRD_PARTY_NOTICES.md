@@ -66,8 +66,8 @@
   on top of each other -- the opening (from 0.25 s, the crowd's rise and the
   yell) and the clapping from 3.0 s, the latter raised to sit just under the
   former -- mixed to mono and run through a bitcrusher: resampled to
-  11025 Hz with every sample held three times (about 3.7 kHz effective),
+  11025 Hz with every sample held four times (about 2.8 kHz effective),
   soft-clipped, reduced to 4 amplitude levels (2-bit), then the last
-  0.6 seconds faded after the reduction. The original is 8.8 seconds,
+  1.1 seconds faded gently after the reduction. The original is 8.8 seconds,
   stereo, 48 kHz, 24-bit. (0.34.8-0.34.10 shipped a different clip,
   Freesound #478411 by thaighaudio, CC0; it is no longer included.)
