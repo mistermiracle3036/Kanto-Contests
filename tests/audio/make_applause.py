@@ -9,6 +9,10 @@ the author is in THIRD_PARTY_NOTICES.md.
 
 Kept versions (tests/ is excluded from the zip, so these never ship):
   applause_0.34.13_keeper.wav  --hold 3 --bits 2 --fade 0.6 --curve 2 --gain 0.80
+  applause_0.34.15.wav         --hold 3 --bits 2 --drive 3.2 --fade 1.1 --curve 1.5 --gain 0.80
+    (0.34.14 was hold 4: the yell's 745 Hz mirrored to a 2 kHz "chime", a third
+    above it. --postsmooth halved it but could not remove it, so the extra
+    crush comes from --drive instead, which leaves the mirror tones where 0.34.13 had them.)
 """
 import argparse, wave, numpy as np, os
 ap = argparse.ArgumentParser()
@@ -18,6 +22,18 @@ ap.add_argument("--bits", type=int, default=2, help="amplitude bits (2 = 4 level
 ap.add_argument("--fade", type=float, default=0.6, help="tail fade seconds, applied AFTER the crunch")
 ap.add_argument("--curve", type=float, default=2.0, help="fade curve exponent; lower = slower, gentler")
 ap.add_argument("--gain", type=float, default=0.80, help="peak")
+ap.add_argument("--drive", type=float, default=2.2,
+                help="tanh saturation before the bit reduction; more = harder, squarer crush without "
+                     "moving the hold's mirror tones (raising --hold does move them: 4 rang at 2 kHz)")
+ap.add_argument("--smooth", action="store_true",
+                help="average each hold block before holding (a low-pass): kills the pitched aliasing "
+                     "tones raw sample-and-hold folds down -- 0.34.14 at hold 4 rang at ~2 kHz like a chime")
+ap.add_argument("--postsmooth", action="store_true",
+                help="moving average the width of the hold AFTER holding: removes the tones the staircase "
+                     "mirrors around the hold rate (0.34.14's chime) while keeping the low-rate softness")
+ap.add_argument("--dither", type=float, default=0.0,
+                help="triangular dither before the bit reduction, as a fraction of one level (0.3 is gentle); "
+                     "stops the quantiser locking onto tones")
 ap.add_argument("--out", default=os.path.join(os.path.dirname(__file__), "..", "..", "assets", "applause.wav"))
 A = ap.parse_args()
 
@@ -39,9 +55,27 @@ mix[:int(0.02 * rate)] *= np.linspace(0, 1, int(0.02 * rate))
 target = 11025; ratio = rate / target; blk = int(ratio)
 idx = (np.arange(int(len(mix) / ratio)) * ratio).astype(int)
 y = np.array([mix[i:i + blk].mean() for i in idx])
-y = np.repeat(y[::A.hold], A.hold)[:len(y)]              # sample-and-hold: the aliasy grit
-y = np.tanh(y / (np.abs(y).max() + 1e-9) * 2.2); y = y / np.abs(y).max()
-q = 2 ** (A.bits - 1); y = np.round(y * q) / q            # bit-depth reduction
+if A.smooth:
+    # low-pass by averaging each block, THEN hold: the same staircase rate,
+    # without the fold-down tones raw decimation produces
+    m = len(y) // A.hold * A.hold
+    blocks = y[:m].reshape(-1, A.hold).mean(axis=1)
+    y = np.repeat(blocks, A.hold)
+else:
+    y = np.repeat(y[::A.hold], A.hold)[:len(y)]          # raw sample-and-hold: the aliasy grit
+if A.postsmooth:
+    # reconstruction low-pass AFTER the hold: the staircase mirrors every
+    # tone around the hold rate (the yell's 745 Hz became a 2013/3499 Hz
+    # "chime" at hold 4); a moving average the width of the hold takes the
+    # mirror images out and leaves the tone, the crunch and the softness
+    k = np.ones(A.hold) / A.hold
+    y = np.convolve(y, k, mode="same")
+y = np.tanh(y / (np.abs(y).max() + 1e-9) * A.drive); y = y / np.abs(y).max()
+q = 2 ** (A.bits - 1)
+if A.dither > 0:
+    rng = np.random.default_rng(189831)                   # seeded: the same file every run
+    y = y + (rng.random(len(y)) - rng.random(len(y))) * (A.dither / q)   # triangular, sub-level
+y = np.round(y * q) / q                                   # bit-depth reduction
 fo = int(A.fade * target); t = np.linspace(0, 1, fo); y[-fo:] *= (1 - t) ** A.curve   # the tail, after the crunch
 y = y * A.gain
 pcm = (y * 32767).astype(np.int16)

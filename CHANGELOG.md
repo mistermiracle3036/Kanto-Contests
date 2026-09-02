@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.34.15
+
+- The applause loses the chime. 0.34.14's extra crush rang a high note
+  (a third above the crowd's yell) that was not in the recording; the
+  crush now comes from harder clipping instead, so it is as crunchy and
+  still trails off slowly, without the tone.
+
 ## 0.34.14
 
 - The applause: one notch more crushed, and it trails off more slowly.
