@@ -31,7 +31,9 @@ local S = {}
 -- the phone onto its side (0.34.0, reported from device) -- everything
 -- else in the game plays in portrait, so portrait is the default.
 S.WIDE = { name = "wide", w = 240, h = 144, panelX = 160, panelY = 0,   rowH = 36 }
-S.TALL = { name = "tall", w = 160, h = 240, panelX = 0,   panelY = 144, rowH = 24 }
+-- 18px rows: 216 tall keeps the whole panel above the touch controls when
+-- the UI is centred (24px rows ran under the D-pad -- reported from device)
+S.TALL = { name = "tall", w = 160, h = 216, panelX = 0,   panelY = 144, rowH = 18 }
 S.ARENA_W = 160
 S.W, S.H = S.TALL.w, S.TALL.h   -- defaults; see S:layout()
 
@@ -572,15 +574,15 @@ function S:drawPanel()
       rgb(S.C.bar); G.rectangle("fill", x0 + 4, y + 31, 70, 1)
       drawHeart(x0 + 4 + math.floor(70 * frac) - 3, y + 28, S.C.heart)
     else
-      -- 160px wide, 24 tall: "NICK/TRAINER" on one line (at most 18
+      -- 160px wide, 18 tall: "NICK/TRAINER" on one line (at most 18
       -- glyphs = 144px), hearts under the name, the bar to their right
       if m.Font then
         rgb(S.C.ink)
-        m.Font.draw(nick .. "/" .. trainer, x0 + 3, y + 2)
+        m.Font.draw(nick .. "/" .. trainer, x0 + 3, y + 1)
       end
-      for i = 1, math.min(8, math.abs(h)) do drawHeart(x0 + 3 + (i - 1) * 9, y + 14, color) end
-      rgb(S.C.bar); G.rectangle("fill", x0 + 82, y + 18, 72, 1)
-      drawHeart(x0 + 82 + math.floor(72 * frac) - 3, y + 15, S.C.heart)
+      for i = 1, math.min(8, math.abs(h)) do drawHeart(x0 + 3 + (i - 1) * 9, y + 10, color) end
+      rgb(S.C.bar); G.rectangle("fill", x0 + 82, y + 14, 72, 1)
+      drawHeart(x0 + 82 + math.floor(72 * frac) - 3, y + 11, S.C.heart)
     end
   end
 end

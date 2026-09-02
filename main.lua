@@ -2717,6 +2717,9 @@ local function kcGold(mod, VERSION)
   -- raw leaves the interior grey instead of white (World.lua:10345-10352
   -- calls that out as a bug they already had once).
   local kcHearts = {}
+  -- true while the crowd's hearts are popping: World.busy() (wrapped below)
+  -- reads it and the player stays put until the score is read
+  local kcHoldPlayer = false
 
   -- A plain frame wait, so a step in the appeal can hold with nothing on
   -- screen. showText is the only other way to pause a chain, and it puts
@@ -2786,6 +2789,17 @@ local function kcGold(mod, VERSION)
     if okW and type(World) == "table" and World.drawEmote then
       World._kcOriginals = World._kcOriginals or { drawEmote = World.drawEmote }
       local baseDrawEmote = World._kcOriginals.drawEmote
+      -- While the crowd's hearts pop there is no text box up, so nothing
+      -- froze the player and they could wander off the line mid-appeal
+      -- (reported from device). World:stepBody gates player input on
+      -- World:busy(), so the hold is one more term in it -- the same way
+      -- the engine freezes the world for a rod cast or a tree shake.
+      World._kcOriginals.busy = World._kcOriginals.busy or World.busy
+      local baseBusy = World._kcOriginals.busy
+      World.busy = function(world)
+        if kcHoldPlayer then return true end
+        return baseBusy(world)
+      end
       World.drawEmote = function(world, s, billboard)
         local heart = world and world.emoteImages and world.emoteImages.heart
         if heart and #kcHearts > 0 then
@@ -2858,8 +2872,12 @@ local function kcGold(mod, VERSION)
           -- the box is DOWN by the time this runs, so the hearts have the
           -- whole room to themselves -- they were popping behind it
           -- before, and half of them were under the text.
+          -- hold the player for the whole pop: no box is up, so nothing
+          -- else would (reported from device -- they could walk off the line)
+          kcHoldPlayer = true
           popHearts(world, hearts)
           waitFrames(70 + hearts * 12, function()
+            kcHoldPlayer = false
             world:showText(("%s scores\n%d hearts!"):format(who, hearts), next_)
           end)
         end)
@@ -3744,7 +3762,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.3"
+  local VERSION = "0.34.4"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

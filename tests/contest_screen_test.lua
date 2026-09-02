@@ -186,8 +186,8 @@ do
   -- 0.34.0 shipped the wide canvas alone and the phone had to be turned on
   -- its side (reported from device). Upright screens get the tall layout.
   T.eq(S.layoutFor(1170, 2532).name, "tall", "a portrait window gets the tall layout")
-  T.same({ S.layoutFor(1170, 2532).w, S.layoutFor(1170, 2532).h }, { 160, 240 },
-    "tall is 160 x 240: the arena with the panel below")
+  T.same({ S.layoutFor(1170, 2532).w, S.layoutFor(1170, 2532).h }, { 160, 216 },
+    "tall is 160 x 216: the arena with the panel below, short enough to clear the touch controls")
   T.eq(S.layoutFor(2532, 1170).name, "wide", "a landscape window gets the wide layout")
   T.same({ S.layoutFor(2532, 1170).w, S.layoutFor(2532, 1170).h }, { 240, 144 },
     "wide is 240 x 144: the arena with the panel beside")

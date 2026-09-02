@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.34.4
+
+- You stay put while the crowd's hearts pop for a coordinator on stage.
+  You could walk off the line mid-appeal before.
+- Held upright, the contest screen is shorter, so the coordinators' panel
+  sits clear of the on-screen controls instead of under the D-pad.
+
 ## 0.34.3
 Three small things from the first look.
 
