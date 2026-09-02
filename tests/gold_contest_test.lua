@@ -27,13 +27,31 @@ love = love or require("tests.love_stub")
 -- harness rather than the code.
 local GameVersion = require("src.core.GameVersion")
 GameVersion.current = "gold"
-local run = T.sdk.loadMod("../Kanto-Contests", { generation = 2 })
+-- ENGINE HARNESS QUIRK, worked around here (2026-09-01). On Windows the
+-- sdk's real-filesystem shim decides "is this a directory?" by renaming the
+-- folder onto itself (engine/tests/fs_io.lua FsIo.isDir: os.rename(path,
+-- path)). That fails whenever ANY process holds the folder open -- a shell
+-- whose cwd is inside Kanto-Contests, git, a sync client -- and the loader
+-- then treats the mod folder as "not a directory" and skips it with no
+-- error and no log line. Reproduced deliberately: `cd Kanto-Contests &&
+-- sleep` in another process makes every run report "mod not loaded". It
+-- came in bursts because the holder came and went. The fix belongs in
+-- fs_io.lua (not this mod's to edit); until then, retry a few times with
+-- a pause, and say what the directory probe returned when it still fails.
+local run
+for attempt = 1, 4 do
+  run = T.sdk.loadMod("../Kanto-Contests", { generation = 2 })
+  if run.mod and run.mod.state == "loaded" then break end
+  if #(run.errors or {}) > 0 then break end          -- a real failure, not the quirk
+  run.release()
+  local until_ = os.clock() + 0.4
+  while os.clock() < until_ do end
+end
 T.eq(run.mod and run.mod.state, "loaded", "mod loaded on gen 2")
--- This check fails in BURSTS (6 of 6 one minute, 0 of 6 the next) with no
--- file changed between; a standalone probe loads through the burst. Cause
--- still unknown (2026-09-01). When it fails, say everything the loader
--- knows, so the next burst is characterised rather than retried.
 if not (run.mod and run.mod.state == "loaded") then
+  print("  dir probe (os.rename onto itself):",
+        tostring(os.rename("../Kanto-Contests", "../Kanto-Contests") == true),
+        "-- false means some process is holding the folder open")
   print("  loader.errors:", #(run.errors or {}))
   for i, e in ipairs(run.errors or {}) do print("   ", i, tostring(type(e) == "table" and (e.message or e.msg) or e)) end
   for id, m in pairs(run.loader and run.loader.mods or {}) do

@@ -13,11 +13,23 @@ local T = require("tests.modkit")
 love = love or require("tests.love_stub")
 local GameVersion = require("src.core.GameVersion")
 GameVersion.current = "gold"
-local run = T.sdk.loadMod("../Kanto-Contests", { generation = 2 })
+-- see gold_contest_test: the sdk's Windows directory probe (os.rename onto
+-- itself) fails while any process holds the mod folder open, and the loader
+-- then skips the mod silently. Retry with a pause; report the probe if it
+-- still fails.
+local run
+for attempt = 1, 4 do
+  run = T.sdk.loadMod("../Kanto-Contests", { generation = 2 })
+  if run.mod and run.mod.state == "loaded" then break end
+  if #(run.errors or {}) > 0 then break end
+  run.release()
+  local until_ = os.clock() + 0.4
+  while os.clock() < until_ do end
+end
 T.eq(run.mod and run.mod.state, "loaded", "mod loaded on gen 2")
--- see gold_contest_test: this fails in bursts with no file changed; dump
--- the loader when it does so the burst gets characterised
 if not (run.mod and run.mod.state == "loaded") then
+  print("  dir probe (os.rename onto itself):",
+        tostring(os.rename("../Kanto-Contests", "../Kanto-Contests") == true))
   print("  loader.errors:", #(run.errors or {}))
   for i, e in ipairs(run.errors or {}) do print("   ", i, tostring(type(e) == "table" and (e.message or e.msg) or e)) end
   for id, m in pairs(run.loader and run.loader.mods or {}) do
