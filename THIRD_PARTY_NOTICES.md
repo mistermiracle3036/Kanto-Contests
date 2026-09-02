@@ -58,7 +58,8 @@
   **thaighaudio**, Freesound sound #478411
   (https://freesound.org/s/478411/), released under **Creative Commons 0**
   (public domain dedication; no attribution required, credited here by
-  this project's own rule). Edited for the mod: a 1.8-second cut, mixed to
+  this project's own rule). Edited for the mod: a 2.6-second cut, mixed to
   mono, resampled to 11025 Hz, soft-clipped and reduced to 16 amplitude
-  levels to sit with Game Boy audio. The original is 16 seconds, stereo,
-  48 kHz, 24-bit.
+  levels to sit with Game Boy audio, with the last 1.3 seconds faded to
+  silence after the reduction so the tail dies away. The original is 16
+  seconds, stereo, 48 kHz, 24-bit.

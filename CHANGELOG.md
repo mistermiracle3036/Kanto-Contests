@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.34.10
+
+- The applause runs a little longer and dies away instead of stopping
+  short, and it is a touch louder.
+
 ## 0.34.9
 
 - The crowd applauds on stage too: the clap plays as the hearts go up
