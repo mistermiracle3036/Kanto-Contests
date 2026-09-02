@@ -54,12 +54,17 @@
   Inc. / GAME FREAK inc. This mod contains no ROM data or copyrighted
   assets; it is a fan-made script mod and requires the user's own game
   copy via gen1recomp.
-- `assets/applause.wav` is derived from "Concert Audience Applause 4" by
-  **thaighaudio**, Freesound sound #478411
-  (https://freesound.org/s/478411/), released under **Creative Commons 0**
-  (public domain dedication; no attribution required, credited here by
-  this project's own rule). Edited for the mod: a 2.6-second cut, mixed to
-  mono, resampled to 11025 Hz, soft-clipped and reduced to 16 amplitude
-  levels to sit with Game Boy audio, with the last 1.3 seconds faded to
-  silence after the reduction so the tail dies away. The original is 16
-  seconds, stereo, 48 kHz, 24-bit.
+- `assets/applause.wav` is derived from "audience clap yell outdoor 02" by
+  **klankbeeld**, Freesound sound #189831
+  (https://freesound.org/s/189831/), used under its Creative Commons
+  **Attribution** licence. The author's required credit, verbatim and with
+  the direct link they ask for:
+
+  **sound from http://www.freesound.org/people/klankbeeld/**
+
+  Edited for the mod: the first 2.6 seconds from just before the crowd
+  starts (0.25 s in), mixed to mono, resampled to 11025 Hz, soft-clipped and
+  reduced to 16 amplitude levels to sit with Game Boy audio, with the last
+  0.6 seconds faded after the reduction. The original is 8.8 seconds,
+  stereo, 48 kHz, 24-bit. (0.34.8-0.34.10 shipped a different clip,
+  Freesound #478411 by thaighaudio, CC0; it is no longer included.)

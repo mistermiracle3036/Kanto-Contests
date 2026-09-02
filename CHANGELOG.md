@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.34.11
+
+- A new applause recording with voices in it -- a crowd that claps and
+  yells rather than politely applauds. Credited in THIRD_PARTY_NOTICES.md
+  as its author requires.
+
 ## 0.34.10
 
 - The applause runs a little longer and dies away instead of stopping
