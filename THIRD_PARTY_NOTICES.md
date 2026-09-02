@@ -54,3 +54,11 @@
   Inc. / GAME FREAK inc. This mod contains no ROM data or copyrighted
   assets; it is a fan-made script mod and requires the user's own game
   copy via gen1recomp.
+- `assets/applause.wav` is derived from "Concert Audience Applause 4" by
+  **thaighaudio**, Freesound sound #478411
+  (https://freesound.org/s/478411/), released under **Creative Commons 0**
+  (public domain dedication; no attribution required, credited here by
+  this project's own rule). Edited for the mod: a 1.8-second cut, mixed to
+  mono, resampled to 11025 Hz, soft-clipped and reduced to 16 amplitude
+  levels to sit with Game Boy audio. The original is 16 seconds, stereo,
+  48 kHz, 24-bit.

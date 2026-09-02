@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.34.8
+The crowd has a voice.
+
+- When the applause meter fills and the crowd goes wild, you hear them:
+  a short burst of applause, cut and crunched down to Game Boy fidelity
+  from a public-domain recording (credited in THIRD_PARTY_NOTICES.md).
+
 ## 0.34.7
 
 - The applause clip, once added, is looked for inside the mod's own folder.
