@@ -1745,9 +1745,19 @@ local function kcGold(mod, VERSION)
     local BLUE = Gen2Summary.BLUE_PAGE or 3
     local KC_PAGE = 4
     Gen2Summary.KC_CONTEST_PAGE = KC_PAGE
-    -- the page wears MOVES' green: it is the moves page, seen another way
-    local TINT = (Gen2Summary.PAGE_TINTS or {})[GREEN] or { 173, 255, 115 }
-    local SQUARE = (Gen2Summary.PAGE_PALETTES or {})[GREEN]
+    -- Its own colour, between MOVES' green and the stats page's blue: the
+    -- contest panel's yellow (developer: "its own color").
+    local TINT = { 255, 232, 150 }
+    local SQUARE = { { 255, 255, 255 }, { 255, 232, 150 }, { 255, 204, 96 }, { 0, 0, 0 } }
+    -- text is printed THROUGH this palette, the way a tinted tilemap screen
+    -- prints: colour 0 (the tint) is painted behind the string and the
+    -- glyph is mapped through it. Plain Chrome.print left every string on
+    -- a white cell on device -- reported with a screenshot -- while the
+    -- stock pages' text sat cleanly on their tint.
+    local PAL = { TINT, TINT, TINT, { 0, 0, 0 } }
+    local PINK_SQUARE = (Gen2Summary.PAGE_PALETTES or {})[1]
+    local GREEN_SQUARE = (Gen2Summary.PAGE_PALETTES or {})[GREEN]
+    local BLUE_SQUARE = (Gen2Summary.PAGE_PALETTES or {})[BLUE]
 
     local function isEgg(mon) return type(mon) == "table" and mon.isEgg == true end
     local function onPage(self)
@@ -1804,7 +1814,7 @@ local function kcGold(mod, VERSION)
         if entry then
           local row = rowFor(entry.id)
           local cat = row and row.cat or "----"
-          put(("%-6s"):format(cat:sub(1, 6)), 1, y)
+          put(cat:sub(1, 6), 1, y)
           put(tostring(self:moveName(entry) or entry.id):sub(1, 12), 8, y)
         else
           put("-", 8, y)
@@ -1840,7 +1850,9 @@ local function kcGold(mod, VERSION)
           elseif input:wasPressed("down") then self.kcCursor = cursorOf(self) % n + 1
           end
           return
-        elseif self.page == GREEN and input:wasPressed("right") then
+        elseif self.page == GREEN and (input:wasPressed("right") or input:wasPressed("a")) then
+          -- A walks the same path as right (stock A on GREEN went straight
+          -- to BLUE, skipping this page -- reported from device)
           self.page = KC_PAGE; self.kcCursor = 1
           return
         elseif self.page == BLUE and input:wasPressed("left") then
@@ -1863,10 +1875,15 @@ local function kcGold(mod, VERSION)
       return { TINT, TINT, TINT, { 0, 0, 0 } }
     end
 
+    -- Four dots in READING order -- pink, green, contest, blue -- so the
+    -- squares match the path right/A walk (the contest page sits third;
+    -- 0.33.0 drew it as a fourth dot after blue, which lied about the order).
+    -- Drawn whole rather than chained: the stock routine places blue at 17.
     Gen2Summary.drawPageIndicators = function(self)
-      O.drawPageIndicators(self)
-      -- a fourth dot, in MOVES' colour, past the stock three at 13/15/17
-      self:drawPageSquare(19, 5, self.page == KC_PAGE, SQUARE)
+      self:drawPageSquare(13, 5, self.page == 1, PINK_SQUARE)
+      self:drawPageSquare(15, 5, self.page == GREEN, GREEN_SQUARE)
+      self:drawPageSquare(17, 5, self.page == KC_PAGE, SQUARE)
+      self:drawPageSquare(19, 5, self.page == BLUE, BLUE_SQUARE)
     end
 
     Gen2Summary.drawPanel = function(self)
@@ -1875,7 +1892,9 @@ local function kcGold(mod, VERSION)
       Chrome.clear()
       self:drawPageBackground()
       self:drawUpperHalf()
-      self:drawPlacements(self:kcContestPlacements())
+      for _, e in ipairs(self:kcContestPlacements()) do
+        Chrome.printThrough(e.text, e.x, e.y, PAL)
+      end
       local moves = self:moveList()
       local c = cursorOf(self)
       if moves[c] then
@@ -3762,7 +3781,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.4"
+  local VERSION = "0.34.5"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

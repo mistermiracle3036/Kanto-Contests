@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.34.5
+The CONTEST MOVES page, tidied.
+
+- Its text sits on the page colour like every other summary page,
+  instead of on white cells.
+- It has its own colour -- the contest panel's yellow -- and the page
+  dots read pink, green, yellow, blue in the order you actually visit
+  them. The contest page is third; the stats page is fourth.
+- A follows that path too: MOVES -> CONTEST MOVES -> stats, the same as
+  the right arrow. Before, A skipped the contest page.
+
 ## 0.34.4
 
 - You stay put while the crowd's hearts pop for a coordinator on stage.

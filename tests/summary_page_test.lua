@@ -110,6 +110,16 @@ do
   T.eq(menu.page, Summary.BLUE_PAGE, "A on the contest page is the stats page, like right")
 end
 
+do  -- A walks the same path as right (0.34.5: it used to skip the contest page)
+  local menu = open({ "THUNDERPUNCH" }, Summary.PINK_PAGE)
+  press(menu, "a")
+  T.eq(menu.page, Summary.GREEN_PAGE, "A: status -> MOVES")
+  press(menu, "a")
+  T.eq(menu.page, 4, "A: MOVES -> CONTEST MOVES (third in the path)")
+  press(menu, "a")
+  T.eq(menu.page, Summary.BLUE_PAGE, "A: CONTEST MOVES -> stats (fourth)")
+end
+
 do  -- the stock cycle is otherwise untouched
   local menu = open({ "THUNDERPUNCH" }, Summary.PINK_PAGE)
   press(menu, "right")
@@ -133,7 +143,7 @@ do
   press(menu, "right")
   local t = texts(menu)
   T.check(t:find("CONTEST MOVES", 1, true), "title present")
-  T.check(t:find("COOL  |THUNDERPUNCH", 1, true), "THUNDERPUNCH is listed as COOL")
+  T.check(t:find("COOL|THUNDERPUNCH", 1, true), "THUNDERPUNCH is listed as COOL")
   T.check(t:find("BEAUTY|FIRE_PUNCH", 1, true), "FIRE_PUNCH is listed as BEAUTY")
   T.check(t:find("|-|", 1, true) or t:find("|-$"), "the empty fourth slot prints a dash")
   T.check(t:find("A highly", 1, true), "the cursor move's effect text is shown (line 1)")
