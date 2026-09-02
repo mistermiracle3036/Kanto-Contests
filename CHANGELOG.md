@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.34.24
+
+- No more ding. The first-round hearts still pop one at a time round
+  the room, and the crowd applauds over them, as it did before the
+  ding was tried. HEARTS POP still offers ALL AT ONCE.
+
 ## 0.34.23
 
 - The heart ding is very tinny now, like a bell through a tiny

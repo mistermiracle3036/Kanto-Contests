@@ -45,10 +45,7 @@
   assets or data from those games are included. All tile art
   (`assets/contest_tiles.png`) is original to this mod: three 8x8
   flat-colour tiles (wall, floor, stage rug) drawn programmatically for
-  the Contest Hall. So is `assets/ding.wav`, the crowd's heart ding: a
-  pulse-wave bell synthesized by the mod's own script
-  (`tests/audio/make_ding.py`), not a recording or a rendering of any
-  game sound.
+  the Contest Hall.
 - This mod is released under the MIT licence (see `LICENSE`). That
   licence covers this mod's own code and its original art only — it
   makes no claim over ROM-derived material or Nintendo trademarks,

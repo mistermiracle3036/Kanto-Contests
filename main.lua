@@ -2852,71 +2852,21 @@ local function kcGold(mod, VERSION)
     if heartMode() == "burst" then return 70 + n * 12 end
     return 30 + (n - 1) * HEART_GAP + 50 + 20
   end
-  -- the world the hearts are popping in, so tickHearts can ring the ding
-  local kcHeartsWorld = nil
-
-  -- The ding, an octave down (0.34.20: "OK but too high"). The engine's
-  -- own pitched path (Sound.playMove) takes the cart's wFrequencyModifier,
-  -- a raw register offset, not an interval -- so instead the native ting
-  -- is played once through Sound.play (which builds and caches its LOVE
-  -- source), that source is CLONED, and the clone runs at half speed:
-  -- exactly one octave, same timbre. The clone is ours alone, so the
-  -- vanilla ting (and the engine's sfx cache) keep their pitch.
-  local HEART_DING_PITCH = 0.25   -- two octaves down (0.34.20 was 0.5; 'lower another octave', 0.34.22)
-  local HEART_DING_NAMES = { "Sfx_GlassTing", "Sfx_Tingle", "Sfx_Menu" }
-  local kcDing = nil    -- { name = <sfx name>, src = <cloned source> }
-  local function ringDing(w)
-    local data = w and w.game and w.game.data
-    local okS, Sound = pcall(require, "src.core.Sound")
-    if not (data and okS and Sound and Sound.play and w.sfxIdNamed) then return end
-    -- the mod's own tinny ding, if the asset registered (0.34.23)
-    if data.audio and data.audio.sfx and data.audio.sfx.SFX_KC_DING then
-      pcall(Sound.play, data, "SFX_KC_DING")
-      return
-    end
-    -- Otherwise the game's own ting, slowed: Crystal's cache names it
-    -- Sfx_GlassTing; Gold's sfxOrder has no such name, so fall through the
-    -- nearest tings it does have.
-    local name
-    for _, cand in ipairs(HEART_DING_NAMES) do
-      if w:sfxIdNamed(cand) then name = cand break end
-    end
-    if not name then return end
-    if not (kcDing and kcDing.name == name and kcDing.src) then
-      local ok, src = pcall(Sound.play, data, name)
-      if not (ok and src) then return end
-      pcall(src.stop, src)                    -- the native-pitch play, cut
-      local okC, clone = pcall(src.clone, src)
-      if okC and clone then
-        pcall(clone.setPitch, clone, HEART_DING_PITCH)
-        kcDing = { name = name, src = clone }
-      else
-        -- no clone on this source: ring it at native pitch rather than
-        -- not at all (the harness's stub, or a streaming source)
-        kcDing = { name = name, src = src }
-      end
-    end
-    pcall(kcDing.src.stop, kcDing.src)
-    pcall(kcDing.src.play, kcDing.src)
-  end
 
   local function popHearts(world, n)
     local mode = heartMode()
-    -- ALL AT ONCE: the crowd claps as its hearts go up -- coordinators'
-    -- and the player's alike. SFX_KC_APPLAUSE is klankbeeld's clip; with
-    -- no clip registered Sound.play is a silent no-op.
-    -- AROUND ROOM: no applause here -- the Gen 2 sound path is one SFX
-    -- channel (Sound.play replaces curSfx), so the dings would cut it
-    -- off mid-clap anyway. The applause still plays for a wild crowd on
-    -- the contest screen.
+    -- The crowd claps as its hearts go up, in either mode --
+    -- coordinators' and the player's alike. SFX_KC_APPLAUSE is
+    -- klankbeeld's clip; with no clip registered Sound.play is a silent
+    -- no-op. (0.34.19-0.34.23 rang a ding per heart in AROUND ROOM mode
+    -- instead; the developer preferred just the applause, 0.34.24.)
     local data = world and world.game and world.game.data
-    if mode == "burst" and data and (n or 0) > 0 then
+    if data and (n or 0) > 0 then
       local okS, Sound = pcall(require, "src.core.Sound")
       if okS and Sound and Sound.play then pcall(Sound.play, data, "SFX_KC_APPLAUSE") end
     end
     local crowd = castOnStage(world, false)
     kcHearts = {}
-    kcHeartsWorld = world
     if #crowd == 0 or (n or 0) <= 0 then return end
     local order = {}
     for i = 1, #crowd do order[i] = crowd[i] end
@@ -2947,7 +2897,6 @@ local function kcGold(mod, VERSION)
           -- each stays up until the walk is over, so the last frame
           -- shows every heart at once and the count can be read
           left   = (n - i) * HEART_GAP + 50,
-          ding   = true,
         }
       end
       return
@@ -2973,14 +2922,6 @@ local function kcGold(mod, VERSION)
     if #kcHearts == 0 then return end
     local keep = {}
     for _, h in ipairs(kcHearts) do
-      -- AROUND ROOM: one short ding per heart, the frame it appears.
-      -- Sfx_GlassTing is Gold's own "ting" (resolved by NAME through
-      -- sfxOrder; if the cache has no such name nothing plays and the
-      -- hearts still walk).
-      if h.ding and not h.dinged and h.delay <= 0 then
-        h.dinged = true
-        ringDing(kcHeartsWorld)
-      end
       if h.delay > 0 then
         h.delay = h.delay - 1
         keep[#keep + 1] = h
@@ -3565,20 +3506,6 @@ local function kcGold(mod, VERSION)
       end)
       if not okR then mod.log:warn("kc applause sfx: %s", tostring(err)) end
     end
-    -- The heart ding (0.34.23). ORIGINAL: a pulse wave at A#5 synthesized
-    -- by tests/audio/make_ding.py, then made tinny -- nothing rendered
-    -- from the cart (the notices promise no ROM-derived audio). Without
-    -- the file, ringDing falls back to a slowed clone of the game's own
-    -- ting, which is the player's data and never ships.
-    do
-      local okA, body = pcall(function() return mod:read("assets/ding.wav") end)
-      if okA and body then
-        local okR, err = pcall(function()
-          mod.content.sfx:register("SFX_KC_DING", { file = mod.assets:path("assets/ding.wav") })
-        end)
-        if not okR then mod.log:warn("kc ding sfx: %s", tostring(err)) end
-      end
-    end
   end
 
   mod.content.screens:register("KantoContestStage", {
@@ -4017,7 +3944,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.23"
+  local VERSION = "0.34.24"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
