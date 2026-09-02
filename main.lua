@@ -1412,7 +1412,10 @@ local function kcGold(mod, VERSION)
   -- headless harness), so both judge the same field the same way.
   local function buildContestState(data, kind, info, entrant, rng)
     local rank = info.kcRank or "NORMAL"
-    local hearts = kcIntroHearts(entrant, kind, rank)
+    -- the stage's number when there was a stage (kcPlayerHearts, the same
+    -- kcIntroHearts the crowd showed); computed here only for a headless
+    -- judging with no stage before it
+    local hearts = info.kcPlayerHearts or kcIntroHearts(entrant, kind, rank)
     local staged = info.kcAppealHearts or {}
     local rivals = info.kcRivals or {}
     local Mon = require("src.battle.gen2.Mon")
@@ -2833,6 +2836,9 @@ local function kcGold(mod, VERSION)
   -- before this the battle re-rolled its own rival hearts and the whole
   -- scene on stage decided nothing.
   local appealHearts = {}
+  -- the player's own stage hearts (kcIntroHearts, shown by the crowd), so
+  -- the judging starts from the number the room actually saw
+  local stagePlayerHearts = nil
   -- who the three coordinators were, so the judging fights the same
   -- people the stage introduced (it used to fight PIPER/REX/FIONA
   -- whoever was actually standing there)
@@ -3111,8 +3117,15 @@ local function kcGold(mod, VERSION)
         -- other three got: ask, hearts, then the number.
         world:showText("Folks, what do\nyou think?", function()
           world.pokePic = nil
-          local mineRnd = seededRng(contestSeed() + 991)
-          local myHearts = mineRnd(5) + 1
+          -- The crowd's number for the player is the Gen 3 introduction
+          -- score -- condition, sheen, scarf -- NOT a roll. This was
+          -- mineRnd(5)+1 while the judging silently used kcIntroHearts,
+          -- so a dull TEDDIURSA drew 4-5 hearts on stage and then went
+          -- LAST in the appeal order (both reported from device). One
+          -- number now, computed here and handed on as kcPlayerHearts.
+          local myHearts = mine and kcIntroHearts(mine, pendingContest or "COOL",
+                                                  pendingRank or "NORMAL") or 0
+          stagePlayerHearts = myHearts
           popHearts(world, myHearts)
           waitFrames(heartsHold(myHearts), function()
             world:showText(("%s scores\n%d hearts!"):format(name, myHearts), next_)
@@ -3540,6 +3553,7 @@ local function kcGold(mod, VERSION)
     local info = {
       kcRank = rank, kcAppealHearts = appealHearts, kcRivals = stageRivals,
       kcPlayerName = (sp and sp.name) or "YOU",
+      kcPlayerHearts = stagePlayerHearts,
     }
     -- the engine wants rng(lo, hi) / rng(n); seededRng gives 1..n, so wrap
     -- it, seeded off this contest so a replay judges the same field
@@ -3555,9 +3569,13 @@ local function kcGold(mod, VERSION)
       world:showText("KC error: the\ncontest failed")
       return
     end
+    local function pushJudging()
     mod.ui.push(game, "KantoContestStage", {
       state = state, kind = kind, rank = rank,
       onDone = function(place)
+        -- the gym theme played into the judging; the hall gets its own
+        -- song back before the closing line is read
+        pcall(world.playMapMusic, world)
         -- Off the stage and back to the lobby afterwards, win or lose:
         -- the routine is over, so standing on an empty stage is not an
         -- ending. Nested in the closing line's callback so the box is
@@ -3576,6 +3594,27 @@ local function kcGold(mod, VERSION)
         world:showText(("Magnificent!\nTruly %s!"):format(kind), backToLobby)
       end,
     })
+    end
+    -- An important battle's opening, before the judging (0.34.25): the
+    -- gym-leader theme starts and the cart's trainer-battle transition
+    -- runs -- the triple flash and the wipe (Gen2BattleTransition;
+    -- PlayBattleMusic runs BEFORE DoBattleTransition on the cart too,
+    -- which is why the song is already going while the screen flashes).
+    -- Equal levels pick the plain trainer wipe. If the transition cannot
+    -- take the screen (no map up, a headless run) the judging comes
+    -- straight in, exactly as before.
+    pcall(function()
+      local Music = require("src.core.Music")
+      Music.play(game.data, "Music_JohtoGymBattle", true, { reason = "battle" })
+    end)
+    local lvl = KC_RANK_LEVEL[rank] or KC_RANK_LEVEL.NORMAL
+    local pushed = false
+    local okT, took = pcall(world.pushBattleTransition, world,
+      { player = { level = lvl }, enemy = { level = lvl } }, { trainer = true },
+      function()
+        if not pushed then pushed = true; pushJudging() end
+      end)
+    if not (okT and took) and not pushed then pushed = true; pushJudging() end
   end
 
   -- The lobby judge TAKES THE ENTRY; he does not judge it here. Once a
@@ -3944,7 +3983,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.24"
+  local VERSION = "0.34.25"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.34.25
+
+- Your Pokemon's stage hearts now come from its condition, sheen and
+  scarf -- the same score the judging uses -- instead of a random roll.
+  A dull Pokemon draws few hearts and a pampered one draws many, and
+  what the crowd showed is what decides the first appeal order (most
+  hearts goes first, as in Ruby/Sapphire). Before, the stage rolled one
+  number and the judging quietly used another.
+- Long names fit: MISDREAVUS and friends no longer lose their last
+  letter on the judging panels or in the commentary.
+- Picking a move clicks, the same sound as the battle menu.
+- "Now -- the judging!" opens like a big battle: the gym-leader theme
+  starts and the screen flashes and wipes before the appeals. The hall's
+  own music returns afterwards.
+
 ## 0.34.24
 
 - No more ding. The first-round hearts still pop one at a time round

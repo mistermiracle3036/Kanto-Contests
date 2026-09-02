@@ -115,12 +115,27 @@ function S:queueIntro()
   self.phase = "intro"
 end
 
--- nickname / trainer for a row
+-- nickname / trainer for a row. A Gen 2 name is up to 10 glyphs
+-- (MISDREAVUS, SUDOWOODO) and the 9-clip cut the last letter off on
+-- device; every line built from `nick` below is budgeted for 10, and the
+-- tall panel's "NICK/TRAINER" line (18 glyphs) leaves the trainer 7 --
+-- which every vanilla trainer name and the player's name fit.
 function S:names(ci)
   local c = self.s.c[ci]
   local mon = c.mon or {}
   local nick = mon.nickname or mon.name or mon.species or "?"
-  return clip(nick, 9), clip(c.name, 8)
+  return clip(nick, 10), clip(c.name, 7)
+end
+
+-- The battle menu's own click on a pick: BattleState.lua plays
+-- Sfx_ReadText2 on A in its move list, and this menu was silent.
+function S:click()
+  local data = self.game and self.game.data
+  local okS, Sound = pcall(require, "src.core.Sound")
+  if data and okS and Sound and Sound.play and data.audio and data.audio.sfx
+     and data.audio.sfx.Sfx_ReadText2 then
+    pcall(Sound.play, data, "Sfx_ReadText2")
+  end
 end
 
 function S:moveName(id)
@@ -160,17 +175,17 @@ function S:narrate(ci, ev)
     elseif k == "condition_up" then t = ("%s looks\nsharper!"):format(nick)
     elseif k == "condition_lost" then t = ("%s looks\nrattled."):format(self:names(e.who))
     elseif k == "crowd_up" then
-      -- dialogue-ok: nick is clipped to 9 -> 18
-      t = ("%s's appeal\nwent over great."):format(nick); crowd = true
+      -- dialogue-ok: nick is clipped to 10 -> 16
+      t = ("%s's act\nwent over great."):format(nick); crowd = true
     elseif k == "crowd_wild" then t = "The crowd goes\nwild! +6 hearts!"; crowd = true
     elseif k == "crowd_down" then
-      -- dialogue-ok: nick is clipped to 9 -> 18
-      t = ("%s's appeal\ndid not go over."):format(nick); crowd = true
+      -- dialogue-ok: nick is clipped to 10 -> 16
+      t = ("%s's act\ndid not go over."):format(nick); crowd = true
     elseif k == "crowd_frozen" then t = "The crowd stays\nquiet."; crowd = true
     elseif k == "scored" then
       local h = e.hearts or 0
       self.turnHearts[ci] = h
-      -- dialogue-ok: nick is clipped to 9 -> 16
+      -- dialogue-ok: nick is clipped to 10 -> 17
       if h <= 0 then t = ("%s failed\nto stand out..."):format(nick) end
     end
     if t then self:say(t) end
@@ -344,6 +359,7 @@ function S:update(_dt)
     if self:pressed("up") then self.menuCursor = (self.menuCursor - 2) % n + 1
     elseif self:pressed("down") then self.menuCursor = self.menuCursor % n + 1
     elseif self:pressed("a") then
+      self:click()
       local m = moves[self.menuCursor]
       if m and (m.pp == nil or m.pp > 0) then
         if m.pp then m.pp = m.pp - 1 end
@@ -599,7 +615,7 @@ function S:drawPanel()
       -- 80px wide, 36 tall: nick / trainer stacked, hearts, then the bar
       if m.Font then
         rgb(S.C.ink)
-        m.Font.draw(nick, x0 + 3, y + 2)
+        m.Font.draw(nick, x0 + 1, y + 2)        -- 10 glyphs = the panel's 80px
         m.Font.draw("/" .. trainer, x0 + 3, y + 11)
       end
       for i = 1, math.min(8, math.abs(h)) do drawHeart(x0 + 3 + (i - 1) * 9, y + 21, color) end
