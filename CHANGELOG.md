@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.34.21
+
+- Ball Guy is back in the crowd, with his outline: the shared sprite
+  was repaired, so the red blob is a proper Ball Guy now.
+
 ## 0.34.20
 
 - The heart ding is an octave lower. Same sound, half the pitch; the

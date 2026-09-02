@@ -31,7 +31,7 @@ def chunks(path):
 # Sheets known bad and BENCHED (not in any pool) until sprites/canonical is
 # repaired by the mod checker. Reported as WARN, not FAIL, so the check stays
 # green while the state is on record. Remove the name when canonical is fixed.
-BENCHED = {"ballguy.png": "tRNS on shade 0 -- REQUESTS row 10"}
+BENCHED = {}   # ballguy.png was here 0.34.16-0.34.20; canonical fixed 2026-09-02
 
 bad = 0
 for p in sorted(glob.glob(os.path.join(assets, "*.png"))):

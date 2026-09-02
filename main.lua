@@ -2176,19 +2176,16 @@ local function kcGold(mod, VERSION)
     "KC_AJ", "KC_PIERS",
   }
   local CAST_CUSTOM_CROWD = {
-    -- KC_BALLGUY is OUT until sprites/canonical/ballguy.png is fixed. It is
-    -- the "red blob" the developer photographed in seat (1,8) (0.34.15,
-    -- seed 24618 -- tests/seat_replay.py named him from the screenshot).
-    -- The PNG carries a tRNS chunk making shade 0 transparent; the engine
-    -- keeps alpha-0 pixels transparent BEFORE it classifies shades
-    -- (SpriteRenderer.lua getObpImage: `if a == 0 then return ...`), so
-    -- his black outline and legs vanish and only the red dome, cream
-    -- face and red body draw. The only sheet of 61 with that chunk;
-    -- tests/asset_png_check.py now fails on it. Canonical is the mod
-    -- checker's file -- see the REQUESTS row -- so the mod copy is not
-    -- patched here (it must stay byte-identical to canonical).
+    -- KC_BALLGUY was the "red blob" of 0.34.15 (seat (1,8), seed 24618,
+    -- named by tests/seat_replay.py): his PNG carried a tRNS chunk that
+    -- made shade 0 transparent, and the engine keeps alpha-0 pixels
+    -- transparent BEFORE it classifies shades (SpriteRenderer.lua
+    -- getObpImage), so his outline and legs never drew. Canonical was
+    -- repaired by the checker (REQUESTS row 10, 2026-09-02) and this copy
+    -- is byte-identical to it again; he is back as of 0.34.21.
+    -- tests/asset_png_check.py fails on that chunk from now on.
     "KC_BREEDER", "KC_ROCKET_EXECUTIVE", "KC_CHEF", "KC_EUSINE", "KC_LOOKER",
-    "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BILL",
+    "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BALLGUY", "KC_BILL",
     "KC_INGO", "KC_AGATHA", "KC_ARCHER", "KC_ARIANA", "KC_GIOVANNI",
     "KC_PETREL", "KC_PROTON", "KC_OFFICER_JENNY", "KC_RUIN_MANIAC",
   }
@@ -3956,7 +3953,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.20"
+  local VERSION = "0.34.21"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
