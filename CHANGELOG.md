@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.34.22
+
+- Gym leaders and Elite Four in the crowd wear their real colours:
+  Jasmine red not green, Misty red not blue, Koga blue not brown, and
+  so on for eleven sprites whose sheet default the game never shows.
+  Each seat now carries the same palette override the game's own maps
+  use for that character.
+- The heart ding drops another octave (two below the game's ting now).
+  It runs at quarter speed, so it rings a little longer too.
+
 ## 0.34.21
 
 - Ball Guy is back in the crowd, with his outline: the shared sprite
