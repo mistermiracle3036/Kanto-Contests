@@ -67,8 +67,7 @@
   yell) and the clapping from 3.0 s, the latter raised to sit just under the
   former -- mixed to mono and run through a bitcrusher: resampled to
   11025 Hz with every sample held twice (about 5.5 kHz effective),
-  soft-clipped, reduced to 8 amplitude levels (3-bit), the last 0.6
-  seconds faded after the reduction, then equalised: a gentle cut below
-  250 Hz and around 900 Hz and a small lift above 2.5 kHz. The original is 8.8 seconds,
+  soft-clipped, reduced to 8 amplitude levels (3-bit), and the last 0.6
+  seconds faded after the reduction. The original is 8.8 seconds,
   stereo, 48 kHz, 24-bit. (0.34.8-0.34.10 shipped a different clip,
   Freesound #478411 by thaighaudio, CC0; it is no longer included.)

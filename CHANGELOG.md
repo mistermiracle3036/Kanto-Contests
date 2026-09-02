@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.34.18
+
+- The applause is 0.34.12's, exactly as it was -- the developer's
+  pick. The EQ tried in 0.34.17 is dropped.
+
 ## 0.34.17
 
 - The applause goes back to 0.34.12's -- the one that was closest to

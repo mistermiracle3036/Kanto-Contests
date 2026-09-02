@@ -9,8 +9,8 @@ the author is in THIRD_PARTY_NOTICES.md.
 
 Kept versions (tests/ is excluded from the zip, so these never ship):
   applause_0.34.12_keeper.wav  --hold 2 --bits 3 --fade 0.6 --curve 2 --gain 0.97
-    (recovered from git c104b30; the developer's pick, 2026-09-02. The SHIPPING
-    clip from 0.34.17 is this file through tests/audio/eq_applause.py.)
+    (recovered from git c104b30; the developer's pick, 2026-09-02. This IS the
+    shipping clip from 0.34.18 on -- byte-identical. 0.34.17's EQ was dropped.)
   applause_0.34.13_keeper.wav  --hold 3 --bits 2 --fade 0.6 --curve 2 --gain 0.80
   applause_0.34.15.wav         --hold 3 --bits 2 --drive 3.2 --fade 1.1 --curve 1.5 --gain 0.80
     (0.34.14 was hold 4: the yell's 745 Hz mirrored to a 2 kHz "chime", a third

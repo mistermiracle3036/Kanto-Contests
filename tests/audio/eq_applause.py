@@ -13,7 +13,9 @@ loudness does not move, only the balance.
 Kept versions (tests/ never ships):
   applause_0.34.12_keeper.wav  the recovered 0.34.12 clip, untouched
                                (git c104b30 == Phone Test Builds zip, md5 f4185cb85b)
-  applause_0.34.17.wav         that clip through this script's defaults
+  applause_0.34.17.wav         that clip through this script's defaults --
+                               tried once and DROPPED in 0.34.18; the plain
+                               0.34.12 clip ships. Kept for the next request.
 """
 import argparse, math, os, wave
 import numpy as np
