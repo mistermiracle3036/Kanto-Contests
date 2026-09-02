@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.34.20
+
+- The heart ding is an octave lower. Same sound, half the pitch; the
+  game's own ting elsewhere is unchanged.
+
 ## 0.34.19
 
 - First-round hearts now walk round the room one at a time, clockwise

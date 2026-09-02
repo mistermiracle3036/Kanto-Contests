@@ -2814,6 +2814,45 @@ local function kcGold(mod, VERSION)
   -- the world the hearts are popping in, so tickHearts can ring the ding
   local kcHeartsWorld = nil
 
+  -- The ding, an octave down (0.34.20: "OK but too high"). The engine's
+  -- own pitched path (Sound.playMove) takes the cart's wFrequencyModifier,
+  -- a raw register offset, not an interval -- so instead the native ting
+  -- is played once through Sound.play (which builds and caches its LOVE
+  -- source), that source is CLONED, and the clone runs at half speed:
+  -- exactly one octave, same timbre. The clone is ours alone, so the
+  -- vanilla ting (and the engine's sfx cache) keep their pitch.
+  local HEART_DING_PITCH = 0.5
+  local HEART_DING_NAMES = { "Sfx_GlassTing", "Sfx_Tingle", "Sfx_Menu" }
+  local kcDing = nil    -- { name = <sfx name>, src = <cloned source> }
+  local function ringDing(w)
+    local data = w and w.game and w.game.data
+    local okS, Sound = pcall(require, "src.core.Sound")
+    if not (data and okS and Sound and Sound.play and w.sfxIdNamed) then return end
+    -- Crystal's cache names it Sfx_GlassTing; Gold's sfxOrder has no such
+    -- name, so fall through the nearest tings it does have.
+    local name
+    for _, cand in ipairs(HEART_DING_NAMES) do
+      if w:sfxIdNamed(cand) then name = cand break end
+    end
+    if not name then return end
+    if not (kcDing and kcDing.name == name and kcDing.src) then
+      local ok, src = pcall(Sound.play, data, name)
+      if not (ok and src) then return end
+      pcall(src.stop, src)                    -- the native-pitch play, cut
+      local okC, clone = pcall(src.clone, src)
+      if okC and clone then
+        pcall(clone.setPitch, clone, HEART_DING_PITCH)
+        kcDing = { name = name, src = clone }
+      else
+        -- no clone on this source: ring it at native pitch rather than
+        -- not at all (the harness's stub, or a streaming source)
+        kcDing = { name = name, src = src }
+      end
+    end
+    pcall(kcDing.src.stop, kcDing.src)
+    pcall(kcDing.src.play, kcDing.src)
+  end
+
   local function popHearts(world, n)
     local mode = heartMode()
     -- ALL AT ONCE: the crowd claps as its hearts go up -- coordinators'
@@ -2893,14 +2932,7 @@ local function kcGold(mod, VERSION)
       -- hearts still walk).
       if h.ding and not h.dinged and h.delay <= 0 then
         h.dinged = true
-        local w = kcHeartsWorld
-        -- Crystal's cache names it Sfx_GlassTing; Gold's sfxOrder has no
-        -- such name, so fall through the nearest tings it does have.
-        if w and w.playSfxNamed and w.sfxIdNamed then
-          for _, name in ipairs({ "Sfx_GlassTing", "Sfx_Tingle", "Sfx_Menu" }) do
-            if w:sfxIdNamed(name) then pcall(w.playSfxNamed, w, name) break end
-          end
-        end
+        ringDing(kcHeartsWorld)
       end
       if h.delay > 0 then
         h.delay = h.delay - 1
@@ -3924,7 +3956,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.19"
+  local VERSION = "0.34.20"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
