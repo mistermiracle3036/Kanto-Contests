@@ -3356,7 +3356,11 @@ local function kcGold(mod, VERSION)
     local okA, clip = pcall(function() return mod:read("assets/applause.ogg") end)
     if okA and clip then
       local okR, err = pcall(function()
-        mod.content.sfx:register("SFX_KC_APPLAUSE", { file = "assets/applause.ogg" })
+        -- Sound.newFileSource hands `file` to love.audio.newSource as-is, so
+        -- it must be the LOVE-resolvable form: mod.assets:path joins it onto
+        -- mod.path exactly as mod.assets:image does for love.graphics.newImage.
+        mod.content.sfx:register("SFX_KC_APPLAUSE",
+          { file = mod.assets:path("assets/applause.ogg") })
       end)
       if not okR then mod.log:warn("kc applause sfx: %s", tostring(err)) end
     end
@@ -3798,7 +3802,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.6"
+  local VERSION = "0.34.7"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

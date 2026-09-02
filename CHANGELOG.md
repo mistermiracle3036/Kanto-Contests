@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.34.7
+
+- The applause clip, once added, is looked for inside the mod's own folder.
+  (0.34.6 pointed at the wrong place; nothing was audible either way yet.)
+
 ## 0.34.6
 
 - When the crowd goes wild, the APPLAUSE box shows it: all five dots lit,
