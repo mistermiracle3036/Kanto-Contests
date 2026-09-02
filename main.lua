@@ -2797,22 +2797,79 @@ local function kcGold(mod, VERSION)
   -- whoever was actually standing there)
   local stageRivals = {}
 
+  -- Frames between one heart and the next in AROUND ROOM mode. Long
+  -- enough to read each one and hear its ding as a separate event.
+  local HEART_GAP = 12
+  local function heartMode()
+    local v = mod.options and mod.options:get("heart_pop")
+    if v ~= "burst" then return "seq" end
+    return "burst"
+  end
+  -- How long the appeal holds while n hearts pop -- the call sites used to
+  -- hardcode 70 + n * 12, which only fits the burst timing.
+  local function heartsHold(n)
+    if heartMode() == "burst" then return 70 + n * 12 end
+    return 30 + (n - 1) * HEART_GAP + 50 + 20
+  end
+  -- the world the hearts are popping in, so tickHearts can ring the ding
+  local kcHeartsWorld = nil
+
   local function popHearts(world, n)
-    -- the crowd claps as its hearts go up -- coordinators' and the
-    -- player's alike, since both pop through here. SFX_KC_APPLAUSE is the
-    -- 0.34.8 clip; with no clip registered Sound.play is a silent no-op.
+    local mode = heartMode()
+    -- ALL AT ONCE: the crowd claps as its hearts go up -- coordinators'
+    -- and the player's alike. SFX_KC_APPLAUSE is klankbeeld's clip; with
+    -- no clip registered Sound.play is a silent no-op.
+    -- AROUND ROOM: no applause here -- the Gen 2 sound path is one SFX
+    -- channel (Sound.play replaces curSfx), so the dings would cut it
+    -- off mid-clap anyway. The applause still plays for a wild crowd on
+    -- the contest screen.
     local data = world and world.game and world.game.data
-    if data and (n or 0) > 0 then
+    if mode == "burst" and data and (n or 0) > 0 then
       local okS, Sound = pcall(require, "src.core.Sound")
       if okS and Sound and Sound.play then pcall(Sound.play, data, "SFX_KC_APPLAUSE") end
     end
     local crowd = castOnStage(world, false)
     kcHearts = {}
+    kcHeartsWorld = world
     if #crowd == 0 or (n or 0) <= 0 then return end
-    -- spread across DISTINCT onlookers where there are enough of them, so
-    -- the count is readable at a glance rather than stacking on one head
-    local order, rnd = {}, seededRng(contestSeed() + n)
+    local order = {}
     for i = 1, #crowd do order[i] = crowd[i] end
+    if mode == "seq" then
+      -- A walk round the room: seats sorted by their angle about the
+      -- performer's mark, clockwise from the top-left corner (screen y
+      -- grows downward, so increasing atan2 IS clockwise on screen).
+      -- Ties broken by id so the same crowd always walks the same way.
+      local cx, cy = STAGE_MARK.x + 0.5, STAGE_MARK.y + 0.5
+      local function ringAngle(npc)
+        local a = math.atan2((npc.cellY or cy) - cy, (npc.cellX or cx) - cx)
+        a = a + 3 * math.pi / 4          -- top-left corner reads as zero
+        if a < 0 then a = a + 2 * math.pi end
+        return a
+      end
+      table.sort(order, function(p, q)
+        local ap, aq = ringAngle(p), ringAngle(q)
+        if ap ~= aq then return ap < aq end
+        return tostring(p.id) < tostring(q.id)
+      end)
+      -- n hearts over the ring, every k-th seat, so the walk covers the
+      -- whole room rather than bunching in one corner
+      local step = math.max(1, math.floor(#order / n))
+      for i = 1, n do
+        kcHearts[#kcHearts + 1] = {
+          entity = order[(((i - 1) * step) % #order) + 1],
+          delay  = (i - 1) * HEART_GAP,
+          -- each stays up until the walk is over, so the last frame
+          -- shows every heart at once and the count can be read
+          left   = (n - i) * HEART_GAP + 50,
+          ding   = true,
+        }
+      end
+      return
+    end
+    -- ALL AT ONCE (0.34.18): spread across DISTINCT onlookers where there
+    -- are enough of them, so the count is readable at a glance rather
+    -- than stacking on one head
+    local rnd = seededRng(contestSeed() + n)
     for i = #order, 2, -1 do
       local j = rnd(i)
       order[i], order[j] = order[j], order[i]
@@ -2820,7 +2877,7 @@ local function kcGold(mod, VERSION)
     for i = 1, n do
       kcHearts[#kcHearts + 1] = {
         entity = order[((i - 1) % #order) + 1],
-        delay  = (i - 1) * 6,   -- they pop in sequence, not all at once
+        delay  = (i - 1) * 6,   -- a quick stagger, read as one burst
         left   = 50,
       }
     end
@@ -2830,6 +2887,21 @@ local function kcGold(mod, VERSION)
     if #kcHearts == 0 then return end
     local keep = {}
     for _, h in ipairs(kcHearts) do
+      -- AROUND ROOM: one short ding per heart, the frame it appears.
+      -- Sfx_GlassTing is Gold's own "ting" (resolved by NAME through
+      -- sfxOrder; if the cache has no such name nothing plays and the
+      -- hearts still walk).
+      if h.ding and not h.dinged and h.delay <= 0 then
+        h.dinged = true
+        local w = kcHeartsWorld
+        -- Crystal's cache names it Sfx_GlassTing; Gold's sfxOrder has no
+        -- such name, so fall through the nearest tings it does have.
+        if w and w.playSfxNamed and w.sfxIdNamed then
+          for _, name in ipairs({ "Sfx_GlassTing", "Sfx_Tingle", "Sfx_Menu" }) do
+            if w:sfxIdNamed(name) then pcall(w.playSfxNamed, w, name) break end
+          end
+        end
+      end
       if h.delay > 0 then
         h.delay = h.delay - 1
         keep[#keep + 1] = h
@@ -2936,7 +3008,7 @@ local function kcGold(mod, VERSION)
           -- else would (reported from device -- they could walk off the line)
           kcHoldPlayer = true
           popHearts(world, hearts)
-          waitFrames(70 + hearts * 12, function()
+          waitFrames(heartsHold(hearts), function()
             kcHoldPlayer = false
             world:showText(("%s scores\n%d hearts!"):format(who, hearts), next_)
           end)
@@ -3022,7 +3094,7 @@ local function kcGold(mod, VERSION)
           local mineRnd = seededRng(contestSeed() + 991)
           local myHearts = mineRnd(5) + 1
           popHearts(world, myHearts)
-          waitFrames(70 + myHearts * 12, function()
+          waitFrames(heartsHold(myHearts), function()
             world:showText(("%s scores\n%d hearts!"):format(name, myHearts), next_)
           end)
         end)
@@ -3852,7 +3924,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.18"
+  local VERSION = "0.34.19"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -3890,6 +3962,14 @@ return function(mod)
   mod.options:define({
     { key = "show_banner", type = "toggle",
       label = "Show load banner", default = true },
+    -- 0.34.19: how the crowd's hearts pop in the first round. AROUND ROOM
+    -- walks them round the seats one at a time with a ding each; ALL AT
+    -- ONCE is exactly 0.34.18 (a quick stagger under the applause). The
+    -- option IS the revert -- flip it in the mod manager, no rebuild.
+    -- Entries are POSITIONAL: [1] display, [2] stored.
+    { key = "heart_pop", type = "choice", label = "HEARTS POP",
+      default = "seq",
+      choices = { { "AROUND ROOM", "seq" }, { "ALL AT ONCE", "burst" } } },
   })
 
   -- shared read-only exports, meaningful on both generations

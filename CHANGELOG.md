@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.34.19
+
+- First-round hearts now walk round the room one at a time, clockwise
+  from the top-left, with a short ding (the game's own glass ting) for
+  each, and every heart stays up until the walk is done so the count
+  still reads at the end. While they walk there is no applause -- the
+  game has one sound channel and the dings would cut it off.
+- Revert switch: MODS > Kanto Contests > HEARTS POP. ALL AT ONCE is
+  0.34.18's behaviour exactly, applause included. No rebuild needed.
+
 ## 0.34.18
 
 - The applause is 0.34.12's, exactly as it was -- the developer's
