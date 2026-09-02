@@ -2722,6 +2722,56 @@ local function kcGold(mod, VERSION)
     return (n:gsub("_", " "))
   end
 
+  -- Personal names for the generic trainer classes (0.34.27), so a
+  -- coordinator drawn as "a LASS" is somebody. Chosen by the developer
+  -- from the suite's MASTER IDEA INDEX; every one is a reference, kept
+  -- beside the name so later dialogue can be flavoured to it. The record
+  -- (and the parked names) is briefs/CONTEST_CLASS_NAMES.md -- change
+  -- both together. 7 glyphs at most: the judging panel gives a trainer
+  -- 7 next to a 10-letter POKeMON.
+  local KC_CLASS_NAMES = {
+    YOUNGSTER     = { "LUCAS", "HAL" },                     -- MOTHER 3; Infinite Jest
+    BUG_CATCHER   = { "ELLIOT", "NESS", "TIM" },            -- E.T.; EarthBound; Jurassic Park
+    LASS          = { "KIKI", "GERTIE", "SALLY" },          -- Kiki's Delivery Service; E.T.; Mad Men
+    TWIN          = { "MEI", "DINAH" },                     -- Totoro; Asteroid City
+    TEACHER       = { "JUNE", "MARIA" },                    -- Asteroid City; The Sound of Music
+    SUPER_NERD    = { "NEDRY", "PEMULIS", "TELLER" },       -- Jurassic Park; Infinite Jest; Oppenheimer
+    SCIENTIST     = { "OPPIE", "GRANT", "WU" },             -- Oppenheimer; Jurassic Park x2
+    PHARMACIST    = { "DOC", "CASSARD" },                   -- Inherent Vice; Umbrellas of Cherbourg
+    OFFICER       = { "GORDON", "MORETTI", "GARBER" },      -- Batman; Dog Day Afternoon; Pelham 123
+    BLACK_BELT    = { "TOMMY", "BRUCE", "FURIO" },          -- Raging Bull; Batman; The Sopranos
+    BIKER         = { "JAKE", "WALTER", "SLATER" },         -- Raging Bull; The Big Lebowski; Dazed and Confused
+    ROCKET        = { "PAULIE", "FREDO", "SAL" },           -- The Sopranos; The Godfather; Dog Day Afternoon
+    ROCKET_GIRL   = { "MEADOW", "MARTA", "JANICE" },        -- The Sopranos; Knives Out; The Sopranos
+    COOLTRAINER_M = { "ROGER", "BATOU", "JECHT" },          -- North by Northwest; Ghost in the Shell; FFX blitzball
+    COOLTRAINER_F = { "MOTOKO", "KATE", "RIKKU" },          -- Ghost in the Shell; Hawkeye; FFX
+    SAILOR        = { "AHAB", "NEMO", "TIDUS" },            -- Moby-Dick; 20,000 Leagues; FFX blitzball
+    FISHER        = { "QUINT", "NORMAN", "MANOLIN" },       -- Jaws; A River Runs Through It; Old Man and the Sea
+    ROCKER        = { "COSMO", "DON", "TOM" },              -- Singin' in the Rain x2; Nashville
+    BEAUTY        = { "HOLLY", "LINA", "JESSICA" },         -- Tiffany's; Singin' in the Rain; Roger Rabbit
+    POKEFAN_M     = { "HOWARD", "DONNY", "BEANE" },         -- Uncut Gems; The Big Lebowski; Moneyball
+    POKEFAN_F     = { "KATHY", "CONNIE", "KAY" },           -- Singin' in the Rain; The Godfather x2
+    GENTLEMAN     = { "LYNDON", "ELI", "BLANC" },           -- Barry Lyndon; Righteous Gemstones; Knives Out
+    GRAMPS        = { "VITO", "HARLAN", "FYODOR" },         -- The Godfather; Knives Out; Karamazov
+    GRANNY        = { "ZENIBA", "YUBABA", "SARABI" },       -- Spirited Away x2; The Lion King
+    SAGE          = { "ZOSIMA", "JIGO", "ALYOSHA" },        -- Karamazov; Princess Mononoke; Karamazov
+    ELDER         = { "RAFIKI", "KAMAJI", "OKKOTO" },       -- The Lion King; Spirited Away; Princess Mononoke
+    KIMONO_GIRL   = { "SAN", "LIN", "SEORAE" },             -- Princess Mononoke; Spirited Away; Decision to Leave
+    CLERK         = { "HULOT", "EMERY", "MO" },             -- PlayTime; Umbrellas of Cherbourg; WALL-E
+    GYM_GUIDE     = { "PETE", "OPAL", "ART" },              -- Moneyball; Nashville; Moneyball
+  }
+
+  -- The name a coordinator goes by: a class gets one of its names, fixed
+  -- for this contest and slot (seeded, so the lobby queue, the stage and
+  -- the judging all agree); named vanilla sprites and KC_* customs keep
+  -- prettyName.
+  local function castName(sprite, slot)
+    local base = tostring(sprite):match("^SPRITE_(.+)$")
+    local names = base and KC_CLASS_NAMES[base]
+    if not names or #names == 0 then return prettyName(sprite) end
+    return names[((contestSeed() + (slot or 0) * 7) % #names) + 1]
+  end
+
   local function speciesIndexOf(name)
     local data = mod.game and mod.game.data
     local rec = data and data.pokemon and data.pokemon[name]
@@ -2979,7 +3029,7 @@ local function kcGold(mod, VERSION)
   -- the crowd answers. Returns a list of steps for runSteps.
   local function appealSteps(world, npc, n)
     local sprite = npc.def and npc.def.sprite
-    local who = prettyName(sprite)
+    local who = castName(sprite, n)
     -- the partner is seeded off the contest too, so a given entrant
     -- brings the same POKeMON every time you meet that line-up
     local rnd = seededRng(contestSeed() + n * 17)
@@ -3985,7 +4035,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.26"
+  local VERSION = "0.34.27"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

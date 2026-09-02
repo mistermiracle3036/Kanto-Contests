@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.34.27
+
+- Coordinators drawn from the ordinary trainer classes have names now:
+  a LASS is KIKI, GERTIE or SALLY, a SAILOR is AHAB, NEMO or TIDUS, and
+  so on for every class -- two or three each, the same one for a given
+  contest from the lobby queue through the judging.
+
 ## 0.34.26
 
 - Picking a move looks like Ruby/Sapphire now: the four moves take
