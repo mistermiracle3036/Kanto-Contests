@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.34.26
+
+- Picking a move looks like Ruby/Sapphire now: the four moves take
+  the place of the score panels (name and category, a green name
+  when it would combo with your last move, grey when it is out of
+  PP), and the text box becomes a card about the highlighted move --
+  its appeal hearts, any jam, its combo role, and what its effect
+  does. The panels come back the moment you have chosen.
+- Revert switch: MODS > Kanto Contests > MOVE MENU > CLASSIC.
+
 ## 0.34.25
 
 - Your Pokemon's stage hearts now come from its condition, sheen and

@@ -86,6 +86,10 @@ function S.new(opts)
   self.rank = opts.rank or "NORMAL"
   self.onDone = opts.onDone
   self.judgeClass = opts.judgeClass or "GENTLEMAN"
+  -- "full": the move list takes the panel rows and the text box becomes
+  -- a card about the highlighted move (0.34.26); "classic": the list in
+  -- the text box over the panels, as 0.34.25 and earlier
+  self.moveMenu = opts.moveMenu or "full"
   self.isOpaque = true
   self.msgs = {}            -- queue of { text=, wait=bool }
   self.phase = "intro"      -- intro | menu | resolve | tally | done
@@ -569,6 +573,10 @@ function S:drawTextBox()
   if not m.Chrome then return end
   local G = love.graphics
   rgb({ 255, 255, 255 }); G.rectangle("fill", 0, 96, S.ARENA_W, 48)
+  if self.phase == "menu" and #self.msgs == 0 and self.moveMenu == "full" then
+    self:drawMoveInfo()
+    return
+  end
   if self.phase == "menu" and #self.msgs == 0 then
     m.Chrome.textbox(0, 12, 18, 4)
     local moves = self:playerMoves()
@@ -591,7 +599,98 @@ function S:drawTextBox()
   end
 end
 
+-- Picking a move, FULL INFO style (0.34.26, asked for from the device):
+-- the four panel rows become the move list and the text box a card
+-- about the highlighted move -- the Gen 3 arrangement, where the list
+-- shows name and category and a window under it explains the move.
+function S:menuMove()
+  local moves = self:playerMoves()
+  local i = math.min(self.menuCursor, math.max(1, #moves))
+  return moves[i], i, moves
+end
+
+-- The card, in the text box's 18x4 interior (tile rows 13-16):
+--   13  APPEAL and its hearts (one per 10 points, up to 8)
+--   14  JAM and its dark hearts, or the combo note: COMBO! when this move
+--       follows the one just performed (the JUDGE doubles it), STARTER
+--       for a combo opener, AFTER <move> for a finisher
+--   15-16  the effect's own two lines (the KC_CONTEST_EFFECTS text)
+function S:drawMoveInfo()
+  local m = self:mods()
+  if not m.Chrome then return end
+  m.Chrome.textbox(0, 12, 18, 4)
+  local mv = self:menuMove()
+  if not mv then return end
+  local row = self.s.moves[mv.id]
+  local eff = row and self.s.effects and self.s.effects[row.effect]
+  local appeal = eff and eff.appeal or 0
+  local jam = eff and eff.jam or 0
+  m.Chrome.print("APPEAL", 1, 13)
+  for i = 1, math.min(8, math.floor(appeal / 10)) do drawHeart(64 + (i - 1) * 9, 13 * 8 + 1, S.C.heart) end
+  local x = 1
+  if jam > 0 then
+    m.Chrome.print("JAM", 1, 14)
+    for i = 1, math.min(8, math.floor(jam / 10)) do drawHeart(40 + (i - 1) * 9, 14 * 8 + 1, S.C.heartJam) end
+    x = 5 + math.min(8, math.floor(jam / 10)) * 9 / 8 + 1
+  end
+  local prev = self.s.c[1].prevMove
+  local tag
+  if prev and self.E.isCombo(self.s, prev, mv.id) then tag = "COMBO!"
+  elseif row and row.starter then tag = "STARTER"
+  elseif row and row.after and row.after[1] and jam <= 0 then
+    -- dialogue-ok: "AFTER " is 6, the name clipped to 10 -> 16
+    tag = "AFTER " .. clip(self:moveName(row.after[1]), 10)
+  end
+  if tag then m.Chrome.print(tag, math.floor(x), 14) end
+  local text = eff and eff.text or ""
+  local a, b = tostring(text):match("^(.-)\n(.*)$")
+  m.Chrome.print(a or text, 1, 15)
+  if b then m.Chrome.print(b, 1, 16) end
+end
+
+-- The list, in the panel rows: cursor, move name, category. A move that
+-- would combo with the one just performed is printed in green; one with
+-- no PP left in grey.
+function S:drawMoveList()
+  local m = self:mods()
+  local G = love.graphics
+  local L = self.currentLayout or self:layout()
+  local _, cur, moves = self:menuMove()
+  local panelW = L.w - L.panelX
+  local prev = self.s.c[1].prevMove
+  for slot = 1, self.E.CONTESTANTS do
+    local x0, y = L.panelX, L.panelY + (slot - 1) * L.rowH
+    rgb(slot == cur and S.C.panelMine or S.C.panel)
+    G.rectangle("fill", x0, y, panelW, L.rowH)
+    rgb(S.C.panelLine); G.rectangle("line", x0 + 0.5, y + 0.5, panelW - 1, L.rowH - 1)
+    local mv = moves[slot]
+    if mv and m.Font then
+      local row = self.s.moves[mv.id]
+      local name = clip(self:moveName(mv.id), 10)
+      local cat = (row and row.cat or "----"):sub(1, 6)
+      local noPP = mv.pp ~= nil and mv.pp <= 0
+      local combo = prev and self.E.isCombo(self.s, prev, mv.id)
+      rgb(noPP and { 150, 150, 150 } or (combo and { 24, 120, 40 } or S.C.ink))
+      if L.name == "wide" then
+        m.Font.draw(name, x0 + 10, y + 4)
+        m.Font.draw(cat, x0 + 10, y + 16)
+      else
+        m.Font.draw(name, x0 + 12, y + 5)
+        m.Font.draw(cat, x0 + panelW - 6 * 8 - 4, y + 5)
+      end
+    end
+    if slot == cur then
+      rgb(S.C.ink)
+      local cy = y + math.floor(L.rowH / 2)
+      G.polygon("fill", x0 + 3, cy - 3, x0 + 3, cy + 3, x0 + 8, cy)
+    end
+  end
+end
+
 function S:drawPanel()
+  if self.phase == "menu" and #self.msgs == 0 and self.moveMenu == "full" then
+    return self:drawMoveList()
+  end
   local m = self:mods()
   local G = love.graphics
   local L = self.currentLayout or self:layout()

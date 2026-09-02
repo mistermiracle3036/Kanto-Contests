@@ -3526,6 +3526,7 @@ local function kcGold(mod, VERSION)
       return KCS.new({
         engine = KCE, state = opts.state, game = game,
         kind = opts.kind, rank = opts.rank,
+        moveMenu = opts.moveMenu,
         onDone = function(place, final)
           game.stack:pop()
           if opts.onDone then opts.onDone(place, final) end
@@ -3572,6 +3573,7 @@ local function kcGold(mod, VERSION)
     local function pushJudging()
     mod.ui.push(game, "KantoContestStage", {
       state = state, kind = kind, rank = rank,
+      moveMenu = mod.options:get("move_menu") or "full",
       onDone = function(place)
         -- the gym theme played into the judging; the hall gets its own
         -- song back before the closing line is read
@@ -3983,7 +3985,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.25"
+  local VERSION = "0.34.26"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -4029,6 +4031,12 @@ return function(mod)
     { key = "heart_pop", type = "choice", label = "HEARTS POP",
       default = "seq",
       choices = { { "AROUND ROOM", "seq" }, { "ALL AT ONCE", "burst" } } },
+    -- 0.34.26: FULL INFO puts the move list where the panels are and a
+    -- card about the highlighted move in the text box; CLASSIC is the
+    -- 0.34.25 menu (the list in the text box, panels showing).
+    { key = "move_menu", type = "choice", label = "MOVE MENU",
+      default = "full",
+      choices = { { "FULL INFO", "full" }, { "CLASSIC", "classic" } } },
   })
 
   -- shared read-only exports, meaningful on both generations
