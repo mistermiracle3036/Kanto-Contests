@@ -1,3 +1,4 @@
+import os
 """Regenerate briefs/CONTEST_COORDINATORS.md from Kanto-Contests/main.lua.
 
     python Kanto-Contests/tests/coordinator_table.py     (from anywhere)
@@ -45,10 +46,25 @@ def pretty(sprite):
     return re.sub(r"^SPRITE_(KC_)?", "", sprite).replace("_", " ")
 
 
+# The two right-hand columns are the DEVELOPER'S (contest types, signature)
+# and must survive a regeneration. 0.34.29's first regeneration wiped all
+# 21 filled rows because this script rebuilt the file from scratch; they
+# were recovered from git. Read them back from the existing file, keyed by
+# the coordinator's display name, before anything is written.
+kept = {}
+if os.path.exists(OUT):
+    for line in io.open(OUT, encoding="utf-8"):
+        if line.startswith("| ") and not line.startswith("| Coordinator") and not line.startswith("|---"):
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) >= 6:
+                kept[cells[0].replace("**", "").strip()] = (cells[4], cells[5])
+
+
 def row(sprite, group, odds):
     pool = P.get(sprite)
     mons = ", ".join(pool) if pool else "*(no pool -- draws from the general list)*"
-    return f"| {pretty(sprite)} | {group} | {odds} | {mons} |  |  |"
+    types, sig = kept.get(pretty(sprite), ("", ""))
+    return f"| {pretty(sprite)} | {group} | {odds} | {mons} | {types} | {sig} |"
 
 
 lines = [
@@ -60,14 +76,16 @@ lines = [
     f"**NORMAL: one face 65%, two 20%, three 5%, none 10%** (more at SUPER/HYPER/MASTER); each face is a custom rival 7 in 10 or a leader/E4 member 3 in 10, at most ONE leader per contest; the rest are trainer classes or named Johto faces**. Separately, **Larry appears in "
     f"1 contest of {larry_odds}**. Their POKeMON is drawn from the pool, seeded per contest, so "
     "the same coordinator can bring a different one next visit.\n",
-    "**The two blank columns are yours.** *Contest types* -- leave blank for any; or list "
+    "**The two right-hand columns are yours, and they are LIVE:** `python Kanto-Contests/tests/gen_coordinator_rules.py` "
+    "copies them into main.lua (KC_COORD_RULES) and its `--check` fails the build when they drift; this generator "
+    "keeps whatever you wrote in them. *Contest types* -- leave blank for any; or list "
     "COOL / BEAUTY / CUTE / SMART / TOUGH to restrict which contests this coordinator can "
     "turn up in. *Signature* -- write the one or two POKeMON they should ALWAYS bring, or "
     "leave blank to keep the pool.\n",
     "| Coordinator | Drawn from | Odds | POKeMON pool (today) | Contest types | Signature |",
     "|---|---|---|---|---|---|",
     f"| **LARRY** | own roll | 1 in {larry_odds} contests | "
-    + ", ".join(P.get("SPRITE_KC_LARRY", [])) + " |  |  |",
+    + ", ".join(P.get("SPRITE_KC_LARRY", [])) + f" | {kept.get('LARRY', ('', ''))[0]} | {kept.get('LARRY', ('', ''))[1]} |",
 ]
 for s in rival:
     lines.append(row("SPRITE_" + s, "custom rival", "famous-face slot, 7 in 10"))

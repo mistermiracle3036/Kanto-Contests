@@ -881,3 +881,8 @@ else, then set slots 1 and 2 (a quad slot is (cy%2)*2 + (cx%2) + 1).
   from KC_PARTNER_POOLS and the CAST_* lists; regenerate, do not hand-edit
   the left columns). Apply the answers to KC_PARTNER_POOLS and a new
   per-coordinator category filter in drawCoordinators.
+
+- Halls with a FIXED RANK per town (developer, 2026-09-02): when each town's contest hall
+  runs one rank, the lobby knows the rank before the queue is drawn and the
+  kcBestRank stopgap in KC_NAMED_FACES / drawCoordinators can go -- the hall's own
+  rank drives how many famous faces turn up, and the rank menu at the desk goes too.
