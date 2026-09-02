@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.34.28
+
+- Coordinators keep to their kind of contest, as decided on the
+  worksheet: Ash only enters COOL, TOUGH or SMART, Misty only BEAUTY,
+  CUTE or TOUGH, Super Nerds only SMART, and so on for 21 of them.
+  Someone you queued behind who is kept out of the category you then
+  chose turns out to have been queueing for a different contest.
+- Signature POKeMON: Whitney always brings MILTANK, Falkner PIDGEOTTO,
+  Erika VILEPLUME, and Blue one of BLASTOISE, ALAKAZAM or ARCANINE.
+
 ## 0.34.27
 
 - Coordinators drawn from the ordinary trainer classes have names now:
