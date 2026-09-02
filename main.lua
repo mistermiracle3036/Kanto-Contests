@@ -1675,6 +1675,191 @@ local function kcGold(mod, VERSION)
   end
 
   -- Belts around any engine-owned auxiliary path; goldAppeal bypasses both.
+  -- ------------------------------------------------------------------
+  -- CONTEST MOVES: a fourth summary page, between MOVES (green) and the
+  -- stats page (blue) -- Gen 3's "CONTEST MOVES" screen on Gold's summary.
+  -- Each move's category, its appeal and jam as hearts, and the effect
+  -- text for the move under the cursor.
+  --
+  -- Kanto Ribbons already wraps this screen's update and takes the WRAP
+  -- edge (A/right on BLUE, left on PINK) for its own page. Two mods on the
+  -- same edge collide -- whichever wraps last wins and the other page never
+  -- opens -- so this one takes the OTHER free edge: right off GREEN, left
+  -- off BLUE. The two sets of conditions are disjoint, so they compose in
+  -- either wrap order; tests/summary_page_test.lua installs a Ribbons-shaped
+  -- wrapper after this one and checks both still fire.
+  --
+  -- Extended IN PLACE rather than pushed as a separate screen (the Ribbons
+  -- route): the upper half -- picture, name, level, the page dots -- is the
+  -- summary's own and should stay put while the lower half changes, which
+  -- is exactly how the stock pages work. page == 4 is a value the stock code
+  -- never produces; every method that would fall through to PINK for an
+  -- unknown page is wrapped below.
+  --
+  -- Up/down move the cursor between the four moves on THIS page (Gen 3's
+  -- move screen scrolls the same way); party switching is one page left.
+  -- ------------------------------------------------------------------
+  local okSum, Gen2Summary = pcall(require, "src.ui.gen2.SummaryMenu")
+  if okSum and type(Gen2Summary) == "table" and Gen2Summary.update then
+    local Chrome = require("src.ui.gen2.Chrome")
+    local Font = require("src.render.Font")
+    Gen2Summary._kcOriginals = Gen2Summary._kcOriginals or {}
+    local O = Gen2Summary._kcOriginals
+    O.update = O.update or Gen2Summary.update
+    O.placements = O.placements or Gen2Summary.placements
+    O.drawPanel = O.drawPanel or Gen2Summary.drawPanel
+    O.drawPageIndicators = O.drawPageIndicators or Gen2Summary.drawPageIndicators
+    O.lowerColors = O.lowerColors or Gen2Summary.lowerColors
+    local GREEN = Gen2Summary.GREEN_PAGE or 2
+    local BLUE = Gen2Summary.BLUE_PAGE or 3
+    local KC_PAGE = 4
+    Gen2Summary.KC_CONTEST_PAGE = KC_PAGE
+    -- the page wears MOVES' green: it is the moves page, seen another way
+    local TINT = (Gen2Summary.PAGE_TINTS or {})[GREEN] or { 173, 255, 115 }
+    local SQUARE = (Gen2Summary.PAGE_PALETTES or {})[GREEN]
+
+    local function isEgg(mon) return type(mon) == "table" and mon.isEgg == true end
+    local function onPage(self)
+      return self.page == KC_PAGE and not self.moveDetail and not isEgg(self.mon)
+    end
+    local function cursorOf(self)
+      local n = math.max(1, #self:moveList())
+      local c = self.kcCursor or 1
+      if c < 1 then c = 1 elseif c > n then c = n end
+      self.kcCursor = c
+      return c
+    end
+    local function rowFor(id)
+      local row = id and KC_CONTEST_MOVES[id]
+      local fx = row and KC_CONTEST_EFFECTS[row.effect]
+      return row, fx
+    end
+
+    -- 8x6 hearts, drawn as pixels: Gold's font has no heart glyph
+    -- (briefs: gold-charmap-symbols), and a mod sprite sheet is more than
+    -- 48 pixels deserve. Appeal hearts are solid, jam hearts hollow.
+    local HEART = {
+      "01100110", "11111111", "11111111", "01111110", "00111100", "00011000",
+    }
+    local HEART_HOLLOW = {
+      "01100110", "10011001", "10000001", "01000010", "00100100", "00011000",
+    }
+    local function drawHeart(px, py, hollow)
+      local G = love.graphics
+      G.setColor(0, 0, 0, 1)
+      local bits = hollow and HEART_HOLLOW or HEART
+      for r = 1, #bits do
+        local line = bits[r]
+        for c = 1, #line do
+          if line:sub(c, c) == "1" then G.rectangle("fill", px + c - 1, py + r, 1, 1) end
+        end
+      end
+    end
+    local function drawHearts(count, tx, ty, hollow)
+      for i = 1, math.min(8, count) do drawHeart((tx + i - 1) * 8, ty * 8, hollow) end
+    end
+
+    -- Text for the lower half; hearts and the cursor are drawn, not placed.
+    -- Rows 8-17 are the page (StatsScreen_LoadGFX clears 10 rows). 20 tiles:
+    -- cursor at 0, category padded to 6 at col 1, name at col 8 (12 max).
+    Gen2Summary.kcContestPlacements = function(self)
+      local out = {}
+      local function put(text, x, y) out[#out + 1] = { text = text, x = x, y = y } end
+      put("CONTEST MOVES", 1, 8)
+      local moves = self:moveList()
+      for slot = 1, 4 do
+        local entry = moves[slot]
+        local y = 8 + slot
+        if entry then
+          local row = rowFor(entry.id)
+          local cat = row and row.cat or "----"
+          put(("%-6s"):format(cat:sub(1, 6)), 1, y)
+          put(tostring(self:moveName(entry) or entry.id):sub(1, 12), 8, y)
+        else
+          put("-", 8, y)
+        end
+      end
+      local cur = moves[cursorOf(self)]
+      local _, fx = rowFor(cur and cur.id)
+      put("APPEAL", 1, 13)
+      put("JAM", 1, 14)
+      if fx then
+        if (fx.appeal or 0) <= 0 then put("-", 8, 13) end
+        if (fx.jam or 0) <= 0 then put("-", 8, 14) end
+        local text = tostring(fx.text or "")
+        local a, b = text:match("^(.-)\n(.*)$")
+        put(a or text, 1, 15)
+        if b then put(b, 1, 16) end
+      elseif cur then
+        put("No contest data.", 1, 15)
+      end
+      return out
+    end
+
+    Gen2Summary.update = function(self, dt)
+      local input = self.game and self.game.input
+      if input and not self.moveDetail and not isEgg(self.mon) then
+        if self.page == KC_PAGE then
+          self:stepPicAnim()
+          local n = math.max(1, #self:moveList())
+          if input:wasPressed("b") then self:close()
+          elseif input:wasPressed("left") then self.page = GREEN
+          elseif input:wasPressed("right") or input:wasPressed("a") then self.page = BLUE
+          elseif input:wasPressed("up") then self.kcCursor = (cursorOf(self) - 2) % n + 1
+          elseif input:wasPressed("down") then self.kcCursor = cursorOf(self) % n + 1
+          end
+          return
+        elseif self.page == GREEN and input:wasPressed("right") then
+          self.page = KC_PAGE; self.kcCursor = 1
+          return
+        elseif self.page == BLUE and input:wasPressed("left") then
+          self.page = KC_PAGE; self.kcCursor = 1
+          return
+        end
+      end
+      return O.update(self, dt)
+    end
+
+    Gen2Summary.placements = function(self)
+      if not onPage(self) then return O.placements(self) end
+      local out = self:upperPlacements()
+      for _, e in ipairs(self:kcContestPlacements()) do out[#out + 1] = e end
+      return out
+    end
+
+    Gen2Summary.lowerColors = function(self)
+      if self.page ~= KC_PAGE then return O.lowerColors(self) end
+      return { TINT, TINT, TINT, { 0, 0, 0 } }
+    end
+
+    Gen2Summary.drawPageIndicators = function(self)
+      O.drawPageIndicators(self)
+      -- a fourth dot, in MOVES' colour, past the stock three at 13/15/17
+      self:drawPageSquare(19, 5, self.page == KC_PAGE, SQUARE)
+    end
+
+    Gen2Summary.drawPanel = function(self)
+      if not onPage(self) then return O.drawPanel(self) end
+      local wasBattle = Font.useBattleExtra(true)
+      Chrome.clear()
+      self:drawPageBackground()
+      self:drawUpperHalf()
+      self:drawPlacements(self:kcContestPlacements())
+      local moves = self:moveList()
+      local c = cursorOf(self)
+      if moves[c] then
+        Chrome.cursor(0, 8 + c)
+        local _, fx = rowFor(moves[c].id)
+        if fx then
+          drawHearts(math.floor((fx.appeal or 0) / 10), 8, 13, false)
+          drawHearts(math.floor((fx.jam or 0) / 10), 8, 14, true)
+        end
+      end
+      Font.useBattleExtra(wasBattle)
+      love.graphics.setColor(1, 1, 1, 1)
+    end
+  end
+
   mod.hooks:wrap("battle.accuracy", function(next_, ctx, ...)
     if type(ctx) == "table" and inContest(ctx.battle) then return true end
     return next_(ctx, ...)
@@ -3499,7 +3684,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.32.0"
+  local VERSION = "0.33.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

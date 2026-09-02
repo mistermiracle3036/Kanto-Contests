@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.33.0
+A CONTEST MOVES page in the summary.
+
+- Open any POKeMON's summary and press right from the MOVES page. Each
+  move's contest category is listed; move the cursor with up and down to
+  see that move's appeal hearts, jam hearts, and what it does in a
+  contest. Right again is the stats page, left is MOVES.
+- Sits alongside Kanto Ribbons' page, which stays where it was (past the
+  stats page).
+
 ## 0.32.0
 Every move has its contest data now.
 
