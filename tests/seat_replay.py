@@ -51,19 +51,29 @@ def draw_from(pool, used, rnd):
             used.add(pick); return pick
     return None
 
-def draw_coordinators(rnd, used):
+NAMED_FACES = {k: [int(x) for x in v.split(",")] for k, v in re.findall(r'(\w+) *= *\{ *([\d, ]+)\}', re.search(r'local KC_NAMED_FACES = \{(.*?)\n  \}', SRC, re.S).group(1))}
+BEST_RANK = "NORMAL"   # the save's kcBestRank at the time of the screenshot
+
+def draw_coordinators(rnd, used, best=None):
+    dist = NAMED_FACES[best or BEST_RANK]
+    roll, named = rnd(100), 3
+    for n in range(4):
+        if roll <= dist[n]: named = n; break
     out, heavy = [], False
     if rnd(LARRY_ODDS) == 1:
-        out.append("SPRITE_KC_LARRY"); used.add("SPRITE_KC_LARRY")
+        out.append("SPRITE_KC_LARRY"); used.add("SPRITE_KC_LARRY"); named = max(0, named - 1)
     while len(out) < N_COORD:
-        roll = rnd(10)
-        if roll <= 5: pool = CAST_CUSTOM_RIVAL
-        elif roll <= 7 and not heavy: pool = CAST_GYM
-        else: pool = CAST_FOLK
+        if named > 0:
+            named -= 1
+            pool = CAST_GYM if (not heavy and rnd(10) <= 3) else CAST_CUSTOM_RIVAL
+        else:
+            pool = CAST_FOLK
         pick = draw_from(pool, used, rnd) or draw_from(CAST_FOLK, used, rnd)
         if not pick: break
         if pool is CAST_GYM: heavy = True
         out.append("SPRITE_" + pick)
+    for i in range(len(out), 1, -1):          # the Lua shuffle, same rnd calls
+        j = rnd(i); out[i - 1], out[j - 1] = out[j - 1], out[i - 1]
     return out
 
 def adjacent_pairs(chosen):

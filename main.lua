@@ -2395,19 +2395,50 @@ local function kcGold(mod, VERSION)
   --
   -- AT MOST ONE gym leader or Elite Four member. Three at once read as a
   -- gauntlet rather than a contest; a single famous face is the treat.
+  -- How many FAMOUS FACES (a custom rival, or a gym leader / Elite Four
+  -- member) the three coordinators include, as cumulative percent for
+  -- 0, 1, 2 and 3 of them. Keyed by the highest rank the player has ever
+  -- ENTERED (kcBestRank) rather than the rank of this contest, because
+  -- the lobby queue is drawn before the rank is chosen at the desk and
+  -- the queue must match the stage. Retuned 0.34.29 from three
+  -- independent d10 slot rolls (which put two rivals AND Surge in a
+  -- first NORMAL contest -- reported from device): a NORMAL-only player
+  -- mostly meets one famous face, sometimes two, rarely three.
+  local KC_NAMED_FACES = {
+    NORMAL = { 10, 75, 95, 100 },
+    SUPER  = {  5, 55, 90, 100 },
+    HYPER  = {  0, 35, 80, 100 },
+    MASTER = {  0, 20, 65, 100 },
+  }
+  local function rankIndex(r)
+    for i, k in ipairs(KC_RANKS) do if k == r then return i end end
+    return 1
+  end
+  local function bestRankSoFar()
+    local r = mod.save and mod.save:get("kcBestRank", "NORMAL")
+    return KC_NAMED_FACES[r] and r or "NORMAL"
+  end
+
   local function drawCoordinators(rnd, used)
+    -- tests/seat_replay.py mirrors this call for call -- keep them in step
+    local dist = KC_NAMED_FACES[bestRankSoFar()]
+    local roll, named = rnd(100), 3
+    for n = 0, 3 do
+      if roll <= dist[n + 1] then named = n break end
+    end
     local out, heavy = {}, false
     if rnd(LARRY_ODDS) == 1 then
       out[#out + 1] = LARRY
       used[LARRY] = true
+      named = math.max(0, named - 1)        -- Larry is a famous face too
     end
     while #out < #STAGE_COORD_CELLS do
-      local roll = rnd(10)
       local pool
-      if roll <= 5 then
-        pool = CAST_CUSTOM_RIVAL
-      elseif roll <= 7 and not heavy then
-        pool = CAST_GYM
+      if named > 0 then
+        named = named - 1
+        -- a famous face is a custom rival 7 times in 10, a leader or
+        -- E4 member 3 -- and never more than one of those per contest
+        if not heavy and rnd(10) <= 3 then pool = CAST_GYM else pool = CAST_CUSTOM_RIVAL end
       else
         pool = CAST_FOLK
       end
@@ -2415,6 +2446,12 @@ local function kcGold(mod, VERSION)
       if not pick then break end
       if pool == CAST_GYM then heavy = true end
       out[#out + 1] = "SPRITE_" .. pick
+    end
+    -- the famous faces were drawn first; shuffle so they do not always
+    -- stand in the same spot
+    for i = #out, 2, -1 do
+      local j = rnd(i)
+      out[i], out[j] = out[j], out[i]
     end
     return out
   end
@@ -3782,6 +3819,11 @@ local function kcGold(mod, VERSION)
           local function proceed(rank)
           pendingRank = rank
           pendingContest = kind
+          -- the highest rank ever entered drives how many famous faces
+          -- the line-ups carry (KC_NAMED_FACES)
+          if mod.save and rankIndex(rank) > rankIndex(bestRankSoFar()) then
+            mod.save:set("kcBestRank", rank)
+          end
           -- Advance the crowd seed BEFORE the warp, so map.entered draws
           -- a new audience for this contest. Reloading back into the same
           -- contest re-reads the same count and therefore reseats exactly
@@ -4105,7 +4147,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.28"
+  local VERSION = "0.34.29"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

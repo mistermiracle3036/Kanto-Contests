@@ -55,9 +55,9 @@ lines = [
     "# Contest coordinators and what they bring\n",
     "Generated from `Kanto-Contests/main.lua` by `Kanto-Contests/tests/coordinator_table.py`; "
     "regenerate rather than edit the left four columns.\n",
-    "**How the three rivals are drawn each contest** (`drawCoordinators`): each slot rolls "
-    "d10 -- **1-5 a custom rival, 6-7 a gym leader or Elite Four member (at most ONE per "
-    f"contest), 8-10 a trainer class or named Johto face**. Separately, **Larry appears in "
+    "**How the three rivals are drawn each contest** (`drawCoordinators`): first a roll for how many "
+    "FAMOUS FACES the three include, by the highest rank the player has ever entered -- "
+    f"**NORMAL: one face 65%, two 20%, three 5%, none 10%** (more at SUPER/HYPER/MASTER); each face is a custom rival 7 in 10 or a leader/E4 member 3 in 10, at most ONE leader per contest; the rest are trainer classes or named Johto faces**. Separately, **Larry appears in "
     f"1 contest of {larry_odds}**. Their POKeMON is drawn from the pool, seeded per contest, so "
     "the same coordinator can bring a different one next visit.\n",
     "**The two blank columns are yours.** *Contest types* -- leave blank for any; or list "
@@ -70,11 +70,11 @@ lines = [
     + ", ".join(P.get("SPRITE_KC_LARRY", [])) + " |  |  |",
 ]
 for s in rival:
-    lines.append(row("SPRITE_" + s, "custom rival", "d10: 1-5"))
+    lines.append(row("SPRITE_" + s, "custom rival", "famous-face slot, 7 in 10"))
 for s in gym:
-    lines.append(row("SPRITE_" + s, "gym / Elite Four", "d10: 6-7, max one"))
+    lines.append(row("SPRITE_" + s, "gym / Elite Four", "famous-face slot, 3 in 10, max one"))
 for s in folk:
-    lines.append(row("SPRITE_" + s, "trainer class / Johto face", "d10: 8-10"))
+    lines.append(row("SPRITE_" + s, "trainer class / Johto face", "the remaining slots"))
 
 missing = [s for s in rival + gym + folk if ("SPRITE_" + s) not in P]
 lines.append("\n**General list** (used only by a coordinator with no pool of their own): "

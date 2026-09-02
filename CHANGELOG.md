@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.34.29
+
+- Fewer famous faces on stage at once. A first NORMAL contest could
+  line up two custom rivals and a gym leader; now the game decides how
+  many famous faces the three coordinators include -- while you have
+  only entered NORMAL contests, usually one, sometimes two, rarely
+  three -- and the rest are ordinary trainers. Entering higher ranks
+  raises the odds for good.
+
 ## 0.34.28
 
 - Coordinators keep to their kind of contest, as decided on the
