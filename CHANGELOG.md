@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.34.9
+
+- The crowd applauds on stage too: the clap plays as the hearts go up
+  for each coordinator's appeal, and for yours.
+
 ## 0.34.8
 The crowd has a voice.
 

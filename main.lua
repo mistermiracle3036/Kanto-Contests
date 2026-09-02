@@ -2766,6 +2766,14 @@ local function kcGold(mod, VERSION)
   local stageRivals = {}
 
   local function popHearts(world, n)
+    -- the crowd claps as its hearts go up -- coordinators' and the
+    -- player's alike, since both pop through here. SFX_KC_APPLAUSE is the
+    -- 0.34.8 clip; with no clip registered Sound.play is a silent no-op.
+    local data = world and world.game and world.game.data
+    if data and (n or 0) > 0 then
+      local okS, Sound = pcall(require, "src.core.Sound")
+      if okS and Sound and Sound.play then pcall(Sound.play, data, "SFX_KC_APPLAUSE") end
+    end
     local crowd = castOnStage(world, false)
     kcHearts = {}
     if #crowd == 0 or (n or 0) <= 0 then return end
@@ -3810,7 +3818,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.8"
+  local VERSION = "0.34.9"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
