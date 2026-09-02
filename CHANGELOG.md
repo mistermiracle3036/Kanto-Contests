@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.32.0
+Every move has its contest data now.
+
+- All 251 moves carry their Ruby/Sapphire contest category, appeal and
+  effect, so the appeal round is complete: moves that startle the
+  entrants before you, moves that work best first or last, moves that
+  hold the judge's attention and the combos that cash it in, moves that
+  make the next entrants nervous, and the ones that excite or calm the
+  crowd.
+- Four moves change category to match Gen 3 -- DOUBLESLAP and LICK are
+  TOUGH, DIZZY PUNCH and STRUGGLE are COOL -- and the 86 Gen 2 moves that
+  had no data (and so all counted as TOUGH) have their proper categories.
+- Rivals use their effects too, and at higher ranks they finish the
+  combos they start.
+
 ## 0.31.0
 The judging is a real appeal round now.
 

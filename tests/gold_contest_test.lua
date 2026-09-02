@@ -37,12 +37,21 @@ local Mon = require("src.battle.gen2.Mon")
 -- plus a move of a category the mod treats as OPPOSED to each.
 -- KC_OPPOSED: COOL<->BEAUTY/TOUGH, BEAUTY<->COOL/CUTE, CUTE<->BEAUTY/SMART,
 -- SMART<->CUTE/TOUGH, TOUGH<->COOL/SMART.
+-- One matching and one off-category move per contest, chosen from the
+-- real Gen 3 table so nothing else fires: no jams, and no combo between
+-- the pair (THUNDERPUNCH -> FIRE_PUNCH IS a combo, which is why the
+-- off-category move is never the other elemental punch). `base` is the
+-- move's own hearts; the crowd adds one to a matching move and nothing
+-- to an off-category one (0 or -1 on the excitement table, floored).
+--   THUNDERPUNCH COOL 40   FIRE_PUNCH BEAUTY 40   WATER_GUN CUTE 40
+--   POUND TOUGH 40         DIG SMART 10 (AVOID_STARTLE; no SMART move is
+--   a plain 40 in Gen 1-2)
 local CASES = {
-  { kind = "COOL",   match = "THUNDERPUNCH", opposed = "FIRE_PUNCH" },  -- BEAUTY
-  { kind = "BEAUTY", match = "FIRE_PUNCH",   opposed = "THUNDERPUNCH" },-- COOL
-  { kind = "CUTE",   match = "DOUBLESLAP",   opposed = "FIRE_PUNCH" },  -- BEAUTY
-  { kind = "SMART",  match = "PAY_DAY",      opposed = "DOUBLESLAP" },  -- CUTE
-  { kind = "TOUGH",  match = "POUND",        opposed = "THUNDERPUNCH" },-- COOL
+  { kind = "COOL",   match = "THUNDERPUNCH", base = 4, opposed = "WATER_GUN",  obase = 4 },
+  { kind = "BEAUTY", match = "FIRE_PUNCH",   base = 4, opposed = "WATER_GUN",  obase = 4 },
+  { kind = "CUTE",   match = "WATER_GUN",    base = 4, opposed = "FIRE_PUNCH", obase = 4 },
+  { kind = "SMART",  match = "DIG",          base = 1, opposed = "FIRE_PUNCH", obase = 4 },
+  { kind = "TOUGH",  match = "POUND",        base = 4, opposed = "THUNDERPUNCH", obase = 4 },
 }
 
 local TYPES = {
@@ -61,10 +70,10 @@ local MOVES = {
   PAY_DAY      = move("PAY_DAY",      "NORMAL",   40),
   POUND        = move("POUND",        "NORMAL",   40),
   STRUGGLE     = move("STRUGGLE",     "NORMAL",   40),
-  -- BEAUTY like FIRE_PUNCH; the type is irrelevant here (contest damage is
-  -- zeroed by the battle.damage hook), it just has to exist for mkmon
-  ICE_PUNCH    = move("ICE_PUNCH",    "FIRE",     75),
-  SWIFT        = move("SWIFT",        "NORMAL",   60),   -- COOL, like THUNDERPUNCH
+  -- types are irrelevant here (contest damage is zeroed by the
+  -- battle.damage hook); the entries just have to exist for mkmon
+  WATER_GUN    = move("WATER_GUN",    "NORMAL",   40),
+  DIG          = move("DIG",          "NORMAL",   60),
 }
 local POKEMON = {
   growthRates = { GROWTH_MEDIUM_FAST = { numerator = 1, denominator = 1,
@@ -100,9 +109,9 @@ end
 -- Battle.random(n) -> 0..n-1, and Battle.rng is loveStyleRng over it
 -- (Battle.lua:95-105): rng(lo,hi) = lo + random(hi-lo+1).
 -- highRoll maxes every roll (rng(lo,hi) -> hi); lowRoll floors it (-> lo).
--- Under the data shim every move is a plain 40-point appeal, so nothing
--- here rolls for a jam or a nervous check -- the rng only decides the
--- rivals' stage hearts and tie-breaks. Both directions are exercised.
+-- The moves used below are chosen so nothing rolls for a jam or a nervous
+-- check -- the rng only decides the rivals' stage hearts and tie-breaks.
+-- Both directions are exercised.
 local function highRoll(n) return (n or 1) - 1 end
 local function lowRoll(_) return 0 end
 
@@ -136,12 +145,12 @@ for _, case in ipairs(CASES) do
   local battle, meter = runContest(case.kind, { case.match, case.opposed })
   local before = meter.hp
   battle:takeTurn({ kind = "move", move = case.match })
-  T.eq(before - meter.hp, drainFor(meter, 5),
-    ("%s: %s matches -> 4 hearts + 1 from the crowd"):format(case.kind, case.match))
+  T.eq(before - meter.hp, drainFor(meter, case.base + 1),
+    ("%s: %s matches -> %d hearts + 1 from the crowd"):format(case.kind, case.match, case.base))
   before = meter.hp
   battle:takeTurn({ kind = "move", move = case.opposed })
-  T.eq(before - meter.hp, drainFor(meter, 4),
-    ("%s: %s is opposed -> 4 hearts, no crowd"):format(case.kind, case.opposed))
+  T.eq(before - meter.hp, drainFor(meter, case.obase),
+    ("%s: %s is off-category -> %d hearts, no crowd"):format(case.kind, case.opposed, case.obase))
   T.eq(battle.kcState.turn, 2, ("%s: two appeals in"):format(case.kind))
   T.check(not battle.over,
     ("%s: two appeals in, the contest is still running"):format(case.kind))
@@ -176,9 +185,11 @@ end
 --    does not depend on who appealed first. (A first draft used BEAUTY,
 --    where TOUGH is -1: three rivals then LOWER the meter by 3 a turn,
 --    which is Gen 3 behaving correctly and the test being wrong.)
+--    STRUGGLE is COOL in Gen 3, a plain 40 with no combo links either way,
+--    so THUNDERPUNCH's armed starter simply lapses each turn.
 do
-  local battle = runContest("COOL", { "THUNDERPUNCH", "SWIFT" })
-  local seq = { "THUNDERPUNCH", "SWIFT", "THUNDERPUNCH", "SWIFT", "THUNDERPUNCH" }
+  local battle = runContest("COOL", { "THUNDERPUNCH", "STRUGGLE" })
+  local seq = { "THUNDERPUNCH", "STRUGGLE", "THUNDERPUNCH", "STRUGGLE", "THUNDERPUNCH" }
   for i = 1, 4 do
     battle:takeTurn({ kind = "move", move = seq[i] })
     T.eq(battle.kcState.applause, i, ("applause meter at %d after appeal %d"):format(i, i))
