@@ -110,6 +110,27 @@ do  -- the narration is queued but unread: the crowd line carries the meter
   for _, m in ipairs(scr.msgs) do if m.applause then tagged = true end end
   T.check(tagged, "a matching appeal's narration is tagged to show the APPLAUSE meter")
   T.check(scr:applauseVisible(), "...and the meter is visible while those lines are read")
+  local lvl
+  for _, m in ipairs(scr.msgs) do if m.applause then lvl = m.applauseLevel end end
+  T.eq(lvl, 1, "the lines carry the meter level as it stood for this appeal (1 after one COOL move)")
+  for _, m in ipairs(scr.msgs) do T.check(not m.wild, "a plain +1 is not wild") break end
+end
+
+-- the meter about to overflow: the crowd goes wild, and the lines carry
+-- level 5 + the wild flag even though the engine has already reset it to 0
+do
+  local w, ws = newScreen({ "THUNDERPUNCH", "SWIFT" })
+  readAll(w); tick(w); readAll(w)          -- into the turn-1 menu
+  ws.applause = 4
+  press(w, "a")                            -- THUNDERPUNCH, COOL in COOL: passes 4
+  readAll(w)                               -- the announcement
+  tick(w)                                  -- resolve -> narrated
+  local wildMsg
+  for _, m in ipairs(w.msgs) do if m.wild then wildMsg = m end end
+  T.check(wildMsg ~= nil, "a wild appeal's lines are tagged wild")
+  T.eq(wildMsg and wildMsg.applauseLevel, 5, "...and show the meter FULL, not the reset 0")
+  T.eq(ws.applause, 0, "(the engine itself did reset the meter)")
+  T.eq(ws.c[1].appeal, 100, "40 + 60: the wild bonus landed")
 end
 readAll(scr, shown)
 T.check(not scr:applauseVisible(), "the meter goes when the narration has been read")

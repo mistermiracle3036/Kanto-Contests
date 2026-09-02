@@ -141,8 +141,10 @@ end
 -- the engine's events for one appeal -> text-box lines (18 x 2 each)
 function S:narrate(ci, ev)
   local nick = self:names(ci)
-  local before, crowd = #self.msgs, false
+  local before, crowd, level, wild = #self.msgs, false, nil, false
   for _, e in ipairs(ev) do
+    if e.level then level = e.level end
+    if e.kind == "crowd_wild" then wild = true end
     local k, t = e.kind, nil
     if k == "skipped" then t = ("%s is\ncatching breath."):format(nick)
     elseif k == "no_more" then t = ("%s has\nnothing left!"):format(nick)
@@ -178,7 +180,16 @@ function S:narrate(ci, ev)
   -- explains them together (a frame countdown had it gone before the
   -- text was read -- reported from device).
   if crowd then
-    for i = before + 1, #self.msgs do self.msgs[i].applause = true end
+    for i = before + 1, #self.msgs do
+      local m = self.msgs[i]
+      m.applause = true
+      -- the meter as it stood for THIS appeal: the engine resets it to 0
+      -- in the same step the crowd goes wild, so reading it live showed an
+      -- empty meter under "The crowd goes wild!" -- the least dramatic
+      -- possible moment (device). wild lights all five and flashes.
+      m.applauseLevel = level
+      m.wild = wild
+    end
   end
   -- jams change EARLIER contestants' hearts too
   for i, c in ipairs(self.s.c) do
@@ -311,6 +322,16 @@ function S:update(_dt)
 
   -- messages: A advances
   if #self.msgs > 0 then
+    -- the crowd's roar, the first frame a wild line is up. SFX_KC_APPLAUSE
+    -- is registered by main.lua only when assets/applause.ogg ships; with
+    -- no such sfx Sound.play is a silent no-op.
+    local top = self.msgs[1]
+    if top.wild and not top.roared then
+      top.roared = true
+      local data = self.game and self.game.data
+      local okS, Sound = pcall(require, "src.core.Sound")
+      if okS and Sound and Sound.play and data then pcall(Sound.play, data, "SFX_KC_APPLAUSE") end
+    end
     if self:pressed("a") or self:pressed("b") then table.remove(self.msgs, 1) end
     return
   end
@@ -507,12 +528,23 @@ function S:drawApplause()
   if not self:applauseVisible() then return end
   local m = self:mods()
   local G = love.graphics
-  rgb({ 255, 232, 120 }); G.rectangle("fill", 2, 18, 72, 26, 4, 4)
-  rgb(S.C.bar); G.rectangle("line", 2, 18, 72, 26, 4, 4)
-  if m.Font then rgb(S.C.heart); m.Font.draw("APPLAUSE", 6, 20) end
+  local msg = self.msgs[1]
+  local level = (msg and msg.applauseLevel) or math.min(self.s.applause, 5)
+  local wild = msg and msg.wild
+  -- wild: every dot lit and the whole box flashing between its two colours
+  -- on an 8-frame beat, with the label saying so
+  local hot = wild and (self.frame % 8 < 4)
+  rgb(hot and { 255, 96, 160 } or { 255, 232, 120 }); G.rectangle("fill", 2, 18, 72, 26, 4, 4)
+  rgb(hot and { 255, 255, 255 } or S.C.bar); G.rectangle("line", 2, 18, 72, 26, 4, 4)
+  if m.Font then
+    rgb(hot and { 255, 255, 255 } or S.C.heart)
+    m.Font.draw(wild and "WILD!!" or "APPLAUSE", 6, 20)
+  end
   for i = 1, 5 do
-    if i <= math.min(self.s.applause, 5) then rgb({ 240, 48, 120 }) else rgb({ 255, 250, 200 }) end
-    G.circle("fill", 10 + (i - 1) * 13, 37, 4)
+    if wild then rgb(hot and { 255, 255, 255 } or { 240, 48, 120 })
+    elseif i <= level then rgb({ 240, 48, 120 })
+    else rgb({ 255, 250, 200 }) end
+    G.circle("fill", 10 + (i - 1) * 13, 37, hot and 5 or 4)
   end
 end
 

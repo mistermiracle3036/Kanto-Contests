@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.34.6
+
+- When the crowd goes wild, the APPLAUSE box shows it: all five dots lit,
+  the whole box flashing, and WILD!! in place of the label, for as long
+  as the lines about it are on screen. Before, the meter had already
+  emptied by the time the message appeared.
+- The meter now shows the level as it stood for the appeal being read,
+  not the live value.
+- Ready for an applause sound: drop a cleared clip in as
+  `assets/applause.ogg` and the roar plays with the flash. Without the
+  file nothing changes.
+- The CONTEST MOVES page's cursor sits on the page colour like the text.
+
 ## 0.34.5
 The CONTEST MOVES page, tidied.
 

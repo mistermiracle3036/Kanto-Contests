@@ -1898,7 +1898,8 @@ local function kcGold(mod, VERSION)
       local moves = self:moveList()
       local c = cursorOf(self)
       if moves[c] then
-        Chrome.cursor(0, 8 + c)
+        -- through the page palette like the text, or it sits on a white cell
+        Chrome.cursorThrough(0, 8 + c, PAL)
         local _, fx = rowFor(moves[c].id)
         if fx then
           drawHearts(math.floor((fx.appeal or 0) / 10), 8, 13, false)
@@ -3345,6 +3346,22 @@ local function kcGold(mod, VERSION)
 
   -- The judging screen. Registered once; runGoldContest pushes it with the
   -- engine state already built, and it calls back with the placing.
+  -- The crowd's roar when the applause meter fills. Registered only when
+  -- the file is actually in the mod, so a build without it stays silent
+  -- rather than logging a bad sfx def every contest. The developer sources
+  -- or records the clip (it must be cleared for use); drop it in as
+  -- assets/applause.ogg and this picks it up. contest_screen.lua plays
+  -- "SFX_KC_APPLAUSE" the first frame a wild line is on screen.
+  do
+    local okA, clip = pcall(function() return mod:read("assets/applause.ogg") end)
+    if okA and clip then
+      local okR, err = pcall(function()
+        mod.content.sfx:register("SFX_KC_APPLAUSE", { file = "assets/applause.ogg" })
+      end)
+      if not okR then mod.log:warn("kc applause sfx: %s", tostring(err)) end
+    end
+  end
+
   mod.content.screens:register("KantoContestStage", {
     new = function(game, opts)
       return KCS.new({
@@ -3781,7 +3798,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.5"
+  local VERSION = "0.34.6"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
