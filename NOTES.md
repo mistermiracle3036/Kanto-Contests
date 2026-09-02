@@ -867,3 +867,17 @@ leaves the floor below it alone.
 composed blocks, so the desk will not always be 3. Find the block used on
 the barrier row of the map's `blocks` grid, confirm it appears nowhere
 else, then set slots 1 and 2 (a quad slot is (cy%2)*2 + (cx%2) + 1).
+
+## Backlog (developer, 2026-09-01)
+
+- **Audience size scales with rank.** More people in the seats as the contest
+  goes NORMAL -> SUPER -> HYPER -> MASTER (CROWD_MIN/CROWD_MAX per rank).
+- **Venue weighting.** Weight the crowd AND the coordinator draw by where the
+  contest is held, so the local faces are likelier: Whitney in Goldenrod,
+  Morty in Ecruteak. A per-venue affinity table over the cast lists.
+- **Coordinator restrictions.** The developer is deciding, per coordinator,
+  which contest types they may enter and whether they always bring a
+  signature POKeMON. Worksheet: briefs/CONTEST_COORDINATORS.md (generated
+  from KC_PARTNER_POOLS and the CAST_* lists; regenerate, do not hand-edit
+  the left columns). Apply the answers to KC_PARTNER_POOLS and a new
+  per-coordinator category filter in drawCoordinators.
