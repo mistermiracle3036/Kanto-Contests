@@ -2136,12 +2136,20 @@ local function kcGold(mod, VERSION)
   local CAST_FOLK = {
     "BIKER", "TWIN", "ROCKET", "ROCKET_GIRL", "COOLTRAINER_M", "COOLTRAINER_F", "BLACK_BELT",
     "BUG_CATCHER", "TEACHER", "OFFICER", "POKEFAN_M", "POKEFAN_F",
-    "YOUNGSTER", "SUPER_NERD", "SAGE", "BIRD",
+    "YOUNGSTER", "SUPER_NERD", "SAGE",
+    -- no BIRD: on Gold/Crystal SPRITE_BIRD is a red bird POKEMON (the
+    -- Pidgey-style walker, OverworldSprites[77]), not a Bird Keeper. It
+    -- sat in the seats until 0.34.16 -- the developer saw it -- and the
+    -- rule below says the crowd is people only.
     -- no SWIMMER_GUY / SWIMMER_GIRL: those sprites are drawn mid-stroke,
     -- so on a carpet they look like they are swimming across the floor.
     "GENTLEMAN", "BEAUTY", "LASS", "FISHER", "SAILOR",
     "ROCKER", "SCIENTIST", "PHARMACIST", "GRAMPS",
-    "GRANNY", "CLERK", "NURSE", "GYM_GUIDE", "ELDER", "KIMONO_GIRL",
+    -- no vanilla NURSE (REQUESTS row 7, developer's call 2026-09-02): her
+    -- sheet is 16x48 -- down, down-step, side -- with NO up frame, so in a
+    -- FACE_UP seat she faced the wrong way. The crowd's nurse is the mod's
+    -- KC_NURSE_JOY, a real 6-frame walker, already in CAST_CUSTOM_CROWD.
+    "GRANNY", "CLERK", "GYM_GUIDE", "ELDER", "KIMONO_GIRL",
     "BILL", "OAK", "ELM", "KURT", "DAISY", "MOM", "RED", "CAL",
   }
   -- Custom characters, stored WITHOUT the "SPRITE_" prefix so they draw
@@ -2150,12 +2158,12 @@ local function kcGold(mod, VERSION)
   -- Split by whether the character has a reason to be COMPETING. The
   -- rival set can also just be watching; the crowd set never competes.
   local CAST_CUSTOM_RIVAL = {
-    -- KC_DUPLICA / KC_GISELLE / KC_SUZIE are held back: their canonical
-    -- sheets are RGB where every other walker is mode L, and an RGB sheet
-    -- goes through the palette pass as a solid blob rather than a person.
-    -- That is a canonical-store inconsistency (10 masters are non-L), not
-    -- something to paper over in this mod, so they sit out until it is
-    -- fixed at the source.
+    -- KC_DUPLICA / KC_GISELLE / KC_SUZIE were benched 0.34.x for being
+    -- RGB-mode PNGs. That was never a defect: the engine's bake reads the
+    -- RED channel only (SpriteRenderer.lua getObpImage; GbcPalette.lua),
+    -- and their pixels are the same four greys as every mode-L sheet.
+    -- Back in as of 0.34.16 -- REQUESTS row 8, developer confirmed.
+    "KC_DUPLICA", "KC_GISELLE", "KC_SUZIE",
     "KC_STADIUM_BOY", "KC_STADIUM_GIRL",
     -- KC_LARRY is deliberately NOT here: he has his own once-in-a-blue-
     -- moon roll below, and listing him again would make him common.
@@ -2168,11 +2176,29 @@ local function kcGold(mod, VERSION)
     "KC_AJ", "KC_PIERS",
   }
   local CAST_CUSTOM_CROWD = {
+    -- KC_BALLGUY is OUT until sprites/canonical/ballguy.png is fixed. It is
+    -- the "red blob" the developer photographed in seat (1,8) (0.34.15,
+    -- seed 24618 -- tests/seat_replay.py named him from the screenshot).
+    -- The PNG carries a tRNS chunk making shade 0 transparent; the engine
+    -- keeps alpha-0 pixels transparent BEFORE it classifies shades
+    -- (SpriteRenderer.lua getObpImage: `if a == 0 then return ...`), so
+    -- his black outline and legs vanish and only the red dome, cream
+    -- face and red body draw. The only sheet of 61 with that chunk;
+    -- tests/asset_png_check.py now fails on it. Canonical is the mod
+    -- checker's file -- see the REQUESTS row -- so the mod copy is not
+    -- patched here (it must stay byte-identical to canonical).
     "KC_BREEDER", "KC_ROCKET_EXECUTIVE", "KC_CHEF", "KC_EUSINE", "KC_LOOKER",
-    "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BALLGUY", "KC_BILL",
+    "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BILL",
     "KC_INGO", "KC_AGATHA", "KC_ARCHER", "KC_ARIANA", "KC_GIOVANNI",
     "KC_PETREL", "KC_PROTON", "KC_OFFICER_JENNY", "KC_RUIN_MANIAC",
   }
+
+  -- Sprites whose vanilla sheet is 16x48 -- three frames, DOWN only, no
+  -- back and no side (crystal + gold sprites.lua: STANDING_SPRITE). They
+  -- can only ever face the camera, so a FACE_UP / LEFT / RIGHT seat would
+  -- draw them facing down (REQUESTS row 7, the nurse). Checked against
+  -- every name in every pool: these are the only three.
+  local STAND_ONLY = { KAREN = true, WILL = true, NURSE = true }
 
   -- Pairs that read as a pair when seated together. Purely cosmetic.
   local CAST_PAIRS = {
@@ -2400,6 +2426,12 @@ local function kcGold(mod, VERSION)
             or ((roll == 4) and CAST_GYM or CAST_FOLK))
         end
         local pick = drawFrom(pool, used, rnd) or drawFrom(CAST_FOLK, used, rnd)
+        -- a DOWN-only sheet cannot sit anywhere but a seat facing down;
+        -- the pick stays marked used and the seat draws again from folk
+        -- (tests/seat_replay.py mirrors this exactly -- keep them in step)
+        if pick and STAND_ONLY[pick] and seat.face ~= FACE_DOWN then
+          pick = drawFrom(CAST_FOLK, used, rnd)
+        end
         sprite = pick and ("SPRITE_" .. pick)
       end
       if sprite then
@@ -3820,7 +3852,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.15"
+  local VERSION = "0.34.16"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

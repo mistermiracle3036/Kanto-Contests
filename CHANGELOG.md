@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.34.16
+
+- The red blob in the audience is gone. It was Ball Guy: his sprite
+  file marks black as transparent, so the game drew him with no
+  outline and no legs -- just the red dome and body. He sits out of
+  the crowd until the shared sprite is repaired.
+- No more birds in the seats. The crowd is people only; the entry
+  meant as a bird keeper was actually a bird POKEMON on Gold and
+  Crystal.
+- The nurse in the crowd always faces the right way now. The game's own
+  nurse sprite can only face the camera, so she was looking down from a
+  seat that faced the stage; the crowd's nurse is now the mod's own,
+  who can face any way. Karen and Will, who share that limitation,
+  only take seats that face the camera.
+- Duplica, Giselle and Suzie are back in the contest crowd.
+
 ## 0.34.15
 
 - The applause loses the chime. 0.34.14's extra crush rang a high note
