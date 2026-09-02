@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.34.17
+
+- The applause goes back to 0.34.12's -- the one that was closest to
+  right -- with one change on top: the lows and mids are a little
+  quieter and the top end a touch brighter, so it sounds tinnier, like
+  it is coming out of a small speaker. Same loudness as before.
+
 ## 0.34.16
 
 - The red blob in the audience is gone. It was Ball Guy: his sprite
