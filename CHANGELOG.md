@@ -1,5 +1,58 @@
 # Changelog
 
+## 0.34.30
+
+**Updating from 0.8.2?** That was the last public release, and the mod
+has been rebuilt since. The short version:
+
+- **Contests follow the Ruby/Sapphire rules now** (0.31-0.34): four
+  coordinators, five appeal turns, real move effects and combos, jams,
+  the applause meter, and a judging screen laid out like the Gen 3
+  one -- hearts and a score bar per contestant, your POKeMON on stage
+  with its move animation, and a move card that shows each move's
+  appeal, jam, combo role and effect while you choose.
+- **Every move carries its contest data** (0.32) and a **CONTEST MOVES
+  page** sits in the summary after MOVES (0.33).
+- **Ranks**: NORMAL, SUPER, HYPER and MASTER, chosen at the desk, with
+  stronger fields as you go up.
+- **The hall is a real place**: a building on the Goldenrod street
+  (0.20), hand-built lobby and stage rooms (0.16-0.18), a live crowd
+  with famous faces and named ordinary trainers (0.21, 0.34.27), a
+  queue you stand in behind the people you will compete against
+  (0.22), a walk-on and an introduction round on stage where the
+  crowd's hearts pop one seat at a time and applause plays (0.24-0.26,
+  0.34.9-0.34.24).
+- **You enter one POKeMON**, picked from the party screen (0.27-0.28);
+  its condition, sheen and scarf decide its introduction hearts
+  (0.34.25).
+- **Coordinators are cast with care**: each brings POKeMON that suit
+  them (0.29), gym leaders wear their real colours (0.34.22), the
+  worksheet's type limits and signature POKeMON apply (0.34.28), and a
+  NORMAL contest mostly features one famous face (0.34.29).
+- Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
+  scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
+  a long list of text-box and sprite fixes.
+
+New in 0.34.30 specifically (a code review of the last fifteen
+versions):
+
+- The three people you queue behind are the three you compete
+  against, every time -- including the first contest at a new rank,
+  and after saving on the stage and reloading.
+- A coordinator swapped out for the contest type is replaced by
+  someone of the same kind (a leader for a leader, an ordinary
+  trainer for an ordinary trainer), so a NORMAL contest keeps its
+  mostly-one-famous-face promise and never has two leaders. The crowd
+  is untouched by the swap.
+- Karen and Will face the camera in the lobby queue instead of being
+  drawn the wrong way round.
+- The move card names the move a combo follows properly (THUNDERPUNCH,
+  not THUNDER_PU).
+- A ten-letter name no longer pushes the appeal announcement onto a
+  third line.
+- Your introduction hearts are always this contest's, never a previous
+  one's.
+
 ## 0.34.29
 
 - Fewer famous faces on stage at once. A first NORMAL contest could

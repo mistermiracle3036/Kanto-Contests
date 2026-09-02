@@ -101,7 +101,7 @@ T.eq(scr.menuCursor, 1, "up moves it back")
 press(scr, "a")                            -- choose THUNDERPUNCH
 T.eq(scr.chosen, "THUNDERPUNCH", "A picks the cursor move")
 T.eq(scr.performer, 1, "the player appeals first and is on stage")
-T.check(scr.msgs[1] and scr.msgs[1].text:find("PIKA appealed", 1, true), "the appeal is announced by nickname")
+T.check(scr.msgs[1] and scr.msgs[1].text:find("PIKA appeals", 1, true), "the appeal is announced by nickname")
 -- read the announcement; with no animation data the narration follows at once
 readAll(scr, shown)
 tick(scr)                                  -- resolve -> (no anim) -> narrated

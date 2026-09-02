@@ -148,6 +148,21 @@ function S:moveName(id)
   return (def and def.name) or tostring(id or "?")
 end
 
+-- A combo STARTER id as the player should read it. The `after` lists use
+-- the contest data's own spellings (THUNDER_PUNCH, VICE_GRIP, PSYCHIC),
+-- which are not always the engine's move ids (THUNDERPUNCH, VICEGRIP,
+-- PSYCHIC_M), so moveName() fell through to the raw underscored id on
+-- the move card (code review). Try the id, then the id with its
+-- underscores removed, then just make it readable.
+function S:starterName(id)
+  local data = self.game and self.game.data
+  local moves = data and data.moves or {}
+  id = tostring(id or "?")
+  local def = moves[id] or moves[(id:gsub("_", ""))]
+  if def and def.name then return def.name end
+  return (id:gsub("_", " "))
+end
+
 function S:playerMoves()
   local mon = self.s.c[1].mon or {}
   local out = {}
@@ -251,8 +266,8 @@ function S:resolveNext()
   self:cry(ci)
   local nick = self:names(ci)
   if id then
-    -- dialogue-ok: nick is clipped to 9 -> 18; the move to 12 -> 18
-    self:say(("%s appealed\nwith %s!"):format(nick, clip(self:moveName(id), 12)))
+    -- dialogue-ok: nick is clipped to 10 -> 18; the move to 12 -> 18
+    self:say(("%s appeals\nwith %s!"):format(nick, clip(self:moveName(id), 12)))
   end
   local ev = self.E.appeal(self.s, ci, id)
   self.pendingAnim = id
@@ -639,7 +654,7 @@ function S:drawMoveInfo()
   elseif row and row.starter then tag = "STARTER"
   elseif row and row.after and row.after[1] and jam <= 0 then
     -- dialogue-ok: "AFTER " is 6, the name clipped to 10 -> 16
-    tag = "AFTER " .. clip(self:moveName(row.after[1]), 10)
+    tag = "AFTER " .. clip(self:starterName(row.after[1]), 10)
   end
   if tag then m.Chrome.print(tag, math.floor(x), 14) end
   local text = eff and eff.text or ""

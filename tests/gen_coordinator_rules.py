@@ -36,7 +36,10 @@ for line in open(brief, encoding="utf-8"):
     name = name.replace("**", "").strip()
     if not kinds and not sig:
         continue
-    key = "SPRITE_" + ("KC_" if drawn.startswith("custom") else "") + name.replace(" ", "_")
+    # custom rivals/crowd AND Larry (his own roll) are SPRITE_KC_*; a
+    # Larry rule was being emitted as SPRITE_LARRY and ignored (code review)
+    custom = drawn.startswith("custom") or drawn == "own roll"
+    key = "SPRITE_" + ("KC_" if custom else "") + name.replace(" ", "_")
     ks = [k.strip().upper() for k in kinds.split(",") if k.strip()]
     bad = [k for k in ks if k not in KINDS]
     if bad:

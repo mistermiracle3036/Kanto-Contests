@@ -2322,8 +2322,8 @@ local function kcGold(mod, VERSION)
   end
 
   -- `kind` (optional) skips picks the worksheet keeps out of this
-  -- contest type; the pick is not marked used, so it can still sit in
-  -- the crowd.
+  -- contest type. A SKIPPED pick is not marked used; the pick that is
+  -- returned is.
   local function drawFrom(pool, used, rnd, kind)
     for _ = 1, 40 do
       local pick = pool[rnd(#pool)]
@@ -2363,7 +2363,14 @@ local function kcGold(mod, VERSION)
       + ((t.seconds or 0) * 104729) + ((t.minutes or 0) * 1299709)
       + ((t.hours or 0) * 15485863) + ((t.frames or 0) * 31)
     salt = (salt % 100003) + 7
-    if mod.save then mod.save:set("kcSeedSalt", salt) end
+    if mod.save then
+      mod.save:set("kcSeedSalt", salt)
+      -- The famous-faces row is SNAPSHOT here too (0.34.30): the desk
+      -- raises kcBestRank between the queue draw and the stage draw, so
+      -- reading it live gave the two draws different rows on the first
+      -- contest at every new rank (code review). Both read this copy.
+      mod.save:set("kcFacesRank", mod.save:get("kcBestRank", "NORMAL"))
+    end
     return salt
   end
   local function seedSalt()
@@ -2398,8 +2405,11 @@ local function kcGold(mod, VERSION)
   -- How many FAMOUS FACES (a custom rival, or a gym leader / Elite Four
   -- member) the three coordinators include, as cumulative percent for
   -- 0, 1, 2 and 3 of them. Keyed by the highest rank the player has ever
-  -- ENTERED (kcBestRank) rather than the rank of this contest, because
-  -- the lobby queue is drawn before the rank is chosen at the desk and
+  -- ENTERED (kcBestRank -- read through kcFacesRank, the copy
+  -- rollSeedSalt takes on lobby entry, so the queue draw and the
+  -- stage draw see the same row even though the desk raises
+  -- kcBestRank between them) rather than the rank of this contest,
+  -- because the lobby queue is drawn before the rank is chosen and
   -- the queue must match the stage. Retuned 0.34.29 from three
   -- independent d10 slot rolls (which put two rivals AND Surge in a
   -- first NORMAL contest -- reported from device): a NORMAL-only player
@@ -2421,7 +2431,8 @@ local function kcGold(mod, VERSION)
 
   local function drawCoordinators(rnd, used)
     -- tests/seat_replay.py mirrors this call for call -- keep them in step
-    local dist = KC_NAMED_FACES[bestRankSoFar()]
+    local snap = mod.save and mod.save:get("kcFacesRank")
+    local dist = KC_NAMED_FACES[snap] or KC_NAMED_FACES[bestRankSoFar()]
     local roll, named = rnd(100), 3
     for n = 0, 3 do
       if roll <= dist[n + 1] then named = n break end
@@ -2473,9 +2484,14 @@ local function kcGold(mod, VERSION)
     for i, cell in ipairs(LOBBY_QUEUE_CELLS) do
       local sprite = coordinators[i]
       if sprite then
+        -- KAREN and WILL (STAND_ONLY) have no side frame: asked to face
+        -- left they drew facing down (code review), so they face the
+        -- camera on purpose instead
+        local base = tostring(sprite):match("^SPRITE_(.+)$")
         spawnMarked(HALL, {
           name = ("KC_QUEUE_%d"):format(i), sprite = sprite,
-          x = cell.x, y = cell.y, movement = FACE_LEFT,
+          x = cell.x, y = cell.y,
+          movement = (base and STAND_ONLY[base]) and FACE_DOWN or FACE_LEFT,
           kcCoordinator = true,
         }, "kcCast")
       end
@@ -2488,6 +2504,13 @@ local function kcGold(mod, VERSION)
   local pendingContest
   -- ...and at which rank; NORMAL when the menu was skipped.
   local pendingRank
+  -- The category is ALSO kept in the save (kcPendingKind, 0.34.30): the
+  -- stage's type-limit swap reads it, and after a reload pendingContest
+  -- is nil, which used to draw the unswapped line-up (code review).
+  local function clearPendingContest()
+    pendingContest = nil
+    if mod.save then mod.save:set("kcPendingKind", false) end
+  end
 
   local function ensureStageCast(world)
     if markerExists(world, "kcCast") then return end
@@ -2495,37 +2518,6 @@ local function kcGold(mod, VERSION)
     local used = {}
 
     local coordinators = drawCoordinators(rnd, used)
-    -- The worksheet's type limits (0.34.28). The queue in the lobby is
-    -- drawn before the player picks a category, so it cannot filter; the
-    -- stage draws the SAME three and then swaps out anyone the developer
-    -- keeps out of this contest type -- a MISTY in the queue for a COOL
-    -- contest turns out to have been queueing for a different one. The
-    -- swap uses its own rng and runs before the seats are drawn from
-    -- `rnd`, so the crowd is exactly what it was.
-    do
-      local kind = pendingContest
-      local swapRnd = seededRng(contestSeed() + 555)
-      for i, sprite in ipairs(coordinators) do
-        local pick = tostring(sprite):match("^SPRITE_(.+)$")
-        if pick and not allowedFor(pick, kind) then
-          local sub = drawFrom(CAST_CUSTOM_RIVAL, used, swapRnd, kind)
-            or drawFrom(CAST_GYM, used, swapRnd, kind)
-            or drawFrom(CAST_FOLK, used, swapRnd, kind)
-          if sub then coordinators[i] = "SPRITE_" .. sub end
-        end
-      end
-    end
-    for i, cell in ipairs(STAGE_COORD_CELLS) do
-      local sprite = coordinators[i]
-      if sprite then
-        spawnMarked(STAGE_DEF.id, {
-          name = ("KC_COORD_%d"):format(i), sprite = sprite,
-          x = cell.x, y = cell.y, movement = FACE_DOWN,
-          -- picks the competitor line pool rather than the spectator one
-          kcCoordinator = true,
-        }, "kcCast")
-      end
-    end
 
     -- Choose WHICH seats are filled. 10-15 of the 30 the developer
     -- marked out, so the hall is the same density each time but never
@@ -2589,6 +2581,57 @@ local function kcGold(mod, VERSION)
         spawnMarked(STAGE_DEF.id, {
           name = ("KC_AUD_%d"):format(i), sprite = sprite,
           x = seat.x, y = seat.y, movement = seat.face,
+        }, "kcCast")
+      end
+    end
+
+    -- The worksheet's type limits (0.34.28, reworked 0.34.30 after code
+    -- review). The queue in the lobby is drawn before the player picks a
+    -- category, so it cannot filter; the stage draws the SAME three and
+    -- then swaps out anyone the developer keeps out of this contest type
+    -- -- a MISTY in the queue for a COOL contest turns out to have been
+    -- queueing for a different one. Rules of the swap:
+    --   * it runs AFTER the seats are drawn from `rnd` and uses its own
+    --     rng and its own copy of `used` (everyone seated included), so
+    --     the crowd is identical to a no-swap draw of the same seed and
+    --     tests/seat_replay.py needs no swap step;
+    --   * the replacement comes from the SAME pool class as the evicted
+    --     coordinator (leader for leader, rival for rival, folk for
+    --     folk), so the famous-face count and the one-leader cap hold;
+    --   * the category comes from the save when pendingContest is nil
+    --     (a reload onto the stage), so the line-up is the one the
+    --     player saw before saving.
+    do
+      local kind = pendingContest or (mod.save and mod.save:get("kcPendingKind")) or nil
+      if kind then
+        local swapRnd = seededRng(contestSeed() + 555)
+        local usedAll = {}
+        for k, v in pairs(used) do usedAll[k] = v end
+        local function inList(list, name)
+          for _, n in ipairs(list) do if n == name then return true end end
+          return false
+        end
+        for i, sprite in ipairs(coordinators) do
+          local pick = tostring(sprite):match("^SPRITE_(.+)$")
+          if pick and not allowedFor(pick, kind) then
+            local same = (inList(CAST_GYM, pick) and CAST_GYM)
+              or (inList(CAST_CUSTOM_RIVAL, pick) and CAST_CUSTOM_RIVAL)
+              or CAST_FOLK
+            local sub = drawFrom(same, usedAll, swapRnd, kind)
+              or drawFrom(CAST_FOLK, usedAll, swapRnd, kind)
+            if sub then coordinators[i] = "SPRITE_" .. sub end
+          end
+        end
+      end
+    end
+    for i, cell in ipairs(STAGE_COORD_CELLS) do
+      local sprite = coordinators[i]
+      if sprite then
+        spawnMarked(STAGE_DEF.id, {
+          name = ("KC_COORD_%d"):format(i), sprite = sprite,
+          x = cell.x, y = cell.y, movement = FACE_DOWN,
+          -- picks the competitor line pool rather than the spectator one
+          kcCoordinator = true,
         }, "kcCast")
       end
     end
@@ -3229,6 +3272,7 @@ local function kcGold(mod, VERSION)
     local rank = pendingRank or "NORMAL"
     appealHearts = {}
     stageRivals = {}
+    stagePlayerHearts = nil     -- never carry a previous contest's number
     local steps = {
       function(next_) world:showText("Hello! Let's get\nstarted with this", next_) end,
       -- dialogue-ok: rank and category are both at most 6 glyphs -> 13
@@ -3322,7 +3366,7 @@ local function kcGold(mod, VERSION)
         world:showText("KC error: no\ncontest picked")
         return
       end
-      pendingContest = nil
+      clearPendingContest()
       local rank2 = pendingRank or "NORMAL"
       -- If this throws, runSteps swallows it and the player is left
       -- standing on the stage with nothing happening -- which is exactly
@@ -3600,7 +3644,7 @@ local function kcGold(mod, VERSION)
       -- out instead of talking to the judge kept pendingContest set --
       -- so re-entering announced them by name again for a contest they
       -- had already abandoned, with the stale category still armed.
-      pendingContest = nil
+      clearPendingContest()
       introArmed = false
       return HALL, HALL_ARRIVAL_X, HALL_ARRIVAL_Y
     end
@@ -3819,6 +3863,7 @@ local function kcGold(mod, VERSION)
           local function proceed(rank)
           pendingRank = rank
           pendingContest = kind
+          if mod.save then mod.save:set("kcPendingKind", kind) end
           -- the highest rank ever entered drives how many famous faces
           -- the line-ups carry (KC_NAMED_FACES)
           if mod.save and rankIndex(rank) > rankIndex(bestRankSoFar()) then
@@ -3844,7 +3889,7 @@ local function kcGold(mod, VERSION)
                 -- the room like the other three, not at the judge's back
                 STAGE_DEF.id, STAGE_DEF.arrival.x, STAGE_DEF.arrival.y, "down")
               if not ok then
-                pendingContest = nil
+                clearPendingContest()
                 mod.log:warn("contest stage warp failed: %s", tostring(err))
                 world:showText("KC error: stage\nentrance failed")
               end
@@ -3894,13 +3939,13 @@ local function kcGold(mod, VERSION)
     world:showText(
       ("The %s\nCONTEST!\fTake the stage!"):format(kind),
       function()
-        pendingContest = nil
+        clearPendingContest()
         runGoldContest(world, kind, pendingRank or "NORMAL")
       end)
   end
 
   leaveStage = function(world)
-    pendingContest = nil
+    clearPendingContest()
     local back = stageReturn
       or { mapId = HALL, x = HALL_ARRIVAL_X, y = HALL_ARRIVAL_Y }
     local ok, err = mod.world:warpTo(
@@ -4147,7 +4192,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.29"
+  local VERSION = "0.34.30"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

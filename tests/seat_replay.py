@@ -6,6 +6,11 @@ drawCoordinators + the seat fill (main.lua ensureStageCast). Reimplemented here
 line for line; seed = contestCount*131 + salt, salt in [7, 100009], so every
 reachable seed is a small integer.
 
+The stage's type-limit swap (0.34.28+) runs AFTER the seats are drawn, with
+its own rng and its own copy of `used`, so the seating never depends on it and
+this replay needs no swap step (the three coordinators it prints are the
+PRE-swap trio).
+
 It mirrors the CURRENT main.lua pools and guards, so it can only explain a
 screenshot taken on the current build. Edit observed() to what the screenshot
 shows, then run:  python tests/seat_replay.py
