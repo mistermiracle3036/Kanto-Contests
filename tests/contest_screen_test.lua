@@ -165,6 +165,24 @@ end
 T.eq(#bad, 0, ("every text-box line is <= 18 cols and <= 2 rows (%s)"):format(table.concat(bad, " | ")))
 T.check(#shown > 30, ("a full contest showed %d lines"):format(#shown))
 
+-- ------------------------------------------ 4b. layout follows orientation
+
+do
+  -- 0.34.0 shipped the wide canvas alone and the phone had to be turned on
+  -- its side (reported from device). Upright screens get the tall layout.
+  T.eq(S.layoutFor(1170, 2532).name, "tall", "a portrait window gets the tall layout")
+  T.same({ S.layoutFor(1170, 2532).w, S.layoutFor(1170, 2532).h }, { 160, 240 },
+    "tall is 160 x 240: the arena with the panel below")
+  T.eq(S.layoutFor(2532, 1170).name, "wide", "a landscape window gets the wide layout")
+  T.same({ S.layoutFor(2532, 1170).w, S.layoutFor(2532, 1170).h }, { 240, 144 },
+    "wide is 240 x 144: the arena with the panel beside")
+  T.eq(S.layoutFor(nil, nil).name, "tall", "unknown window size defaults to upright")
+  T.eq(S.layoutFor(800, 800).name, "tall", "a square window is treated as upright")
+  -- the arena is the same 160x144 battle frame in both, so animations need
+  -- no translation either way
+  T.eq(S.ARENA_W, 160, "the arena stays Gold's battle width")
+end
+
 -- ------------------------------------------ 5. repeat / no-PP guards
 
 do

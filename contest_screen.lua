@@ -24,10 +24,29 @@
 -- animation data the beat is skipped and the flow continues.
 
 local S = {}
-S.W, S.H = 240, 144
+-- Two layouts, chosen per frame from the window's orientation. The arena is
+-- always Gold's 160x144 battle frame at the top-left (so move animations
+-- need no translation); the panel goes BESIDE it when the screen is wider
+-- than tall, and BELOW it when it is upright. The wide canvas alone forced
+-- the phone onto its side (0.34.0, reported from device) -- everything
+-- else in the game plays in portrait, so portrait is the default.
+S.WIDE = { name = "wide", w = 240, h = 144, panelX = 160, panelY = 0,   rowH = 36 }
+S.TALL = { name = "tall", w = 160, h = 240, panelX = 0,   panelY = 144, rowH = 24 }
 S.ARENA_W = 160
-S.PANEL_X = 160
-S.ROW_H = 36
+S.W, S.H = S.TALL.w, S.TALL.h   -- defaults; see S:layout()
+
+-- pure: which layout for a window of w x h pixels
+function S.layoutFor(w, h)
+  if type(w) == "number" and type(h) == "number" and w > h then return S.WIDE end
+  return S.TALL
+end
+
+function S:layout()
+  local ok, w, h = pcall(function() return love.graphics.getDimensions() end)
+  local L = S.layoutFor(ok and w or nil, ok and h or nil)
+  self.currentLayout = L
+  return L
+end
 
 -- Gen 3's panel colours; the player's row is the light-green one
 S.C = {
@@ -328,17 +347,21 @@ end
 
 -- ------------------------------------------------------------------- draw
 
-function S:uiSize() return S.W, S.H end
+function S:uiSize()
+  local L = self:layout()
+  return L.w, L.h
+end
 
 function S:sgbPalettes()
+  local L = self.currentLayout or self:layout()
   local okP, PaletteFX = pcall(require, "src.render.PaletteFX")
   if okP and PaletteFX then
     local mode = PaletteFX.mode or "gbc"
     if mode == "og" or mode == "og_inv" or mode == "classic" then
-      return { PaletteFX.zone(PaletteFX.GRAYS, 0, 0, S.W / 8 - 1, S.H / 8 - 1) }
+      return { PaletteFX.zone(PaletteFX.GRAYS, 0, 0, L.w / 8 - 1, L.h / 8 - 1) }
     end
   end
-  return { { colors = false, x = 0, y = 0, w = S.W, h = S.H } }
+  return { { colors = false, x = 0, y = 0, w = L.w, h = L.h } }
 end
 
 local function rgb(c, a) love.graphics.setColor(c[1] / 255, c[2] / 255, c[3] / 255, a or 1) end
@@ -493,38 +516,53 @@ end
 function S:drawPanel()
   local m = self:mods()
   local G = love.graphics
+  local L = self.currentLayout or self:layout()
   local maxPts = 0
   for _, c in ipairs(self.s.c) do maxPts = math.max(maxPts, c.round1 + 2 * c.total) end
   maxPts = math.max(maxPts, 200)
+  local panelW = L.w - L.panelX
   for slot, ci in ipairs(self.rows) do
     local c = self.s.c[ci]
-    local y = (slot - 1) * S.ROW_H
+    local x0 = L.panelX
+    local y = L.panelY + (slot - 1) * L.rowH
     rgb(ci == 1 and S.C.panelMine or S.C.panel)
-    G.rectangle("fill", S.PANEL_X, y, S.W - S.PANEL_X, S.ROW_H)
-    rgb(S.C.panelLine); G.rectangle("line", S.PANEL_X + 0.5, y + 0.5, S.W - S.PANEL_X - 1, S.ROW_H - 1)
+    G.rectangle("fill", x0, y, panelW, L.rowH)
+    rgb(S.C.panelLine); G.rectangle("line", x0 + 0.5, y + 0.5, panelW - 1, L.rowH - 1)
     local nick, trainer = self:names(ci)
-    if m.Font then
-      rgb(S.C.ink)
-      m.Font.draw(nick, S.PANEL_X + 3, y + 2)
-      m.Font.draw("/" .. trainer, S.PANEL_X + 3, y + 11)
-    end
-    -- this turn's hearts: solid red for a good appeal, black when jammed under
     local h = self.turnHearts[ci] or 0
     local color = h >= 0 and S.C.heart or S.C.heartJam
-    for i = 1, math.min(8, math.abs(h)) do drawHeart(S.PANEL_X + 3 + (i - 1) * 9, y + 21, color) end
-    -- standing: a bar with the heart marker at round1 + 2 x appeals
-    rgb(S.C.bar); G.rectangle("fill", S.PANEL_X + 4, y + 31, 70, 1)
     local pts = c.round1 + 2 * c.total
-    local x = S.PANEL_X + 4 + math.floor(70 * math.max(0, math.min(1, pts / maxPts)))
-    drawHeart(x - 3, y + 28, S.C.heart)
+    local frac = math.max(0, math.min(1, pts / maxPts))
+    if L.name == "wide" then
+      -- 80px wide, 36 tall: nick / trainer stacked, hearts, then the bar
+      if m.Font then
+        rgb(S.C.ink)
+        m.Font.draw(nick, x0 + 3, y + 2)
+        m.Font.draw("/" .. trainer, x0 + 3, y + 11)
+      end
+      for i = 1, math.min(8, math.abs(h)) do drawHeart(x0 + 3 + (i - 1) * 9, y + 21, color) end
+      rgb(S.C.bar); G.rectangle("fill", x0 + 4, y + 31, 70, 1)
+      drawHeart(x0 + 4 + math.floor(70 * frac) - 3, y + 28, S.C.heart)
+    else
+      -- 160px wide, 24 tall: "NICK/TRAINER" on one line (at most 18
+      -- glyphs = 144px), hearts under the name, the bar to their right
+      if m.Font then
+        rgb(S.C.ink)
+        m.Font.draw(nick .. "/" .. trainer, x0 + 3, y + 2)
+      end
+      for i = 1, math.min(8, math.abs(h)) do drawHeart(x0 + 3 + (i - 1) * 9, y + 14, color) end
+      rgb(S.C.bar); G.rectangle("fill", x0 + 82, y + 18, 72, 1)
+      drawHeart(x0 + 82 + math.floor(72 * frac) - 3, y + 15, S.C.heart)
+    end
   end
 end
 
 function S:draw()
   local m = self:mods()
   local G = love.graphics
+  local L = self:layout()
   G.setColor(1, 1, 1, 1)
-  G.rectangle("fill", 0, 0, S.W, S.H)
+  G.rectangle("fill", 0, 0, L.w, L.h)
   local function drawBg() self:drawArenaBackground() end
   if self.anim and m.View then
     self.view = self.view or m.View.new(self.game.data.gen2BattleAnims, self.game.data.gen2Palettes)

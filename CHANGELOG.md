@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.34.1
+Plays upright again.
+
+- The contest screen no longer needs the phone on its side. Held
+  upright, the four coordinators sit below the stage instead of beside
+  it -- one line each with the POKeMON's name and the coordinator's, the
+  hearts underneath and the standing bar to the right. Turn the phone
+  and it goes back to the side-by-side layout.
+
 ## 0.34.0
 The judging looks like a contest now.
 
