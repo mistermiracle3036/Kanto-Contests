@@ -3363,7 +3363,7 @@ local function kcGold(mod, VERSION)
   -- assets/applause.wav: from 0.34.11, Freesound #189831 by klankbeeld
   -- (Creative Commons Attribution -- the required credit line is in
   -- THIRD_PARTY_NOTICES.md, verbatim): the opening with the yell layered
-  -- over the clapping from 3 s, mono, bitcrushed to 3 bits at ~5.5 kHz
+  -- over the clapping from 3 s, mono, bitcrushed to 2 bits at ~3.7 kHz
   -- effective. WAV rather than OGG because the clip was made
   -- with numpy alone (no encoder on the build machine) and LOVE decodes
   -- PCM WAV natively. An .ogg of the same name is accepted too.
@@ -3820,7 +3820,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.12"
+  local VERSION = "0.34.13"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.34.13
+
+- The applause is crushed harder still and a touch quieter.
+
 ## 0.34.12
 
 - The applause is thicker and crunchier: the crowd's yell layered over
