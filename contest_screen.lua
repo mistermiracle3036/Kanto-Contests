@@ -90,7 +90,6 @@ function S.new(opts)
   self.performer = nil      -- contestant index whose mon is on stage
   self.rows = {}            -- panel rows in display order (contestant idx)
   self.turnHearts = {}      -- [ci] = hearts shown this turn
-  self.applauseShow = 0     -- frames left to show the meter
   self.menuCursor = 1
   self.anim = nil           -- AnimRunner while a move animation plays
   self.animTimer = 0
@@ -101,7 +100,11 @@ function S.new(opts)
   return self
 end
 
-function S:say(text) self.msgs[#self.msgs + 1] = { text = text } end
+function S:say(text, tag)
+  local m = { text = text }
+  if tag then for k, v in pairs(tag) do m[k] = v end end
+  self.msgs[#self.msgs + 1] = m
+end
 
 function S:queueIntro()
   -- dialogue-ok: rank and category are at most 6 glyphs -> 15
@@ -136,6 +139,7 @@ end
 -- the engine's events for one appeal -> text-box lines (18 x 2 each)
 function S:narrate(ci, ev)
   local nick = self:names(ci)
+  local before, crowd = #self.msgs, false
   for _, e in ipairs(ev) do
     local k, t = e.kind, nil
     if k == "skipped" then t = ("%s is\ncatching breath."):format(nick)
@@ -153,12 +157,12 @@ function S:narrate(ci, ev)
     elseif k == "condition_lost" then t = ("%s looks\nrattled."):format(self:names(e.who))
     elseif k == "crowd_up" then
       -- dialogue-ok: nick is clipped to 9 -> 18
-      t = ("%s's appeal\nwent over great."):format(nick); self.applauseShow = 90
-    elseif k == "crowd_wild" then t = "The crowd goes\nwild!"; self.applauseShow = 120
+      t = ("%s's appeal\nwent over great."):format(nick); crowd = true
+    elseif k == "crowd_wild" then t = "The crowd goes\nwild! +6 hearts!"; crowd = true
     elseif k == "crowd_down" then
       -- dialogue-ok: nick is clipped to 9 -> 18
-      t = ("%s's appeal\ndid not go over."):format(nick); self.applauseShow = 90
-    elseif k == "crowd_frozen" then t = "The crowd stays\nquiet."
+      t = ("%s's appeal\ndid not go over."):format(nick); crowd = true
+    elseif k == "crowd_frozen" then t = "The crowd stays\nquiet."; crowd = true
     elseif k == "scored" then
       local h = e.hearts or 0
       self.turnHearts[ci] = h
@@ -166,6 +170,13 @@ function S:narrate(ci, ev)
       if h <= 0 then t = ("%s failed\nto stand out..."):format(nick) end
     end
     if t then self:say(t) end
+  end
+  -- The APPLAUSE meter stays up for every line of an appeal that moved
+  -- the crowd, so the reader sees the dots and the sentence that
+  -- explains them together (a frame countdown had it gone before the
+  -- text was read -- reported from device).
+  if crowd then
+    for i = before + 1, #self.msgs do self.msgs[i].applause = true end
   end
   -- jams change EARLIER contestants' hearts too
   for i, c in ipairs(self.s.c) do
@@ -179,7 +190,9 @@ function S:beginTurn()
   for i = 1, self.E.CONTESTANTS do self.turnHearts[i] = 0 end
   self.order = order
   self.slot = 0
-  self.performer = nil
+  -- your own POKeMON stands on stage while you choose (it stood empty
+  -- before, reported from device); the performer changes as each appeals
+  self.performer = 1
   self:say(("Appeal no. %d!\nWhich move?"):format(self.s.turn))
   self.phase = "menu"
 end
@@ -282,7 +295,6 @@ end
 
 function S:update(_dt)
   self.frame = self.frame + 1
-  if self.applauseShow > 0 then self.applauseShow = self.applauseShow - 1 end
 
   -- a move animation owns the screen until it ends (or 6 seconds, as a net)
   if self.anim then
@@ -475,8 +487,22 @@ function S:drawArenaBackground()
   self:drawPerformer()
 end
 
+-- Shown while the text box is on a line that moved the crowd (tagged in
+-- narrate), and while an appeal that will move it is still animating.
+function S:applauseVisible()
+  local m = self.msgs[1]
+  if m and m.applause then return true end
+  if self.anim and self.pendingEvents then
+    for _, e in ipairs(self.pendingEvents.ev) do
+      if e.kind == "crowd_up" or e.kind == "crowd_wild" or e.kind == "crowd_down"
+         or e.kind == "crowd_frozen" then return true end
+    end
+  end
+  return false
+end
+
 function S:drawApplause()
-  if self.applauseShow <= 0 then return end
+  if not self:applauseVisible() then return end
   local m = self:mods()
   local G = love.graphics
   rgb({ 255, 232, 120 }); G.rectangle("fill", 2, 18, 72, 26, 4, 4)

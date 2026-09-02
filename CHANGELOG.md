@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.34.3
+Three small things from the first look.
+
+- The Goldenrod Contest Hall's door plays the door sound on the way in.
+- Your POKeMON stands on the stage while you choose your move, instead
+  of an empty stage.
+- The APPLAUSE meter stays up for the whole of an appeal that moved the
+  crowd, alongside the line that says so, instead of vanishing after a
+  moment. (How it works: a move of the contest's own type fills one dot,
+  a move the crowd dislikes empties one; when the fifth dot would fill,
+  the crowd goes wild for +6 hearts and the meter resets.)
+
 ## 0.34.2
 
 - The stage is plain white, like a Gold battle, instead of Gen 3's green.

@@ -86,6 +86,7 @@ readAll(scr, shown)
 tick(scr)                                  -- empty queue + intro phase -> turn 1
 T.eq(state.turn, 1, "turn 1 began")
 T.eq(scr.phase, "menu", "and the menu is open")
+T.eq(scr.performer, 1, "your own POKeMON is on stage while you choose (0.34.3)")
 T.check(scr.msgs[1] and scr.msgs[1].text:find("Appeal no. 1", 1, true), "'Appeal no. 1!' is announced")
 T.same({ scr.rows[1], scr.rows[2], scr.rows[3], scr.rows[4] }, { 1, 2, 3, 4 },
   "panel rows follow turn-1 order (round-1 points: player first)")
@@ -104,8 +105,22 @@ T.check(scr.msgs[1] and scr.msgs[1].text:find("PIKA appealed", 1, true), "the ap
 -- read the announcement; with no animation data the narration follows at once
 readAll(scr, shown)
 tick(scr)                                  -- resolve -> (no anim) -> narrated
+do  -- the narration is queued but unread: the crowd line carries the meter
+  local tagged = false
+  for _, m in ipairs(scr.msgs) do if m.applause then tagged = true end end
+  T.check(tagged, "a matching appeal's narration is tagged to show the APPLAUSE meter")
+  T.check(scr:applauseVisible(), "...and the meter is visible while those lines are read")
+end
 readAll(scr, shown)
+T.check(not scr:applauseVisible(), "the meter goes when the narration has been read")
 T.eq(scr.turnHearts[1], 5, "player's hearts on the panel: 4 + 1 crowd (COOL move in COOL)")
+-- the appeal moved the crowd, so every line of its narration carried the
+-- APPLAUSE meter (0.34.3: it used to vanish on a frame countdown)
+do
+  local tagged = 0
+  for _, t in ipairs(shown) do if t:find("went over great", 1, true) then tagged = tagged + 1 end end
+  T.check(tagged >= 1, "the crowd line was shown for the matching appeal")
+end
 -- let the three rivals go
 for _ = 1, 3 do
   tick(scr)                                -- narrated -> resolveNext (next rival)

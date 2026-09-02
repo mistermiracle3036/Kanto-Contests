@@ -3131,6 +3131,12 @@ local function kcGold(mod, VERSION)
 
   local function enterHall(world)
     hallReturn = mod.world:current()
+    -- The facade door is a stepped-on cell, not a vanilla warp tile, so
+    -- the engine never plays its door sound for it. Play the same one
+    -- (World.lua WARP_SFX_NAME: "Sfx_EnterDoor", id 31 as the fallback).
+    if world and world.playSfxNamed then
+      pcall(world.playSfxNamed, world, "Sfx_EnterDoor", 31)
+    end
     local ok, err = mod.world:warpTo(
       HALL, HALL_ARRIVAL_X, HALL_ARRIVAL_Y, "up")
     if not ok then
@@ -3738,7 +3744,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.2"
+  local VERSION = "0.34.3"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
