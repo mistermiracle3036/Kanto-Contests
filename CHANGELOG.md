@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.34.2
+
+- The stage is plain white, like a Gold battle, instead of Gen 3's green.
+
 ## 0.34.1
 Plays upright again.
 

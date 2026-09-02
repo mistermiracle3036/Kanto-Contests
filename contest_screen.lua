@@ -465,10 +465,12 @@ function S:drawJudge()
   end
 end
 
+-- A plain white arena, like Gold's own battles. The green stage was Gen 3's
+-- look and only served to outline the white box the judge's art sits in
+-- (developer, 2026-09-01).
 function S:drawArenaBackground()
   local G = love.graphics
-  rgb(S.C.stage); G.rectangle("fill", 0, 0, S.ARENA_W, 96)
-  rgb(S.C.stageLight); G.rectangle("fill", 0, 72, S.ARENA_W, 24)
+  rgb({ 255, 255, 255 }); G.rectangle("fill", 0, 0, S.ARENA_W, 96)
   self:drawJudge()
   self:drawPerformer()
 end
