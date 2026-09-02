@@ -3362,8 +3362,9 @@ local function kcGold(mod, VERSION)
   -- "SFX_KC_APPLAUSE" the first frame a wild line is on screen.
   -- assets/applause.wav: from 0.34.11, Freesound #189831 by klankbeeld
   -- (Creative Commons Attribution -- the required credit line is in
-  -- THIRD_PARTY_NOTICES.md, verbatim), 2.6 s from the crowd's onset with
-  -- the yell, mono, 11025 Hz, 4-bit-crunched. WAV rather than OGG because the clip was made
+  -- THIRD_PARTY_NOTICES.md, verbatim): the opening with the yell layered
+  -- over the clapping from 3 s, mono, bitcrushed to 3 bits at ~5.5 kHz
+  -- effective. WAV rather than OGG because the clip was made
   -- with numpy alone (no encoder on the build machine) and LOVE decodes
   -- PCM WAV natively. An .ogg of the same name is accepted too.
   do
@@ -3819,7 +3820,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.11"
+  local VERSION = "0.34.12"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

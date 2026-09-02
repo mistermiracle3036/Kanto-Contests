@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.34.12
+
+- The applause is thicker and crunchier: the crowd's yell layered over
+  its own clapping, run through a heavier bitcrusher.
+
 ## 0.34.11
 
 - A new applause recording with voices in it -- a crowd that claps and

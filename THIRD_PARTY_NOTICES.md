@@ -62,9 +62,12 @@
 
   **sound from http://www.freesound.org/people/klankbeeld/**
 
-  Edited for the mod: the first 2.6 seconds from just before the crowd
-  starts (0.25 s in), mixed to mono, resampled to 11025 Hz, soft-clipped and
-  reduced to 16 amplitude levels to sit with Game Boy audio, with the last
+  Edited for the mod: two 2.6-second passages of the same recording layered
+  on top of each other -- the opening (from 0.25 s, the crowd's rise and the
+  yell) and the clapping from 3.0 s, the latter raised to sit just under the
+  former -- mixed to mono and run through a bitcrusher: resampled to
+  11025 Hz with every sample held twice (about 5.5 kHz effective),
+  soft-clipped, reduced to 8 amplitude levels (3-bit), then the last
   0.6 seconds faded after the reduction. The original is 8.8 seconds,
   stereo, 48 kHz, 24-bit. (0.34.8-0.34.10 shipped a different clip,
   Freesound #478411 by thaighaudio, CC0; it is no longer included.)
