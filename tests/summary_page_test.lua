@@ -15,6 +15,15 @@ local GameVersion = require("src.core.GameVersion")
 GameVersion.current = "gold"
 local run = T.sdk.loadMod("../Kanto-Contests", { generation = 2 })
 T.eq(run.mod and run.mod.state, "loaded", "mod loaded on gen 2")
+-- see gold_contest_test: this fails in bursts with no file changed; dump
+-- the loader when it does so the burst gets characterised
+if not (run.mod and run.mod.state == "loaded") then
+  print("  loader.errors:", #(run.errors or {}))
+  for i, e in ipairs(run.errors or {}) do print("   ", i, tostring(type(e) == "table" and (e.message or e.msg) or e)) end
+  for id, m in pairs(run.loader and run.loader.mods or {}) do
+    print("  loader.mods:", id, m.state, m.path, m.error)
+  end
+end
 
 local Summary = require("src.ui.gen2.SummaryMenu")
 local Mon = require("src.battle.gen2.Mon")

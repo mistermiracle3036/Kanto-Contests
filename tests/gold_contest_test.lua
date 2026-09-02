@@ -29,6 +29,18 @@ local GameVersion = require("src.core.GameVersion")
 GameVersion.current = "gold"
 local run = T.sdk.loadMod("../Kanto-Contests", { generation = 2 })
 T.eq(run.mod and run.mod.state, "loaded", "mod loaded on gen 2")
+-- This check fails in BURSTS (6 of 6 one minute, 0 of 6 the next) with no
+-- file changed between; a standalone probe loads through the burst. Cause
+-- still unknown (2026-09-01). When it fails, say everything the loader
+-- knows, so the next burst is characterised rather than retried.
+if not (run.mod and run.mod.state == "loaded") then
+  print("  loader.errors:", #(run.errors or {}))
+  for i, e in ipairs(run.errors or {}) do print("   ", i, tostring(type(e) == "table" and (e.message or e.msg) or e)) end
+  for id, m in pairs(run.loader and run.loader.mods or {}) do
+    print("  loader.mods:", id, m.state, m.path, m.error)
+  end
+  print("  disabled:", run.loader and next(run.loader.disabled or {}) or "none")
+end
 
 local Battle = require("src.battle.gen2.Battle")
 local Mon = require("src.battle.gen2.Mon")

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.34.0
+The judging looks like a contest now.
+
+- The appeal round has its own screen, laid out like Ruby/Sapphire's:
+  the four coordinators down the right with their POKeMON's name, their
+  own name, this turn's hearts, and a bar showing where they stand; the
+  judge at his desk; and whoever is appealing shown on stage.
+- When another coordinator appeals you see their POKeMON, hear its cry,
+  and watch the move -- Gold's own move animation plays on the stage.
+- The APPLAUSE meter appears when the crowd reacts.
+- No HP bars, no APPEAL stand-in POKeMON: the meter is the hearts.
+- "Appeal no. N! Which move?" opens a move menu with each move's contest
+  category beside it.
+
 ## 0.33.0
 A CONTEST MOVES page in the summary.
 

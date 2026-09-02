@@ -1363,6 +1363,27 @@ local function kcGold(mod, VERSION)
       mod.log:error("contest_engine.lua missing from %s -- reinstall the mod", mod.path)
     end
   end
+  -- ...and the screen that shows it: Gen 3's appeal-round layout, a screen
+  -- of its own pushed over the world. The Gold battle wraps below stay --
+  -- they are how a contest USED to be judged, and any battle carrying a
+  -- kcContest trainer still goes through them -- but runGoldContest no
+  -- longer starts one, so in play they are never reached.
+  local KCS
+  do
+    local src = mod:read("contest_screen.lua")
+    if src then
+      local chunk, compileErr = load(src, "@" .. mod.path .. "/contest_screen.lua")
+      if chunk then
+        local ok, result = pcall(chunk)
+        if ok then KCS = result
+        else mod.log:error("contest_screen.lua failed to run: %s", tostring(result)) end
+      else
+        mod.log:error("contest_screen.lua did not compile: %s", tostring(compileErr))
+      end
+    else
+      mod.log:error("contest_screen.lua missing from %s -- reinstall the mod", mod.path)
+    end
+  end
 
   -- Gen 3 condition is 0..30 in tens; the mod's contest stats are 0..100.
   local function kcConditionBand(mon, kind)
@@ -1384,40 +1405,50 @@ local function kcGold(mod, VERSION)
     return meter.maxHp or (meter.stats and meter.stats.hp) or meter.hp or 1
   end
 
-  local function buildContest(b)
-    local kind = tostring(inContest(b))
-    local rank = b.trainer.kcRank or "NORMAL"
-    local entrant = b.player
+  -- The four contestants and the engine state for one judging. `info` is
+  -- what the stage hands over (the same fields runGoldContest puts on the
+  -- judge trainer): kcRank, kcAppealHearts, kcRivals, kcPlayerName.
+  -- Shared by the contest screen (the live path) and the battle host (the
+  -- headless harness), so both judge the same field the same way.
+  local function buildContestState(data, kind, info, entrant, rng)
+    local rank = info.kcRank or "NORMAL"
     local hearts = kcIntroHearts(entrant, kind, rank)
-    b.kcHearts = hearts
-    local staged = b.trainer.kcAppealHearts or {}
-    local rivals = b.trainer.kcRivals or {}
+    local staged = info.kcAppealHearts or {}
+    local rivals = info.kcRivals or {}
     local Mon = require("src.battle.gen2.Mon")
     local lvl = KC_RANK_LEVEL[rank] or KC_RANK_LEVEL.NORMAL
     local contestants = {
-      { name = b.trainer.kcPlayerName or "YOU", mon = entrant,
+      { name = info.kcPlayerName or "YOU", mon = entrant,
         round1 = hearts * KC_STAGE_HEART_POINTS,
         condition = kcConditionBand(entrant, kind), ai = "player" },
     }
     for i = 1, 3 do
       local r = rivals[i] or KC_RIVALS[i]
-      local mon = r.species and Mon.new(b.data, r.species, lvl + b.rng(-2, 2))
+      local mon = r.species and Mon.new(data, r.species, lvl + rng(-2, 2))
       if not mon then
         -- no species on record (headless tests, or a stage skipped): a
         -- plain mon with one ordinary move, so the round still runs
         mon = { moves = { { id = "POUND", pp = 20 } } }
       end
-      local h = staged[i] or b.rng(2, 6)
+      local h = staged[i] or rng(2, 6)
       contestants[#contestants + 1] = {
         name = r.name, mon = mon, round1 = h * KC_STAGE_HEART_POINTS,
         condition = 0, ai = rank,
       }
     end
-    b.kcState = KCE.new({
+    local state = KCE.new({
       contest = kind, moves = KC_CONTEST_MOVES, effects = KC_CONTEST_EFFECTS,
-      rng = b.rng, contestants = contestants,
+      rng = rng, contestants = contestants,
     })
-    return b.kcState
+    return state, hearts
+  end
+
+  local function buildContest(b)
+    local kind = tostring(inContest(b))
+    local state, hearts = buildContestState(b.data, kind, b.trainer, b.player, b.rng)
+    b.kcHearts = hearts
+    b.kcState = state
+    return state
   end
 
   local function applyGoldIntro(b)
@@ -3269,29 +3300,58 @@ local function kcGold(mod, VERSION)
     items = { "COOL", "BEAUTY", "CUTE", "SMART", "TOUGH", "CANCEL" },
   }
 
+  -- The judging screen. Registered once; runGoldContest pushes it with the
+  -- engine state already built, and it calls back with the placing.
+  mod.content.screens:register("KantoContestStage", {
+    new = function(game, opts)
+      return KCS.new({
+        engine = KCE, state = opts.state, game = game,
+        kind = opts.kind, rank = opts.rank,
+        onDone = function(place, final)
+          game.stack:pop()
+          if opts.onDone then opts.onDone(place, final) end
+        end,
+      })
+    end,
+  })
+
   runGoldContest = function(world, kind, rank)
     local game = world.game
     rank = rank or "NORMAL"
-    local Mon = require("src.battle.gen2.Mon")
-    local meter = Mon.new(game.data, "CHANSEY", 30)
-    if not meter then
-      world:showText("KC error: no\nmeter mon")
+    if not (KCE and KCS) then
+      world:showText("KC error: no\ncontest engine")
       return
     end
-    meter.nickname = "APPEAL"
-    judge.party = { meter }
-    -- The contest marker every hook reads. Set per contest rather than once
-    -- on the shared judge table, so the category the player chose is the one
-    -- scoring, reacting and being recorded.
-    judge.kcContest = kind
-    judge.kcRank = rank
-    -- carries the stage appeal scores, the coordinators and the rank into the judging
-    judge.kcAppealHearts = appealHearts
-    judge.kcRivals = stageRivals
+    local entrant
+    for _, mon in ipairs((game.save and game.save.party) or {}) do
+      if not mon.isEgg and (mon.hp or 0) > 0 then entrant = mon break end
+    end
+    if not entrant then
+      world:showText("KC error: no\nentrant")
+      return
+    end
     local sp = game.save and game.save.player
-    judge.kcPlayerName = (sp and sp.name) or "YOU"
-    world:startBattle({ trainer = judge, save = game.save },
-      function(outcome)
+    local info = {
+      kcRank = rank, kcAppealHearts = appealHearts, kcRivals = stageRivals,
+      kcPlayerName = (sp and sp.name) or "YOU",
+    }
+    -- the engine wants rng(lo, hi) / rng(n); seededRng gives 1..n, so wrap
+    -- it, seeded off this contest so a replay judges the same field
+    local base = seededRng(contestSeed() + 977)
+    local function contestRng(lo, hi)
+      if hi == nil then return base(lo or 1) end
+      if hi < lo then lo, hi = hi, lo end
+      return lo + base(hi - lo + 1) - 1
+    end
+    local ok, state = pcall(buildContestState, game.data, kind, info, entrant, contestRng)
+    if not ok then
+      mod.log:warn("kc contest build failed: %s", tostring(state))
+      world:showText("KC error: the\ncontest failed")
+      return
+    end
+    mod.ui.push(game, "KantoContestStage", {
+      state = state, kind = kind, rank = rank,
+      onDone = function(place)
         -- Off the stage and back to the lobby afterwards, win or lose:
         -- the routine is over, so standing on an empty stage is not an
         -- ending. Nested in the closing line's callback so the box is
@@ -3299,23 +3359,17 @@ local function kcGold(mod, VERSION)
         local function backToLobby()
           if onStageNow() then leaveStage(world) end
         end
-        if outcome ~= "win" then
+        if place ~= 1 then
           world:showText("Not quite this\ntime. Practice!", backToLobby)
           return
         end
-        -- Battle.playerIndex is firstHealthy, so mirror it when recording
-        -- the win on the entrant after the contest screen closes.
-        for _, mon in ipairs((game.save and game.save.party) or {}) do
-          if not mon.isEgg and (mon.hp or 0) > 0 then
-            mon.contestWins = mon.contestWins or {}
-            mon.contestWins[kind] = (mon.contestWins[kind] or 0) + 1
-            break
-          end
-        end
+        entrant.contestWins = entrant.contestWins or {}
+        entrant.contestWins[kind] = (entrant.contestWins[kind] or 0) + 1
         -- dialogue-ok: %s is a contest category, six glyphs at most
         pendingRank = nil
         world:showText(("Magnificent!\nTruly %s!"):format(kind), backToLobby)
-      end)
+      end,
+    })
   end
 
   -- The lobby judge TAKES THE ENTRY; he does not judge it here. Once a
@@ -3684,7 +3738,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.33.0"
+  local VERSION = "0.34.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
