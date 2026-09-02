@@ -2869,8 +2869,14 @@ local function kcGold(mod, VERSION)
     local data = w and w.game and w.game.data
     local okS, Sound = pcall(require, "src.core.Sound")
     if not (data and okS and Sound and Sound.play and w.sfxIdNamed) then return end
-    -- Crystal's cache names it Sfx_GlassTing; Gold's sfxOrder has no such
-    -- name, so fall through the nearest tings it does have.
+    -- the mod's own tinny ding, if the asset registered (0.34.23)
+    if data.audio and data.audio.sfx and data.audio.sfx.SFX_KC_DING then
+      pcall(Sound.play, data, "SFX_KC_DING")
+      return
+    end
+    -- Otherwise the game's own ting, slowed: Crystal's cache names it
+    -- Sfx_GlassTing; Gold's sfxOrder has no such name, so fall through the
+    -- nearest tings it does have.
     local name
     for _, cand in ipairs(HEART_DING_NAMES) do
       if w:sfxIdNamed(cand) then name = cand break end
@@ -3559,6 +3565,20 @@ local function kcGold(mod, VERSION)
       end)
       if not okR then mod.log:warn("kc applause sfx: %s", tostring(err)) end
     end
+    -- The heart ding (0.34.23). ORIGINAL: a pulse wave at A#5 synthesized
+    -- by tests/audio/make_ding.py, then made tinny -- nothing rendered
+    -- from the cart (the notices promise no ROM-derived audio). Without
+    -- the file, ringDing falls back to a slowed clone of the game's own
+    -- ting, which is the player's data and never ships.
+    do
+      local okA, body = pcall(function() return mod:read("assets/ding.wav") end)
+      if okA and body then
+        local okR, err = pcall(function()
+          mod.content.sfx:register("SFX_KC_DING", { file = mod.assets:path("assets/ding.wav") })
+        end)
+        if not okR then mod.log:warn("kc ding sfx: %s", tostring(err)) end
+      end
+    end
   end
 
   mod.content.screens:register("KantoContestStage", {
@@ -3997,7 +4017,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.22"
+  local VERSION = "0.34.23"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

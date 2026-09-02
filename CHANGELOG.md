@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.34.23
+
+- The heart ding is very tinny now, like a bell through a tiny
+  speaker, at the same pitch as before. It is the mod's own sound
+  (a synthesized pulse-wave bell), not the game's ting any more.
+
 ## 0.34.22
 
 - Gym leaders and Elite Four in the crowd wear their real colours:
