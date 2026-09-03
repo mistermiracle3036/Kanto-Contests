@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.30
+## 0.34.31
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -33,8 +33,12 @@ has been rebuilt since. The short version:
   scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
   a long list of text-box and sprite fixes.
 
-New in 0.34.30 specifically (a code review of the last fifteen
-versions):
+New in 0.34.31: the lobby queue is drawn afresh every time you walk into
+the hall, so after a contest you queue behind a new line-up instead of
+the three you just beat, and the stage cast is redrawn for each new
+contest.
+
+New in 0.34.30 (a code review of the last fifteen versions):
 
 - The three people you queue behind are the three you compete
   against, every time -- including the first contest at a new rank,

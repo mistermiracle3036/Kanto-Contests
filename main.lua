@@ -2474,11 +2474,33 @@ local function kcGold(mod, VERSION)
   local LOBBY_QUEUE_CELLS = {
     { x = 8, y = 5 }, { x = 8, y = 4 }, { x = 8, y = 3 },
   }
+  -- Remove every cast member this mod spawned on the CURRENT map. Runtime
+  -- objects live in the map's object list for the whole session, so a
+  -- `markerExists` guard alone meant the first queue and the first stage
+  -- cast of a session were the only ones ever drawn: after a win the
+  -- same three stood in the lobby however many times the player left and
+  -- came back (reported from device, 0.34.31). Ids are the engine's own
+  -- "<map>_obj_<index>" (World:removeRuntimeObject); collect first, since
+  -- each removal rebuilds the live list.
+  local function clearCast(world, mapId)
+    local ids = {}
+    for _, npc in ipairs((world and world.npcs) or {}) do
+      local d = npc.def
+      if d and d.kcCast and d.runtime and d.index then
+        ids[#ids + 1] = mapId .. "_obj_" .. d.index
+      end
+    end
+    for _, id in ipairs(ids) do pcall(mod.world.removeNpc, mod.world, id) end
+    return #ids
+  end
+
   local function ensureLobbyQueue(world)
-    if markerExists(world, "kcCast") then return end
-    -- new visit, new room. The guard above means this runs once per
-    -- entry, not once per frame, so the queue does not reshuffle while
-    -- the player is standing in it.
+    -- Every entry is a new queue: whoever stood there is cleared and the
+    -- line is drawn again for the NEXT contest (the count advanced when
+    -- the last one started, so the seed is new). map.entered fires once
+    -- per entry, not once per frame, so the queue does not reshuffle
+    -- while the player is standing in it.
+    clearCast(world, HALL)
     rollSeedSalt()
     local coordinators = drawCoordinators(seededRng(nextContestSeed()), {})
     for i, cell in ipairs(LOBBY_QUEUE_CELLS) do
@@ -2512,8 +2534,14 @@ local function kcGold(mod, VERSION)
     if mod.save then mod.save:set("kcPendingKind", false) end
   end
 
+  -- which contest the stage cast standing there was drawn for; a reload
+  -- into the same contest keeps it (same seed either way), a new contest
+  -- clears and redraws
+  local stageCastFor = nil
   local function ensureStageCast(world)
-    if markerExists(world, "kcCast") then return end
+    if markerExists(world, "kcCast") and stageCastFor == contestCount() then return end
+    clearCast(world, STAGE_DEF.id)
+    stageCastFor = contestCount()
     local rnd  = seededRng(contestSeed())
     local used = {}
 
@@ -4192,7 +4220,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.30"
+  local VERSION = "0.34.31"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
