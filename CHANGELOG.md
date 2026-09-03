@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.37
+## 0.34.38
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -32,6 +32,11 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
   a long list of text-box and sprite fixes.
+
+New in 0.34.38: the Ecruteak hall has a stage room to go with its lobby,
+so it has the same two-room shape Goldenrod does. It is Goldenrod's stage
+as a starting point, ready to be redecorated. Contests still run in
+Goldenrod only; wiring Ecruteak up to run them is the next piece.
 
 New in 0.34.37: no player-visible change -- 0.34.36's boot check was
 failing and is fixed.
