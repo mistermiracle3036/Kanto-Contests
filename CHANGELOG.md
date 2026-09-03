@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.31
+## 0.34.32
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -32,6 +32,13 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
   a long list of text-box and sprite fixes.
+
+New in 0.34.32: hooks for a companion quest mod. Another mod can now put
+its own characters in coordinator slots for a story beat, pause the
+contest between the introduction round and the judging for a scene, and
+take over what happens after the result (on the stage or back in the
+lobby), and every contest's result is recorded in the save. Nothing
+changes unless such a mod is installed.
 
 New in 0.34.31: the lobby queue is drawn afresh every time you walk into
 the hall, so after a contest you queue behind a new line-up instead of

@@ -1427,7 +1427,7 @@ local function kcGold(mod, VERSION)
     }
     for i = 1, 3 do
       local r = rivals[i] or KC_RIVALS[i]
-      local mon = r.species and Mon.new(data, r.species, lvl + rng(-2, 2))
+      local mon = r.species and Mon.new(data, r.species, r.level or (lvl + rng(-2, 2)))
       if not mon then
         -- no species on record (headless tests, or a stage skipped): a
         -- plain mon with one ordinary move, so the round still runs
@@ -2471,6 +2471,48 @@ local function kcGold(mod, VERSION)
   -- the right-hand wall facing LEFT. Previously three fixed NPCs, which
   -- meant the coordinators you queued behind had nothing to do with the
   -- ones you then competed against.
+  -- ---------------------------------------------------------------
+  -- The quest hook (briefs/KANTO_CONTESTS_QUEST_HOOKS.md, approved
+  -- 2026-09-02). Another mod may write `save.kcCastPlan` to put its own
+  -- characters in coordinator slots, and reads `save.kcLastContest` /
+  -- the `mod.kanto_contests.result` event afterwards. Data only: this
+  -- mod never checks whether such a mod is installed, and a plan it
+  -- cannot honour is ignored WHOLE (never a half-applied line-up).
+  local function castPlan()
+    local save = mod.game and mod.game.save
+    local p = save and save.kcCastPlan
+    return type(p) == "table" and p or nil
+  end
+  -- Apply the plan's slots to a drawn line-up. Returns nil when applied
+  -- (or when there is no plan), else the reason it was ignored.
+  -- `kind` is nil for the lobby queue, which is drawn before the
+  -- category is chosen, so a plan scoped to `kinds` still shows there.
+  local function applyCastPlan(world, coordinators, kind)
+    local plan = castPlan()
+    if not plan or type(plan.slots) ~= "table" then return nil end
+    if plan.hall and plan.hall ~= TOWN then return "hall" end
+    if kind and type(plan.kinds) == "table" and #plan.kinds > 0 then
+      local ok = false
+      for _, k in ipairs(plan.kinds) do if k == kind then ok = true end end
+      if not ok then return "kinds" end
+    end
+    local sprites = world and world.sprites
+    for slot, entry in pairs(plan.slots) do
+      local n = tonumber(slot)
+      if not (n and n >= 1 and n <= #STAGE_COORD_CELLS and type(entry) == "table") then return "slot" end
+      if type(entry.sprite) ~= "string" or (sprites and not sprites[entry.sprite]) then return "sprite" end
+    end
+    for slot, entry in pairs(plan.slots) do coordinators[tonumber(slot)] = entry.sprite end
+    return nil
+  end
+  -- what the stage applied, for castName / appealSteps / the result
+  local stagePlan, stagePlanIgnored = nil, nil
+  local function stagePlanSlot(n)
+    local slots = stagePlan and stagePlan.slots
+    local e = slots and (slots[n] or slots[tostring(n)])
+    return type(e) == "table" and e or nil
+  end
+
   local LOBBY_QUEUE_CELLS = {
     { x = 8, y = 5 }, { x = 8, y = 4 }, { x = 8, y = 3 },
   }
@@ -2503,6 +2545,7 @@ local function kcGold(mod, VERSION)
     clearCast(world, HALL)
     rollSeedSalt()
     local coordinators = drawCoordinators(seededRng(nextContestSeed()), {})
+    applyCastPlan(world, coordinators, nil)
     for i, cell in ipairs(LOBBY_QUEUE_CELLS) do
       local sprite = coordinators[i]
       if sprite then
@@ -2533,6 +2576,7 @@ local function kcGold(mod, VERSION)
     pendingContest = nil
     if mod.save then mod.save:set("kcPendingKind", false) end
   end
+
 
   -- which contest the stage cast standing there was drawn for; a reload
   -- into the same contest keeps it (same seed either way), a new contest
@@ -2651,6 +2695,12 @@ local function kcGold(mod, VERSION)
           end
         end
       end
+    end
+    -- the quest hook's plan, last: it outranks the draw and the swap
+    do
+      local kind = pendingContest or (mod.save and mod.save:get("kcPendingKind")) or nil
+      stagePlanIgnored = applyCastPlan(world, coordinators, kind)
+      stagePlan = (castPlan() and not stagePlanIgnored) and castPlan() or nil
     end
     for i, cell in ipairs(STAGE_COORD_CELLS) do
       local sprite = coordinators[i]
@@ -2944,6 +2994,8 @@ local function kcGold(mod, VERSION)
   -- the judging all agree); named vanilla sprites and KC_* customs keep
   -- prettyName.
   local function castName(sprite, slot)
+    local planned = slot and stagePlanSlot(slot)
+    if planned and planned.name then return tostring(planned.name):sub(1, 7) end
     local base = tostring(sprite):match("^SPRITE_(.+)$")
     local names = base and KC_CLASS_NAMES[base]
     if not names or #names == 0 then return prettyName(sprite) end
@@ -3067,10 +3119,55 @@ local function kcGold(mod, VERSION)
   -- the player's own stage hearts (kcIntroHearts, shown by the crowd), so
   -- the judging starts from the number the room actually saw
   local stagePlayerHearts = nil
+
   -- who the three coordinators were, so the judging fights the same
   -- people the stage introduced (it used to fight PIPER/REX/FIONA
   -- whoever was actually standing there)
   local stageRivals = {}
+
+  -- The table both quest-hook events carry and save.kcLastContest stores
+  -- (briefs/KANTO_CONTESTS_QUEST_HOOKS.md). Plain data: functions are
+  -- added by the emitter AFTER the save copy is taken. `final` is
+  -- E.final's rows (who = contestant index, 1 = the player).
+  local function contestPayload(place, final)
+    local game = mod.game
+    local save = game and game.save
+    local mine = save and save.party and save.party[1]
+    local out = {
+      count = contestCount(), seed = contestSeed(), hall = TOWN,
+      kind = pendingContest or (mod.save and mod.save:get("kcPendingKind")) or nil,
+      rank = pendingRank or "NORMAL",
+      place = place,
+      entrant = mine and { species = mine.species, nick = mine.nickname or mine.name,
+                           stageHearts = stagePlayerHearts } or nil,
+      coordinators = {},
+      planTag = stagePlan and stagePlan.tag or nil,
+      planIgnored = stagePlanIgnored,
+    }
+    if final then
+      out.final = {}
+      for _, r in ipairs(final) do out.final[r.who] = r.total end
+    end
+    for n = 1, #STAGE_COORD_CELLS do
+      local r = stageRivals[n]
+      if r then
+        local c = { sprite = r.sprite, name = r.name, species = r.species,
+                    planned = r.planned, stageHearts = appealHearts[n] }
+        if final then
+          for _, row in ipairs(final) do if row.who == n + 1 then c.place = row.place end end
+        end
+        out.coordinators[n] = c
+      end
+    end
+    return out
+  end
+  -- test-only handles (tests/quest_hooks_test.lua); not a contract
+  mod.exports._test = {
+    applyCastPlan = applyCastPlan,
+    contestPayload = contestPayload,
+    -- the harness has no live game: give the mod a stub one to read from
+    setSave = function(t) mod.game = mod.game or {}; mod.game.save = t end,
+  }
 
   -- Frames between one heart and the next in AROUND ROOM mode. Long
   -- enough to read each one and hear its ding as a separate event.
@@ -3218,6 +3315,12 @@ local function kcGold(mod, VERSION)
       or (sprite and KC_PARTNER_POOLS[sprite]) or KC_PARTNERS
     if #pool == 0 then pool = KC_PARTNERS end
     local species = pool[rnd(#pool)]
+    local planned = stagePlanSlot(n)
+    local level = nil
+    if planned and planned.species and speciesIndexOf(planned.species) then
+      species = planned.species
+      level = tonumber(planned.level)
+    end
     local index = speciesIndexOf(species)
     local sx, sy = npc.cellX or CENTRE.x, npc.cellY or CENTRE.y
     local id = objectIdOf(npc)
@@ -3253,7 +3356,8 @@ local function kcGold(mod, VERSION)
                      or KC_RANK_STAGE_HEARTS.NORMAL
         local hearts = band[1] + rnd(band[2] - band[1] + 1) - 1
         appealHearts[n] = hearts
-        stageRivals[n] = { name = who, species = species }
+        stageRivals[n] = { name = who, species = species, sprite = sprite,
+                           level = level, planned = planned and true or nil }
         -- Ask the room FIRST, let the hearts answer, and only then read
         -- the score. The score line used to come before the hearts, so
         -- it told you the number and the crowd then mimed it.
@@ -3380,7 +3484,21 @@ local function kcGold(mod, VERSION)
         if cid then pcall(world.turnObject, world, cid, "up") end
       end
       pcall(world.turnObject, world, 0, "up")
-      world:showText("Now -- the\njudging!", next_)
+      -- The quest hook's MID-CONTEST pause: between the introduction round
+      -- and the judging. A listener that sets payload.hold = true takes
+      -- the stage here (the player and the cast are in the line-up) and
+      -- calls payload.resume() when its scene is done; nobody holding,
+      -- the chain goes straight on. resume() is idempotent.
+      local payload = contestPayload(nil, nil)
+      payload.beat = "intro_done"
+      local resumed = false
+      payload.resume = function()
+        if resumed then return end
+        resumed = true
+        world:showText("Now -- the\njudging!", next_)
+      end
+      local ok = pcall(mod.events.emit, mod.events, "mod.kanto_contests.intro_done", payload)
+      if not ok or not payload.hold then payload.resume() end
     end
     steps[#steps + 1] = function()
       -- straight into the contest. stageJudge stays for anyone who
@@ -3803,7 +3921,7 @@ local function kcGold(mod, VERSION)
     mod.ui.push(game, "KantoContestStage", {
       state = state, kind = kind, rank = rank,
       moveMenu = mod.options:get("move_menu") or "full",
-      onDone = function(place)
+      onDone = function(place, final)
         -- the gym theme played into the judging; the hall gets its own
         -- song back before the closing line is read
         pcall(world.playMapMusic, world)
@@ -3814,14 +3932,42 @@ local function kcGold(mod, VERSION)
         local function backToLobby()
           if onStageNow() then leaveStage(world) end
         end
-        if place ~= 1 then
+        -- the quest hook: record (unless the plan says this contest does
+        -- not count), write the result to the save, then tell listeners
+        -- BEFORE the closing line so a scene can start right here
+        local plan = stagePlan
+        local record = not (plan and plan.record == false)
+        local won = place == 1
+        if won and record then
+          entrant.contestWins = entrant.contestWins or {}
+          entrant.contestWins[kind] = (entrant.contestWins[kind] or 0) + 1
+        end
+        if won then pendingRank = nil end
+        local result = contestPayload(place, final)
+        result.recorded = won and record
+        if game.save then game.save.kcLastContest = result end
+        local payload = {}
+        for k, v in pairs(result) do payload[k] = v end
+        payload.beat = "result"
+        local resumed = false
+        -- a holder finishes with resume("lobby") to be walked out, or
+        -- resume("stage") / resume() to be left where they are
+        payload.resume = function(where)
+          if resumed then return end
+          resumed = true
+          if where == "lobby" then backToLobby() end
+        end
+        local ok = pcall(mod.events.emit, mod.events, "mod.kanto_contests.result", payload)
+        if ok and payload.hold then return end
+        -- nobody held: the plan's closing, else this mod's own
+        local closing = plan and plan.closing
+        if closing == "stage" then return end
+        if closing == "lobby" then backToLobby() return end
+        if not won then
           world:showText("Not quite this\ntime. Practice!", backToLobby)
           return
         end
-        entrant.contestWins = entrant.contestWins or {}
-        entrant.contestWins[kind] = (entrant.contestWins[kind] or 0) + 1
         -- dialogue-ok: %s is a contest category, six glyphs at most
-        pendingRank = nil
         world:showText(("Magnificent!\nTruly %s!"):format(kind), backToLobby)
       end,
     })
@@ -4220,7 +4366,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.31"
+  local VERSION = "0.34.32"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -4275,6 +4421,13 @@ return function(mod)
   })
 
   -- shared read-only exports, meaningful on both generations
+  -- the quest hook's call-style side: the last result, and the hook
+  -- version a listener can check (briefs/KANTO_CONTESTS_QUEST_HOOKS.md)
+  mod.exports.questHooks = 1
+  mod.exports.lastContest = function()
+    local save = mod.game and mod.game.save
+    return save and save.kcLastContest or nil
+  end
   mod.exports.categories = KC_CATEGORY
   mod.exports.opposed = KC_OPPOSED
   mod.exports.snacks = {}
