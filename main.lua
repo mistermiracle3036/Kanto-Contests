@@ -1133,6 +1133,49 @@ local function kcGold(mod, VERSION)
       and (mapSongs[def.song] or mapSongs.GOLDENROD_CITY)
     if song then mod.content.map_songs:register(def.id, song) end
   end
+
+  -- Grass in Ecruteak (0.34.36).
+  --
+  -- The developer painted a small patch beside the contest hall. Vanilla
+  -- Ecruteak has no grass table at all -- it is a city -- so this is an
+  -- addition, not an override, and `patch` folds one map into the kind's
+  -- table rather than replacing it (Schemas.lua: the gen2 encounter
+  -- registry is keyed by KIND, and a slot list is ORDERED, position =
+  -- the roll, so it must be written whole).
+  --
+  -- The commons are lifted from the routes either side (38 and 37) so the
+  -- patch reads as part of the neighbourhood, and the levels match them.
+  -- The point of it is the three the developer asked for: the fire dog by
+  -- day, MISDREAVUS at night -- normally Mt. Silver, i.e. after the
+  -- Champion -- and EEVEE in the last slot, which is the 1% one.
+  local function ecruteakGrass()
+    local function slot(species, level) return { species = species, level = level } end
+    local day = {
+      slot("RATTATA", 14), slot("PIDGEY", 14), slot("GROWLITHE", 15),
+      slot("GIRAFARIG", 15), slot("GROWLITHE", 16), slot("PIDGEOTTO", 16),
+      slot("EEVEE", 15),
+    }
+    return {
+      ECRUTEAK_CITY = {
+        map = "ECRUTEAK_CITY",
+        rates = { MORN = 25, DAY = 25, NITE = 25 },
+        slots = {
+          MORN = day, DAY = day,
+          NITE = {
+            slot("RATTATA", 14), slot("HOOTHOOT", 14), slot("MISDREAVUS", 15),
+            slot("STANTLER", 15), slot("MISDREAVUS", 16), slot("NOCTOWL", 16),
+            slot("EEVEE", 15),
+          },
+        },
+      },
+    }
+  end
+  do
+    local ok, err = pcall(function()
+      mod.content.encounters:patch("grass", ecruteakGrass())
+    end)
+    if not ok then mod.log:warn("kc ecruteak grass: %s", tostring(err)) end
+  end
   -- The attendant's spot.
   --
   -- 0.10.0 guessed (14,14) and the first Gold test found her unreachable.
@@ -3616,6 +3659,144 @@ local function kcGold(mod, VERSION)
     end
   end
 
+  -- ---------------------------------------------------------------
+  -- The ECRUTEAK CITY facade (0.34.36).
+  --
+  -- Painted by the developer in the Content Editor, read back by
+  -- tests/read_editor_facade.lua. Same idea as the Goldenrod facade
+  -- above -- compose blocks the vanilla tileset does not have, append
+  -- them, stamp them on every map entry -- with one difference that
+  -- matters.
+  --
+  -- WHY THIS ONE STORES REFERENCES, NOT TILE IDS. Goldenrod's entries
+  -- carry 16 baked tile numbers. That is safe there only by luck: none
+  -- of its blocks draws from a vanilla block whose definition differs
+  -- between the two games. Ecruteak's do -- SIX of these 22 compose from
+  -- TILESET_JOHTO blocks 36/38/40/41/46/47, which are among 18 that
+  -- differ, and the two games' sheets are not even the same size (Gold
+  -- 128x48, Crystal 128x128 -- the same split the ROOMS loop above
+  -- already handles with per-engine variants). Baking Crystal's numbers
+  -- would draw Gold the wrong pictures.
+  --
+  -- So `q` is FOUR (vanilla block id, quadrant) PAIRS -- top-left,
+  -- top-right, bottom-left, bottom-right -- and the 16 tiles are built
+  -- from the LIVE tileset at map.entered. Correct on both games by
+  -- construction, and no per-engine variant needed.
+  local KC_ECRUTEAK_FACADE = {
+    { bx = 2, by = 7, q = { 44, 0, 44, 0, 44, 2, 44, 3 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 3, by = 7, q = { 44, 0, 44, 0, 44, 3, 45, 3 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 6, by = 7, q = { 42, 0, 42, 0, 4, 0, 4, 1 }, coll = { 0x07, 0x07, 0x00, 0x00 } },
+    { bx = 7, by = 7, q = { 2, 0, 3, 0, 2, 0, 2, 0 }, coll = { 0x00, 0x18, 0x00, 0x00 } },
+    { bx = 8, by = 7, q = { 2, 0, 3, 0, 4, 0, 4, 1 }, coll = { 0x00, 0x18, 0x00, 0x00 } },
+    { bx = 9, by = 7, q = { 2, 0, 42, 0, 2, 0, 2, 0 }, coll = { 0x00, 0x07, 0x00, 0x00 } },
+    { bx = 10, by = 7, q = { 42, 0, 1, 0, 3, 0, 1, 3 }, coll = { 0x07, 0x00, 0x18, 0x00 } },
+    { bx = 6, by = 8, q = { 4, 2, 4, 3, 1, 2, 1, 2 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+    { bx = 7, by = 8, q = { 2, 0, 2, 0, 1, 2, 1, 2 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+    { bx = 8, by = 8, q = { 4, 2, 4, 3, 1, 2, 1, 3 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+    { bx = 9, by = 8, q = { 3, 0, 3, 0, 1, 2, 1, 3 }, coll = { 0x18, 0x18, 0x00, 0x00 } },
+    { bx = 10, by = 8, q = { 3, 0, 1, 1, 1, 2, 1, 3 }, coll = { 0x18, 0x00, 0x00, 0x00 } },
+    { bx = 5, by = 9, q = { 44, 2, 44, 3, 38, 0, 38, 1 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 6, by = 9, q = { 45, 2, 45, 2, 38, 1, 38, 1 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 7, by = 9, q = { 45, 2, 45, 2, 38, 1, 38, 1 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 8, by = 9, q = { 45, 3, 1, 3, 47, 1, 1, 3 }, coll = { 0x07, 0x00, 0x07, 0x00 } },
+    { bx = 5, by = 10, q = { 40, 0, 36, 3, 38, 2, 47, 2 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 6, by = 10, q = { 36, 3, 41, 0, 47, 2, 47, 2 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 7, by = 10, q = { 41, 0, 41, 0, 46, 3, 47, 2 }, coll = { 0x07, 0x07, 0x71, 0x07 } },
+    { bx = 8, by = 10, q = { 41, 1, 1, 3, 47, 3, 1, 3 }, coll = { 0x07, 0x00, 0x07, 0x00 } },
+    { bx = 7, by = 11, q = { 1, 0, 71, 3, 1, 2, 1, 3 }, coll = { 0x00, 0x07, 0x00, 0x00 } },
+    { bx = 10, by = 13, q = { 2, 0, 2, 1, 71, 3, 2, 3 }, coll = { 0x00, 0x00, 0x07, 0x00 } },
+  }
+
+  local ECRU_MAP = "ECRUTEAK_CITY"
+  local ECRU_HALL_DEF = KC_HALLS.ECRUTEAK and KC_HALLS.ECRUTEAK.lobby
+  -- the door the developer painted, and the pavement square below it
+  local ECRU_DOOR_X, ECRU_DOOR_Y = 14, 21
+  -- the two signs: the city's own text moved to the new post, and the
+  -- hall's name where the old post used to stand
+  local ECRU_SIGNS = {
+    -- dialogue-ok: 13 / 17 then 14 / 17
+    ["20,27"] = "ECRUTEAK CITY\nA Historical City"
+      .. "\fWhere the Past\nMeets the Present",
+    -- dialogue-ok: 13 / 12
+    ["15,22"] = "ECRUTEAK CITY\nCONTEST HALL",
+  }
+
+  local ecruFacadeBase = nil
+
+  -- Build one composed block's 16 tiles from the tileset in play.
+  -- Quadrant q of a block covers the 2x2 tile square at
+  -- ((q//2)*2, (q%2)*2) inside its 4x4 grid (BorderFill/LayeredMap).
+  local function ecruTiles(entry, ts)
+    local tiles = {}
+    for ty = 0, 3 do
+      for tx = 0, 3 do
+        local qi = math.floor(ty / 2) * 2 + math.floor(tx / 2)
+        local srcBlock, q = entry.q[qi * 2 + 1], entry.q[qi * 2 + 2]
+        local blk = ts.blocks[srcBlock + 1]
+        local idx = (math.floor(q / 2) * 2 + (ty % 2)) * 4
+          + ((q % 2) * 2 + (tx % 2)) + 1
+        tiles[#tiles + 1] = (blk and blk[idx]) or 0
+      end
+    end
+    return tiles
+  end
+
+  local function ensureEcruteakFacade()
+    local data = mod.game and mod.game.data
+    local tsets = data and (data.gen2Tilesets or data.tilesets)
+    local ts = tsets and tsets.TILESET_JOHTO
+    -- as with Goldenrod: gen2Tilesets exists only after the Game is
+    -- built, which is why this runs on map.entered and not at load
+    if not (ts and ts.blocks) then
+      mod.log:warn("kc facade: johto tileset unavailable")
+      return
+    end
+    -- THE BORDER RULE. Block id 0 in a map grid does not mean "tileset
+    -- block 0" -- it means "draw the map header's border block"
+    -- (BorderFill.blockFor). So a stamp must never write 0, and a
+    -- composed block must never be given id 0. Appending starts at
+    -- #ts.blocks, which is 128 for TILESET_JOHTO, and the guard below
+    -- refuses to stamp rather than trusting that. Read, never hardcoded:
+    -- another mod may have appended here first.
+    if not (ecruFacadeBase
+        and ts.blocks[ecruFacadeBase + 1]
+        and ts.blocks[ecruFacadeBase + 1].kcEcruteak) then
+      if #ts.blocks < 1 then
+        mod.log:warn("kc facade: johto tileset is empty; refusing to stamp block 0")
+        return
+      end
+      ecruFacadeBase = #ts.blocks
+      ts.collision = ts.collision or {}
+      for i, e in ipairs(KC_ECRUTEAK_FACADE) do
+        local tiles = ecruTiles(e, ts)
+        -- a marker on our own block, so the re-append check above can
+        -- tell OUR block from whatever a rebuilt game.data left behind
+        tiles.kcEcruteak = true
+        ts.blocks[ecruFacadeBase + i] = tiles
+        ts.collision[ecruFacadeBase + i] = e.coll
+      end
+    end
+    for i, e in ipairs(KC_ECRUTEAK_FACADE) do
+      local id = ecruFacadeBase + i - 1
+      -- the same rule again at the point of use: never stamp the void
+      if id > 0 then mod.world:replaceBlock(e.bx, e.by, id) end
+    end
+  end
+
+  local function enterEcruteakHall(world)
+    if not ECRU_HALL_DEF then return end
+    hallReturn = mod.world:current()
+    if world and world.playSfxNamed then
+      pcall(world.playSfxNamed, world, "Sfx_EnterDoor", 31)
+    end
+    local ok, err = mod.world:warpTo(ECRU_HALL_DEF.id,
+      ECRU_HALL_DEF.arrival.x, ECRU_HALL_DEF.arrival.y, "up")
+    if not ok then
+      mod.log:warn("ecruteak hall warp failed: %s", tostring(err))
+      world:showText("KC error: hall\nentrance failed")
+    end
+  end
+
   mod.events:on("map.entered", function(ev)
     local ok, err = pcall(function()
       local mapId = ev and ev.mapId
@@ -3635,6 +3816,8 @@ local function kcGold(mod, VERSION)
         -- ensureGoldenrodAttendant is left defined but unused rather than
         -- deleted, because the Gen 1 arm still has its own attendant and
         -- ripping the shared helper out would touch that too.
+      elseif mapId == ECRU_MAP then
+        ensureEcruteakFacade()
       elseif mapId == HALL then
         ensureRoomActors(world, HALL_DEF)
         ensureLobbyQueue(world)
@@ -3758,6 +3941,35 @@ local function kcGold(mod, VERSION)
     if not ok then mod.log:warn("kc door: %s", tostring(err)) end
   end)
 
+  -- Ecruteak's door, the same way: the painted cell carries COLL_DOOR but
+  -- the map has no warp RECORD there, and adding one would mean patching
+  -- the map's `warps` LIST, which replaces wholesale and would erase any
+  -- other mod's. An exact-cell step trigger costs nothing and collides
+  -- with nobody.
+  mod.events:on("world.stepped", function(ev)
+    if not (ev and ev.mapId == ECRU_MAP) then return end
+    if ev.x ~= ECRU_DOOR_X or ev.y ~= ECRU_DOOR_Y then return end
+    local ok, err = pcall(enterEcruteakHall, mod.world:overworld())
+    if not ok then mod.log:warn("kc ecruteak door: %s", tostring(err)) end
+  end)
+
+  -- The two signs.
+  --
+  -- The hall covers the cell the city's own sign event sits on, so its
+  -- text would be unreachable; the developer moved the sign post to
+  -- 20,27 and put a second one at 15,22 for the hall. A sign is a
+  -- bgEvent, and a map's bgEvents are a LIST (same wholesale-replace
+  -- trap as warps), so instead this answers the A press: world.interacted
+  -- reports the faced cell and says "none" when nothing there claimed it,
+  -- which is exactly a painted-on sign with no event behind it.
+  mod.events:on("world.interacted", function(ev)
+    if not (ev and ev.mapId == ECRU_MAP and ev.kind == "none") then return end
+    local line = ECRU_SIGNS[tostring(ev.x) .. "," .. tostring(ev.y)]
+    if not line then return end
+    local world = mod.world:overworld()
+    if world then pcall(world.showText, world, line) end
+  end)
+
   -- THE CARPET IS THE EXIT.
   --
   -- Its cells keep their vanilla warp collision, so stepping on one makes
@@ -3787,6 +3999,10 @@ local function kcGold(mod, VERSION)
       local bx = (back and back.x) or entranceCell.x
       local by = ((back and back.y) or entranceCell.y) + 1
       return (back and back.mapId) or KCG.map, bx, by
+    elseif ECRU_HALL_DEF and hereId == ECRU_HALL_DEF.id then
+      -- out of the Ecruteak hall onto the pavement below its door, never
+      -- onto the door itself (that cell is the way back in)
+      return ECRU_MAP, ECRU_DOOR_X, ECRU_DOOR_Y + 1
     elseif STAGE_DEF and hereId == STAGE_DEF.id then
       -- The carpet is the ONLY way off the stage now, so this path has
       -- to do what leaveStage does. It did not, and a player who walked
@@ -4403,7 +4619,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.35"
+  local VERSION = "0.34.36"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
