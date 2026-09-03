@@ -1995,8 +1995,11 @@ local function kcGold(mod, VERSION)
   end
   -- One cheer covers the whole ring. Reaching most of them means facing
   -- a ledge cell, so much of the audience is scenery in practice.
-  local function talkAudience(world)
-    world:showText("Go on! Dazzle\nus, newcomer!")
+  -- assigned in the Lines block far below (cast_lines.lua is loaded
+  -- there); declared here so talkAudience, defined early, can call it
+  local lineFor
+  local function talkAudience(world, npc)
+    world:showText(lineFor(world, npc or { def = { name = "ring" } }))
   end
 
   local function markerExists(world, marker)
@@ -4263,52 +4266,74 @@ local function kcGold(mod, VERSION)
   -- member is never silent and adding lines never needs code.
   --
   -- 18 columns, 2 rows, per page. check_dialogue.py enforces it.
-  local KC_CAST_LINES = {
-    -- ["SPRITE_KC_MAY"] = { "...", "..." },
-  }
-  local KC_LINES_COORD = {
-    "My POKeMON has\nbeen practising.",
-    "I have waited all\nweek for this.",
-    "Good luck out\nthere!",
-    "Do not smile too\nmuch. It shows.",
-    "I am next. I\nthink. Maybe.",
-  }
-  local KC_LINES_CROWD = {
-    "The hall is packed\ntoday!",
-    "I came for the\nSHEEN, honestly.",
-    "That last appeal\nwas something.",
-    "Shh! It is\nstarting!",
-    "I have a good\nfeeling about you.",
-  }
+  -- cast_lines.lua is DATA (written by a design order): characters by
+  -- sprite id, classes by class, generic pools; each holds contexts
+  -- queue / stage / won / lost / crowd. Loaded like contest_engine.lua;
+  -- if it fails to load the one-line fallback below keeps the cast
+  -- talking rather than silent.
+  local KC_LINES = nil
+  do
+    local okR, src = pcall(function() return mod:read("cast_lines.lua") end)
+    if okR and src then
+      local chunk, err = load(src, "@" .. mod.path .. "/cast_lines.lua")
+      if chunk then
+        local ok, result = pcall(chunk)
+        if ok and type(result) == "table" then KC_LINES = result
+        else mod.log:warn("cast_lines.lua: %s", tostring(result)) end
+      else mod.log:warn("cast_lines.lua: %s", tostring(err)) end
+    end
+  end
+  KC_LINES = KC_LINES or { characters = {}, classes = {}, pools = {} }
+  local FALLBACK_LINE = "Good luck out\nthere!"
+
+  -- Which context an actor is spoken to in.
+  local function lineContext(world, def)
+    if not def.kcCoordinator then return "crowd" end
+    local save = mod.game and mod.game.save
+    local last = save and save.kcLastContest
+    -- a coordinator spoken to after THIS contest's judging
+    if last and last.count == contestCount() and last.place then
+      return last.place == 1 and "won" or "lost"
+    end
+    local mapId = world and world.map and world.map.id
+    if STAGE_DEF and mapId == STAGE_DEF.id then return "stage" end
+    return "queue"
+  end
 
   -- Stable per-actor pick: the same person says the same thing all
   -- contest rather than a new line every A press, but different people
-  -- say different things.
-  local function lineFor(npc)
-    local def = npc and npc.def
-    local sprite = def and def.sprite
-    -- `#own > 0` matters: KC_CAST_LINES is where per-character dialogue
-    -- gets added, so a placeholder entry like ["SPRITE_KC_MAY"] = {} is
-    -- the expected half-finished state. Without the length check `n % 0`
-    -- is nan, the index returns nil, and showText(nil) throws inside
-    -- talkTo's pcall -- surfacing as a generic "KC error" box rather
-    -- than pointing at the empty table.
-    local own = sprite and KC_CAST_LINES[sprite]
-    if own and #own > 0 then
-      local n = 0
-      for _ in tostring(def.name or ""):gmatch(".") do n = n + 1 end
-      return own[(n % #own) + 1]
+  -- say different things. Most specific pool with lines wins:
+  -- character -> class -> generic.
+  lineFor = function(world, npc)
+    local def = npc and npc.def or {}
+    local sprite = def.sprite
+    local ctx = lineContext(world, def)
+    local base = sprite and tostring(sprite):match("^SPRITE_(.+)$")
+    local function pick(pool)
+      if type(pool) ~= "table" or #pool == 0 then return nil end
+      local sum = contestSeed()
+      for c in tostring(def.name or "?"):gmatch(".") do sum = sum + string.byte(c) end
+      return pool[(sum % #pool) + 1]
     end
-    local pool = (def and def.kcCoordinator) and KC_LINES_COORD or KC_LINES_CROWD
-    local sum = 0
-    for c in tostring((def and def.name) or "?"):gmatch(".") do
-      sum = sum + string.byte(c)
+    local ch = sprite and KC_LINES.characters and KC_LINES.characters[sprite]
+    local cl = base and KC_LINES.classes and KC_LINES.classes[base]
+    local pools = KC_LINES.pools or {}
+    -- a won/lost context falls back to stage, then queue, before the
+    -- generic pools do the same
+    local order = { ctx }
+    if ctx == "won" or ctx == "lost" then order[#order + 1] = "stage" end
+    if ctx ~= "crowd" then order[#order + 1] = "queue" end
+    for _, source in ipairs({ ch, cl, pools }) do
+      for _, c in ipairs(order) do
+        local line = source and pick(source[c])
+        if line then return line end
+      end
     end
-    return pool[(sum % #pool) + 1]
+    return FALLBACK_LINE
   end
 
   local function talkCast(world, npc)
-    world:showText(lineFor(npc))
+    world:showText(lineFor(world, npc))
   end
 
   -- World:interactBody asks this facade's talkTo after resolving an NPC.
@@ -4366,7 +4391,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.32"
+  local VERSION = "0.34.33"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

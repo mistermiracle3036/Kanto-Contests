@@ -36,6 +36,17 @@ S.WIDE = { name = "wide", w = 240, h = 144, panelX = 160, panelY = 0,   rowH = 3
 S.TALL = { name = "tall", w = 160, h = 216, panelX = 0,   panelY = 144, rowH = 18 }
 S.ARENA_W = 160
 S.W, S.H = S.TALL.w, S.TALL.h   -- defaults; see S:layout()
+-- the results ceremony: frames for the bars to fill, then a hold with
+-- the winner lit before the placings are read
+S.CEREMONY_FILL = 120
+S.CEREMONY_HOLD = 75
+
+-- 0..1 of the appeal points to show on the bars: 1 outside the ceremony
+function S:ceremonyGrow()
+  if self.phase ~= "ceremony" or not self.ceremony then return 1 end
+  local t = math.min(1, self.ceremony / S.CEREMONY_FILL)
+  return 1 - (1 - t) * (1 - t)          -- ease out: fast start, soft landing
+end
 
 -- pure: which layout for a window of w x h pixels
 function S.layoutFor(w, h)
@@ -249,8 +260,11 @@ function S:resolveNext()
   if self.slot >= self.E.CONTESTANTS then
     local standings = self.E.endTurn(self.s)
     if self.s.turn >= self.E.TURNS then
-      self.phase = "tally"
-      self:queueTally()
+      -- Gen 3's results ceremony (0.34.33): the bars fill to their final
+      -- totals, the winner's row lights up, THEN the placings are read.
+      self.final = self.E.final(self.s)
+      self.ceremony = 0
+      self.phase = "ceremony"
     else
       local mine = standings[1].rank
       -- dialogue-ok: %s is a placing, three glyphs
@@ -401,6 +415,22 @@ function S:update(_dt)
     self:resolveNext()
   elseif self.phase == "between" then
     self:beginTurn()
+  elseif self.phase == "ceremony" then
+    -- A skips to the end of the fill; the applause plays as the bars land
+    self.ceremony = (self.ceremony or 0) + 1
+    if self:pressed("a") or self:pressed("b") then self.ceremony = math.max(self.ceremony, S.CEREMONY_FILL) end
+    if self.ceremony == S.CEREMONY_FILL then
+      local data = self.game and self.game.data
+      local okS, Sound = pcall(require, "src.core.Sound")
+      if okS and Sound and Sound.play and data then pcall(Sound.play, data, "SFX_KC_APPLAUSE") end
+      -- rows fall into finishing order once the totals are up
+      for _, r in ipairs(self.final) do self.rows[r.place] = r.who end
+    end
+    if self.ceremony >= S.CEREMONY_FILL + S.CEREMONY_HOLD then
+      self.ceremony = nil
+      self.phase = "tally"
+      self:queueTally()
+    end
   elseif self.phase == "tally" then
     self.phase = "done"
     self.finished = true
@@ -606,6 +636,11 @@ function S:drawTextBox()
     return
   end
   m.Chrome.textbox(0, 12, 18, 4)
+  if self.phase == "ceremony" then
+    m.Chrome.print("The JUDGE tallies", 1, 14)
+    m.Chrome.print("the scores...", 1, 16)
+    return
+  end
   local msg = self.msgs[1]
   if msg then
     local a, b = tostring(msg.text):match("^(.-)\n(.*)$")
@@ -713,17 +748,24 @@ function S:drawPanel()
   for _, c in ipairs(self.s.c) do maxPts = math.max(maxPts, c.round1 + 2 * c.total) end
   maxPts = math.max(maxPts, 200)
   local panelW = L.w - L.panelX
+  local grow = self:ceremonyGrow()
+  local winner = nil
+  if self.phase == "ceremony" and self.ceremony and self.ceremony >= S.CEREMONY_FILL and self.final then
+    for _, r in ipairs(self.final) do if r.place == 1 then winner = r.who end end
+  end
   for slot, ci in ipairs(self.rows) do
     local c = self.s.c[ci]
     local x0 = L.panelX
     local y = L.panelY + (slot - 1) * L.rowH
-    rgb(ci == 1 and S.C.panelMine or S.C.panel)
+    local lit = winner == ci and (self.frame % 16 < 8)
+    rgb(lit and { 255, 255, 255 } or (ci == 1 and S.C.panelMine or S.C.panel))
     G.rectangle("fill", x0, y, panelW, L.rowH)
     rgb(S.C.panelLine); G.rectangle("line", x0 + 0.5, y + 0.5, panelW - 1, L.rowH - 1)
     local nick, trainer = self:names(ci)
     local h = self.turnHearts[ci] or 0
     local color = h >= 0 and S.C.heart or S.C.heartJam
-    local pts = c.round1 + 2 * c.total
+    -- during the ceremony the appeal half of the score grows in
+    local pts = c.round1 + 2 * c.total * grow
     local frac = math.max(0, math.min(1, pts / maxPts))
     if L.name == "wide" then
       -- 80px wide, 36 tall: nick / trainer stacked, hearts, then the bar

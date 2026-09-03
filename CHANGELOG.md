@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.32
+## 0.34.33
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -32,6 +32,15 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
   a long list of text-box and sprite fixes.
+
+New in 0.34.33: a results ceremony. When the last appeal is done the
+four score bars fill to their totals, the winner's row lights up with
+the applause, the rows fall into finishing order, and then the placings
+are read -- A skips the fill. And the cast's lines now live in their own
+file (cast_lines.lua) with contexts: what a coordinator says in the
+queue, on stage, and after you beat them or they beat you, and what the
+crowd says -- with per-character and per-class voices to come from the
+dialogue order.
 
 New in 0.34.32: hooks for a companion quest mod. Another mod can now put
 its own characters in coordinator slots for a story beat, pause the
