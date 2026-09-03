@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.33
+## 0.34.34
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -32,6 +32,11 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
   a long list of text-box and sprite fixes.
+
+New in 0.34.34: the JUDGE has a voice -- after every appeal a verdict
+line says how it landed (astonished, impressed, a nod, unmoved, a
+frown) -- and after each turn you are told who goes first next, so
+"appeals earlier next turn" effects are visible.
 
 New in 0.34.33: a results ceremony. When the last appeal is done the
 four score bars fill to their totals, the winner's row lights up with

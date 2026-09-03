@@ -190,7 +190,7 @@ function S:narrate(ci, ev)
   for _, e in ipairs(ev) do
     if e.level then level = e.level end
     if e.kind == "crowd_wild" then wild = true end
-    local k, t = e.kind, nil
+    local k, t, t2 = e.kind, nil, nil
     if k == "skipped" then t = ("%s is\ncatching breath."):format(nick)
     elseif k == "no_more" then t = ("%s has\nnothing left!"):format(nick)
     elseif k == "attention" then t = ("The JUDGE eyes\n%s."):format(nick)
@@ -217,8 +217,16 @@ function S:narrate(ci, ev)
       self.turnHearts[ci] = h
       -- dialogue-ok: nick is clipped to 10 -> 17
       if h <= 0 then t = ("%s failed\nto stand out..."):format(nick) end
+      -- the JUDGE's verdict (0.34.34): Gen 3's judge comments on every
+      -- appeal, and the hearts alone did not say how it landed
+      if h >= 8 then t2 = "The JUDGE is\nastonished!"
+      elseif h >= 5 then t2 = "The JUDGE is\nimpressed!"
+      elseif h >= 3 then t2 = "The JUDGE nods\napprovingly."
+      elseif h >= 1 then t2 = "The JUDGE looks\nunmoved."
+      else t2 = "The JUDGE frowns." end
     end
     if t then self:say(t) end
+    if t2 then self:say(t2) end
   end
   -- The APPLAUSE meter stays up for every line of an appeal that moved
   -- the crowd, so the reader sees the dots and the sentence that
@@ -243,7 +251,10 @@ function S:narrate(ci, ev)
 end
 
 function S:beginTurn()
-  local order = self.E.beginTurn(self.s)
+  -- the order was already drawn at the end of the last turn (for the
+  -- preview line); the first turn draws it here
+  local order = self.nextOrder or self.E.beginTurn(self.s)
+  self.nextOrder = nil
   for slot = 0, self.E.CONTESTANTS - 1 do self.rows[slot + 1] = order[slot] end
   for i = 1, self.E.CONTESTANTS do self.turnHearts[i] = 0 end
   self.order = order
@@ -267,8 +278,19 @@ function S:resolveNext()
       self.phase = "ceremony"
     else
       local mine = standings[1].rank
+      local turnNo = self.s.turn
       -- dialogue-ok: %s is a placing, three glyphs
-      self:say(("You stand %s\nafter %d."):format(({ "1st", "2nd", "3rd", "4th" })[mine], self.s.turn))
+      self:say(("You stand %s\nafter %d."):format(({ "1st", "2nd", "3rd", "4th" })[mine], turnNo))
+      -- Gen 3 shows next turn's order right after the appeals, so effects
+      -- like "appeals earlier next turn" are visible. E.beginTurn decides
+      -- that order (and advances the turn), so it runs here and S:beginTurn
+      -- takes the result.
+      self.nextOrder = self.E.beginTurn(self.s)
+      local first = self.nextOrder[0]
+      if first then
+        -- dialogue-ok: nick is clipped to 10 -> 15
+        self:say(("%s goes\nfirst next."):format((self:names(first))))
+      end
       self.phase = "between"
     end
     return
