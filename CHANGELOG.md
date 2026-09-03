@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.36
+## 0.34.37
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -32,6 +32,9 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
   a long list of text-box and sprite fixes.
+
+New in 0.34.37: no player-visible change -- 0.34.36's boot check was
+failing and is fixed.
 
 New in 0.34.36: ECRUTEAK CITY has a Contest Hall. The building is on the
 street west of the Dance Theater and you can walk in through its door.

@@ -22,6 +22,17 @@ local KNOWN = {
   ['unresolved reference to trainers "OPP_GENTLEMAN"'] = true,
   ['unresolved reference to pokemon "CHANSEY"'] = true,
 }
+-- The Ecruteak grass table (0.34.36) names ordinary vanilla species. The
+-- ROM-free sandbox has no pokemon table at all, so every one of them is an
+-- unresolved reference HERE and none of them is on a real game -- the same
+-- situation as CHANSEY above. Listed BY NAME, never as a blanket "ignore
+-- pokemon references", so a typo'd species id still fails this test.
+for _, species in ipairs({
+  "RATTATA", "PIDGEY", "PIDGEOTTO", "GROWLITHE", "GIRAFARIG",
+  "HOOTHOOT", "NOCTOWL", "MISDREAVUS", "STANTLER", "EEVEE",
+}) do
+  KNOWN[('unresolved reference to pokemon "%s"'):format(species)] = true
+end
 local function realErrors(run)
   local out = {}
   for _, e in ipairs(run.errors) do
