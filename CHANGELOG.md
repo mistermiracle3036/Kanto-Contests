@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.39
+## 0.34.40
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -32,6 +32,10 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
   a long list of text-box and sprite fixes.
+
+New in 0.34.40: the Ecruteak Contest Hall is decorated. Both rooms are
+the developer's own: a lobby with its counter, vending machines and
+plants, and a wooden stage with pillars and benches.
 
 New in 0.34.39: the Ecruteak lobby and stage are the same size and shape
 as Goldenrod's, drawn in plain wooden blocks as a starting point to be

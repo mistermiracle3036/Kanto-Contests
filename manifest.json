@@ -1,7 +1,7 @@
 {
   "id": "kanto_contests",
   "name": "Kanto Contests (Alpha)",
-  "version": "0.34.39",
+  "version": "0.34.40",
   "api": 2,
   "games": [
     "gen1",
