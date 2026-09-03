@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.34
+## 0.34.35
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -32,6 +32,10 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
   a long list of text-box and sprite fixes.
+
+New in 0.34.35: trophies. Your first contest win, and a win at MASTER
+rank in each of the five categories, each unlock a trophy for the
+Trophy Case mod (once it catalogues them; nothing shows without it).
 
 New in 0.34.34: the JUDGE has a voice -- after every appeal a verdict
 line says how it landed (astonished, impressed, a nod, unmoved, a

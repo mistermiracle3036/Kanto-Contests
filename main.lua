@@ -3944,6 +3944,18 @@ local function kcGold(mod, VERSION)
         if won and record then
           entrant.contestWins = entrant.contestWins or {}
           entrant.contestWins[kind] = (entrant.contestWins[kind] or 0) + 1
+          -- Trophy Case (0.34.35): Gen 3 hangs a Master-rank winner's
+          -- portrait in the museum; here the trophy is a case key. The
+          -- reader fails safe on an uncatalogued key (nothing is drawn),
+          -- so this writes whether or not Trophy Case is installed --
+          -- the contract in exchange/CONTRACTS.md (kc-trophies).
+          if game.save then
+            game.save.trophyUnlocks = game.save.trophyUnlocks or {}
+            game.save.trophyUnlocks["kanto_contests:debut"] = true
+            if rank == "MASTER" then
+              game.save.trophyUnlocks["kanto_contests:master_" .. tostring(kind):lower()] = true
+            end
+          end
         end
         if won then pendingRank = nil end
         local result = contestPayload(place, final)
@@ -4391,7 +4403,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.34"
+  local VERSION = "0.34.35"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
