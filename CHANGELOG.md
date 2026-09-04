@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.35.1
+## 0.35.2
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -35,6 +35,14 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category and per rank for Kanto
   Ribbons, and a long list of text-box and sprite fixes.
+
+New in 0.35.2: the ECRUTEAK CONTEST HALL lobby was crowded. Ten people
+stood in it before the three waiting coordinators were added, one of them
+inside a potted plant and three more shoulder to shoulder across the middle
+of the floor. It has the same six as every other hall now.
+
+The sign outside the GOLDENROD CONTEST HALL says something when you read it.
+It had been standing there doing nothing.
 
 New in 0.35.1: the counter in the Blackthorn Contest Hall is drawn from
 different furniture, so it looks right on Gold and Silver as well as

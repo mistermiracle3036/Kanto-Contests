@@ -987,6 +987,20 @@ local KC_HALLS = {
         7, 8, 9, 9, 6,
         10, 9, 11, 9, 6,
       },
+      -- SIX, like every other lobby (0.35.2). This carried ten, and with
+      -- the three the queue spawns that was thirteen people in a 10x8
+      -- room -- reported from device as too many and in the wrong places.
+      -- Two things were wrong beyond the count:
+      --   * PIPER, REX and FIONA stood shoulder to shoulder at (2,6),
+      --     (3,6), (4,6), a wall of three across the middle of the floor.
+      --     They are also VESTIGIAL here: they were the stand-in rivals
+      --     from before the lobby queue existed, and the queue now draws
+      --     the contest's real coordinators with their own dialogue. The
+      --     talk handlers stay -- the Gen 1 arm still spawns all three.
+      --   * KC_AUD_2 stood at (9,6), which is the potted plant. Walkable,
+      --     so no check caught it, and the sprite drew straight over it.
+      -- The cells below are Goldenrod's, which every one of these rooms
+      -- was painted over, and are open floor in all four.
       actors = {
         { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
           sprite = "SPRITE_GENTLEMAN", x = 4, y = 1, movement = 6 },
@@ -994,20 +1008,12 @@ local KC_HALLS = {
           sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
         { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
           sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
-        { name = "KC_RIVAL_PIPER", marker = "kcRivalPiper",
-          sprite = "SPRITE_LASS", x = 2, y = 6, movement = 7 },
-        { name = "KC_RIVAL_REX", marker = "kcRivalRex",
-          sprite = "SPRITE_YOUNGSTER", x = 3, y = 6, movement = 7 },
-        { name = "KC_RIVAL_FIONA", marker = "kcRivalFiona",
-          sprite = "SPRITE_COOLTRAINER_F", x = 4, y = 6, movement = 7 },
         { name = "KC_AUD_1", marker = "kcAudience",
-          sprite = "SPRITE_GRANNY", x = 0, y = 6, movement = 9 },
+          sprite = "SPRITE_GRANNY", x = 1, y = 4, movement = 9 },
         { name = "KC_AUD_2", marker = "kcAudience",
-          sprite = "SPRITE_POKEFAN_M", x = 9, y = 6, movement = 8 },
+          sprite = "SPRITE_POKEFAN_M", x = 2, y = 4, movement = 9 },
         { name = "KC_AUD_3", marker = "kcAudience",
           sprite = "SPRITE_TWIN", x = 6, y = 6, movement = 7 },
-        { name = "KC_AUD_4", marker = "kcAudience",
-          sprite = "SPRITE_ROCKER", x = 7, y = 5, movement = 7 },
       },
     },
     stage = {
@@ -4519,6 +4525,19 @@ local function kcGold(mod, VERSION)
   -- `door` is the cell the developer painted, and the pavement square below
   -- it is where the player lands coming back out.
   local KC_STREETS = {
+    -- Goldenrod carries SIGNS ONLY. Its facade and its door at 35,4 have
+    -- their own code from long before this table and are left alone; what
+    -- it was missing is an answer for the sign post the developer painted
+    -- beside the hall, which had no event behind it and did nothing
+    -- (reported from device, 0.35.1). A street with no `door` is skipped
+    -- by the step trigger and never enters STREET_OF_LOBBY.
+    GOLDENROD = {
+      map = "GOLDENROD_CITY",
+      signs = {
+        -- dialogue-ok: 14 / 12
+        ["36,5"] = "GOLDENROD CITY\nCONTEST HALL",
+      },
+    },
     ECRUTEAK = {
       map = "ECRUTEAK_CITY", door = { x = 14, y = 21 },
       facade = KC_ECRUTEAK_FACADE,
@@ -4555,7 +4574,8 @@ local function kcGold(mod, VERSION)
     street.town = key
     street.hall = KC_HALLS[key] and KC_HALLS[key].lobby
     STREET_OF[street.map] = street
-    if street.hall then STREET_OF_LOBBY[street.hall.id] = street end
+    -- only a street with its own door can put the player back outside one
+    if street.hall and street.door then STREET_OF_LOBBY[street.hall.id] = street end
   end
 
   -- Build one composed block's 16 tiles from the tileset in play.
@@ -4793,7 +4813,7 @@ local function kcGold(mod, VERSION)
   -- of them.
   mod.events:on("world.stepped", function(ev)
     local street = ev and STREET_OF[ev.mapId]
-    if not street then return end
+    if not (street and street.door) then return end
     if ev.x ~= street.door.x or ev.y ~= street.door.y then return end
     local ok, err = pcall(enterStreetHall, street, mod.world:overworld())
     if not ok then mod.log:warn("kc %s door: %s", street.town, tostring(err)) end
@@ -4836,7 +4856,20 @@ local function kcGold(mod, VERSION)
     local from = ctx and ctx.warp and ctx.warp.destMap
     local here = mod.world:current()
     local hereId = here and here.mapId
-    if hereId == HALL then
+    if STREET_OF_LOBBY[hereId] then
+      -- Out of the hall onto the pavement below ITS door, never onto the
+      -- door itself (that cell is the way back in).
+      --
+      -- Checked BEFORE the Goldenrod arm below, which is the fix: HALL is
+      -- re-aimed by useTown, so `hereId == HALL` was true in every lobby
+      -- and this branch never ran. It happened to behave, because
+      -- hallReturn is the door cell and +1 is the same pavement -- but
+      -- with hallReturn lost (a save made inside the lobby, then a
+      -- reload) the fallback was Goldenrod's own door, which would have
+      -- put a player leaving Blackthorn out on the wrong side of Johto.
+      local street = STREET_OF_LOBBY[hereId]
+      return street.map, street.door.x, street.door.y + 1
+    elseif hereId == HALL then
       -- Land on the pavement BELOW the door, never on the door itself.
       -- hallReturn is where the player stood when they came in, and
       -- since the entrance is now a door tile that is the door -- so
@@ -4847,11 +4880,6 @@ local function kcGold(mod, VERSION)
       local bx = (back and back.x) or entranceCell.x
       local by = ((back and back.y) or entranceCell.y) + 1
       return (back and back.mapId) or KCG.map, bx, by
-    elseif STREET_OF_LOBBY[hereId] then
-      -- out of the hall onto the pavement below its door, never onto the
-      -- door itself (that cell is the way back in)
-      local street = STREET_OF_LOBBY[hereId]
-      return street.map, street.door.x, street.door.y + 1
     elseif STAGE_DEF and hereId == STAGE_DEF.id then
       -- The carpet is the ONLY way off the stage now, so this path has
       -- to do what leaveStage does. It did not, and a player who walked
@@ -5469,7 +5497,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.35.1"
+  local VERSION = "0.35.2"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
