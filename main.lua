@@ -4350,6 +4350,17 @@ local function kcGold(mod, VERSION)
         if won and record then
           entrant.contestWins = entrant.contestWins or {}
           entrant.contestWins[kind] = (entrant.contestWins[kind] or 0) + 1
+          -- Kanto Ribbons (contest-ranks, briefs/RIBBONS_CONTEST_RANKS.md):
+          -- WHICH rank this win was at, so per-rank ribbons come from the
+          -- save instead of a guess. A SET, never a "highest rank" string:
+          -- eligibleRanks is min(#KC_RANKS, wins + 1) and `wins` counts a
+          -- category's wins at ANY rank, so four NORMAL wins make MASTER
+          -- enterable and a highest-rank value would imply ribbons for
+          -- ranks nobody won. Written whether or not Ribbons is installed,
+          -- exactly like the trophy keys below; the reader fails safe.
+          entrant.contestRanks = entrant.contestRanks or {}
+          entrant.contestRanks[kind] = entrant.contestRanks[kind] or {}
+          entrant.contestRanks[kind][rank] = true
           -- Trophy Case (0.34.35): Gen 3 hangs a Master-rank winner's
           -- portrait in the museum; here the trophy is a case key. The
           -- reader fails safe on an uncatalogued key (nothing is drawn),
@@ -4799,7 +4810,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.43"
+  local VERSION = "0.34.44"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

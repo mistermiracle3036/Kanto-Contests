@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.43
+## 0.34.44
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -32,6 +32,10 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
   a long list of text-box and sprite fixes.
+
+New in 0.34.44: a winning POKeMON now remembers WHICH rank it won at, not
+just how many times it has won. Kanto Ribbons uses that to award the
+per-rank contest ribbons; nothing changes if you do not have it.
 
 New in 0.34.43: the Ecruteak hall no longer has a fragment of wall tiling
 away around the outside of both rooms, and the judge stands behind his
