@@ -2875,43 +2875,238 @@ local function kcGold(mod, VERSION)
   --
   -- Facings all point at the stage: the rows above look DOWN, the rows
   -- below look UP, and the flanking columns look inward.
-  local STAGE_SEATS = {
-    { x = 2, y =  2, face = FACE_DOWN   },
-    { x = 3, y =  2, face = FACE_DOWN   },
-    { x = 4, y =  2, face = FACE_DOWN   },
-    { x = 5, y =  2, face = FACE_DOWN   },
-    { x = 6, y =  2, face = FACE_DOWN   },
-    { x = 7, y =  2, face = FACE_DOWN   },
-    { x = 2, y =  4, face = FACE_DOWN   },
-    { x = 3, y =  4, face = FACE_DOWN   },
-    { x = 4, y =  4, face = FACE_DOWN   },
-    { x = 5, y =  4, face = FACE_DOWN   },
-    { x = 6, y =  4, face = FACE_DOWN   },
-    { x = 7, y =  4, face = FACE_DOWN   },
-    { x = 1, y =  5, face = FACE_RIGHT  },
-    { x = 1, y =  6, face = FACE_RIGHT  },
-    { x = 1, y =  7, face = FACE_RIGHT  },
-    { x = 1, y =  8, face = FACE_RIGHT  },
-    { x = 8, y =  5, face = FACE_LEFT   },
-    { x = 8, y =  6, face = FACE_LEFT   },
-    { x = 8, y =  7, face = FACE_LEFT   },
-    { x = 8, y =  8, face = FACE_LEFT   },
-    { x = 3, y = 10, face = FACE_UP     },
-    { x = 4, y = 10, face = FACE_UP     },
-    { x = 5, y = 10, face = FACE_UP     },
-    { x = 6, y = 10, face = FACE_UP     },
-    { x = 1, y = 12, face = FACE_UP     },
-    { x = 2, y = 12, face = FACE_UP     },
-    { x = 3, y = 12, face = FACE_UP     },
-    { x = 6, y = 12, face = FACE_UP     },
-    { x = 7, y = 12, face = FACE_UP     },
-    { x = 8, y = 12, face = FACE_UP     },
+  -- WHERE THE CROWD STANDS, per town (0.36.0).
+  --
+  -- This was ONE list of 30 cells laid out against Goldenrod, reused in
+  -- every hall, and it aged badly: Ecruteak and Blackthorn have a walled
+  -- platform where Goldenrod has open floor, so 14 of the 30 fell inside a
+  -- wall and those two rooms could seat 16 against Goldenrod's 30. The
+  -- MASTER hall had the smallest crowd in the game.
+  --
+  -- The painted chairs are DECORATION (developer, 2026-09-04): a spectator
+  -- can stand on any cell. The real constraint is that the player must be
+  -- able to walk up to every one of them and talk, which matters now that
+  -- leaving the stage may become a walk rather than a warp.
+  --
+  -- So these are generated, not hand-placed, and the rule they satisfy is:
+  --   * every cell has its back to something -- a wall or the platform --
+  --     which is where an audience stands anyway and leaves the middle of
+  --     the floor clear to walk through;
+  --   * with EVERY cell in the list occupied at once, the remaining floor
+  --     is still one connected region reachable from where the player
+  --     lands, and every occupant is adjacent to it. All-occupied is the
+  --     genuine worst case: freeing a place can only add floor, and added
+  --     floor cannot disconnect a walkway or take away a neighbour;
+  --   * the cells the contest owns -- the line-up, the mark, the walk
+  --     between them, the three coordinator spots, the exit carpet and the
+  --     square you step off it onto -- are never offered.
+  -- tests/crowd_reach_test.lua asserts all of that against the shipped
+  -- collision, so a repaint that walls somebody in fails rather than
+  -- stranding them.
+  local KC_STAGE_SEATS = {
+    GOLDENROD = {
+      { x = 0, y =  1, face = FACE_DOWN   },
+      { x = 1, y =  1, face = FACE_DOWN   },
+      { x = 2, y =  1, face = FACE_DOWN   },
+      { x = 3, y =  1, face = FACE_DOWN   },
+      { x = 4, y =  1, face = FACE_DOWN   },
+      { x = 5, y =  1, face = FACE_DOWN   },
+      { x = 6, y =  1, face = FACE_DOWN   },
+      { x = 7, y =  1, face = FACE_DOWN   },
+      { x = 8, y =  1, face = FACE_DOWN   },
+      { x = 9, y =  1, face = FACE_DOWN   },
+      { x = 0, y =  3, face = FACE_RIGHT  },
+      { x = 9, y =  3, face = FACE_LEFT   },
+      { x = 0, y =  4, face = FACE_RIGHT  },
+      { x = 9, y =  4, face = FACE_LEFT   },
+      { x = 0, y =  5, face = FACE_RIGHT  },
+      { x = 9, y =  5, face = FACE_LEFT   },
+      { x = 0, y =  6, face = FACE_RIGHT  },
+      { x = 9, y =  6, face = FACE_LEFT   },
+      { x = 0, y =  7, face = FACE_RIGHT  },
+      { x = 9, y =  7, face = FACE_LEFT   },
+      { x = 0, y =  8, face = FACE_RIGHT  },
+      { x = 9, y =  8, face = FACE_LEFT   },
+      { x = 0, y =  9, face = FACE_RIGHT  },
+      { x = 2, y =  9, face = FACE_UP     },
+      { x = 7, y =  9, face = FACE_UP     },
+      { x = 9, y =  9, face = FACE_LEFT   },
+      { x = 0, y = 10, face = FACE_RIGHT  },
+      { x = 3, y = 10, face = FACE_RIGHT  },
+      { x = 4, y = 10, face = FACE_RIGHT  },
+      { x = 5, y = 10, face = FACE_LEFT   },
+      { x = 6, y = 10, face = FACE_LEFT   },
+      { x = 9, y = 10, face = FACE_LEFT   },
+      { x = 0, y = 11, face = FACE_UP     },
+      { x = 9, y = 11, face = FACE_UP     },
+      { x = 0, y = 12, face = FACE_UP     },
+      { x = 9, y = 12, face = FACE_UP     },
+      { x = 0, y = 13, face = FACE_UP     },
+      { x = 2, y = 13, face = FACE_UP     },
+      { x = 3, y = 13, face = FACE_UP     },
+      { x = 6, y = 13, face = FACE_UP     },
+      { x = 7, y = 13, face = FACE_UP     },
+      { x = 9, y = 13, face = FACE_UP     },
+    },
+    ECRUTEAK = {
+      { x = 0, y =  1, face = FACE_DOWN   },
+      { x = 1, y =  1, face = FACE_DOWN   },
+      { x = 2, y =  1, face = FACE_DOWN   },
+      { x = 3, y =  1, face = FACE_DOWN   },
+      { x = 4, y =  1, face = FACE_DOWN   },
+      { x = 5, y =  1, face = FACE_DOWN   },
+      { x = 6, y =  1, face = FACE_DOWN   },
+      { x = 7, y =  1, face = FACE_DOWN   },
+      { x = 8, y =  1, face = FACE_DOWN   },
+      { x = 9, y =  1, face = FACE_DOWN   },
+      { x = 1, y =  3, face = FACE_RIGHT  },
+      { x = 2, y =  3, face = FACE_RIGHT  },
+      { x = 3, y =  3, face = FACE_RIGHT  },
+      { x = 4, y =  3, face = FACE_RIGHT  },
+      { x = 5, y =  3, face = FACE_LEFT   },
+      { x = 6, y =  3, face = FACE_LEFT   },
+      { x = 7, y =  3, face = FACE_LEFT   },
+      { x = 8, y =  3, face = FACE_LEFT   },
+      { x = 0, y =  4, face = FACE_DOWN   },
+      { x = 0, y =  5, face = FACE_DOWN   },
+      { x = 2, y =  5, face = FACE_RIGHT  },
+      { x = 3, y =  5, face = FACE_DOWN   },
+      { x = 4, y =  5, face = FACE_DOWN   },
+      { x = 5, y =  5, face = FACE_DOWN   },
+      { x = 6, y =  5, face = FACE_DOWN   },
+      { x = 7, y =  5, face = FACE_LEFT   },
+      { x = 2, y =  7, face = FACE_RIGHT  },
+      { x = 7, y =  7, face = FACE_LEFT   },
+      { x = 2, y =  8, face = FACE_RIGHT  },
+      { x = 7, y =  8, face = FACE_LEFT   },
+      { x = 3, y =  9, face = FACE_UP     },
+      { x = 1, y = 10, face = FACE_RIGHT  },
+      { x = 2, y = 10, face = FACE_RIGHT  },
+      { x = 4, y = 10, face = FACE_RIGHT  },
+      { x = 5, y = 10, face = FACE_LEFT   },
+      { x = 7, y = 10, face = FACE_LEFT   },
+      { x = 8, y = 10, face = FACE_LEFT   },
+      { x = 0, y = 12, face = FACE_UP     },
+      { x = 9, y = 12, face = FACE_UP     },
+      { x = 0, y = 13, face = FACE_UP     },
+      { x = 2, y = 13, face = FACE_UP     },
+      { x = 3, y = 13, face = FACE_UP     },
+      { x = 6, y = 13, face = FACE_UP     },
+      { x = 7, y = 13, face = FACE_UP     },
+      { x = 9, y = 13, face = FACE_UP     },
+    },
+    CIANWOOD = {
+      { x = 0, y =  1, face = FACE_DOWN   },
+      { x = 1, y =  1, face = FACE_DOWN   },
+      { x = 2, y =  1, face = FACE_DOWN   },
+      { x = 3, y =  1, face = FACE_DOWN   },
+      { x = 4, y =  1, face = FACE_DOWN   },
+      { x = 5, y =  1, face = FACE_DOWN   },
+      { x = 6, y =  1, face = FACE_DOWN   },
+      { x = 7, y =  1, face = FACE_DOWN   },
+      { x = 8, y =  1, face = FACE_DOWN   },
+      { x = 9, y =  1, face = FACE_DOWN   },
+      { x = 0, y =  3, face = FACE_RIGHT  },
+      { x = 9, y =  3, face = FACE_LEFT   },
+      { x = 0, y =  4, face = FACE_RIGHT  },
+      { x = 9, y =  4, face = FACE_LEFT   },
+      { x = 0, y =  5, face = FACE_RIGHT  },
+      { x = 9, y =  5, face = FACE_LEFT   },
+      { x = 0, y =  6, face = FACE_RIGHT  },
+      { x = 9, y =  6, face = FACE_LEFT   },
+      { x = 0, y =  7, face = FACE_RIGHT  },
+      { x = 9, y =  7, face = FACE_LEFT   },
+      { x = 0, y =  8, face = FACE_RIGHT  },
+      { x = 9, y =  8, face = FACE_LEFT   },
+      { x = 0, y =  9, face = FACE_RIGHT  },
+      { x = 9, y =  9, face = FACE_LEFT   },
+      { x = 0, y = 10, face = FACE_RIGHT  },
+      { x = 9, y = 10, face = FACE_LEFT   },
+      { x = 0, y = 11, face = FACE_UP     },
+      { x = 9, y = 11, face = FACE_UP     },
+      { x = 0, y = 12, face = FACE_UP     },
+      { x = 9, y = 12, face = FACE_UP     },
+      { x = 0, y = 13, face = FACE_UP     },
+      { x = 2, y = 13, face = FACE_UP     },
+      { x = 3, y = 13, face = FACE_UP     },
+      { x = 6, y = 13, face = FACE_UP     },
+      { x = 7, y = 13, face = FACE_UP     },
+      { x = 9, y = 13, face = FACE_UP     },
+    },
+    BLACKTHORN = {
+      { x = 0, y =  1, face = FACE_DOWN   },
+      { x = 1, y =  1, face = FACE_DOWN   },
+      { x = 2, y =  1, face = FACE_DOWN   },
+      { x = 3, y =  1, face = FACE_DOWN   },
+      { x = 4, y =  1, face = FACE_DOWN   },
+      { x = 5, y =  1, face = FACE_DOWN   },
+      { x = 6, y =  1, face = FACE_DOWN   },
+      { x = 7, y =  1, face = FACE_DOWN   },
+      { x = 8, y =  1, face = FACE_DOWN   },
+      { x = 9, y =  1, face = FACE_DOWN   },
+      { x = 1, y =  3, face = FACE_RIGHT  },
+      { x = 2, y =  3, face = FACE_RIGHT  },
+      { x = 3, y =  3, face = FACE_RIGHT  },
+      { x = 4, y =  3, face = FACE_RIGHT  },
+      { x = 5, y =  3, face = FACE_LEFT   },
+      { x = 6, y =  3, face = FACE_LEFT   },
+      { x = 7, y =  3, face = FACE_LEFT   },
+      { x = 8, y =  3, face = FACE_LEFT   },
+      { x = 0, y =  4, face = FACE_DOWN   },
+      { x = 0, y =  5, face = FACE_DOWN   },
+      { x = 2, y =  5, face = FACE_RIGHT  },
+      { x = 3, y =  5, face = FACE_DOWN   },
+      { x = 4, y =  5, face = FACE_DOWN   },
+      { x = 5, y =  5, face = FACE_DOWN   },
+      { x = 6, y =  5, face = FACE_DOWN   },
+      { x = 7, y =  5, face = FACE_LEFT   },
+      { x = 2, y =  7, face = FACE_RIGHT  },
+      { x = 7, y =  7, face = FACE_LEFT   },
+      { x = 2, y =  8, face = FACE_RIGHT  },
+      { x = 7, y =  8, face = FACE_LEFT   },
+      { x = 1, y =  9, face = FACE_DOWN   },
+      { x = 3, y =  9, face = FACE_UP     },
+      { x = 8, y =  9, face = FACE_DOWN   },
+      { x = 2, y = 10, face = FACE_RIGHT  },
+      { x = 4, y = 10, face = FACE_RIGHT  },
+      { x = 5, y = 10, face = FACE_LEFT   },
+      { x = 7, y = 10, face = FACE_LEFT   },
+      { x = 0, y = 11, face = FACE_UP     },
+      { x = 9, y = 11, face = FACE_UP     },
+      { x = 0, y = 12, face = FACE_UP     },
+      { x = 3, y = 12, face = FACE_UP     },
+      { x = 6, y = 12, face = FACE_UP     },
+      { x = 9, y = 12, face = FACE_UP     },
+      { x = 0, y = 13, face = FACE_UP     },
+      { x = 2, y = 13, face = FACE_UP     },
+      { x = 7, y = 13, face = FACE_UP     },
+      { x = 9, y = 13, face = FACE_UP     },
+    },
   }
-  -- 15-20 in the room. The FIRST dozen carry the named faces; everyone
-  -- after that is drawn almost entirely from the vanilla trainers, so a
-  -- bigger crowd reads as a bigger crowd rather than as more celebrities
-  -- -- there are already plenty of custom characters in the mix.
-  local CROWD_MIN, CROWD_MAX = 15, 20
+  -- Goldenrod's, for a town added without its own list.
+  local function stageSeats()
+    return KC_STAGE_SEATS[TOWN] or KC_STAGE_SEATS.GOLDENROD
+  end
+  -- HOW MANY TURN UP, by the rank the hall runs (0.36.0). A MASTER
+  -- contest should feel like an event and a NORMAL one like a local
+  -- fixture, and the room is the only place that can say so.
+  --
+  -- Every band fits its hall with room to spare -- the lists above hold
+  -- 42 (Goldenrod), 45 (Ecruteak), 36 (Cianwood) and 47 (Blackthorn) --
+  -- and the draw takes the smaller of the band and what the room has, so
+  -- a repaint that loses places quietly seats fewer rather than erroring.
+  local CROWD_BY_RANK = {
+    NORMAL = { 12, 16 },
+    SUPER  = { 18, 22 },
+    HYPER  = { 24, 28 },
+    MASTER = { 30, 34 },
+  }
+  -- The FIRST dozen carry the named faces; everyone after that is drawn
+  -- almost entirely from the vanilla trainers, so a bigger crowd reads as
+  -- a bigger crowd rather than as more celebrities -- there are already
+  -- plenty of custom characters in the mix. Deliberately NOT scaled with
+  -- the rank: a MASTER contest gets a fuller room, not a room where every
+  -- other face is a gym leader.
   local CROWD_NAMED_UNTIL = 12
 
   -- Adjacency is computed from the seats actually CHOSEN, not a fixed
@@ -3384,16 +3579,20 @@ local function kcGold(mod, VERSION)
   -- Choose WHICH seats are filled. 10-15 of the 30 the developer
     -- marked out, so the hall is the same density each time but never
     -- the same shape.
+    local SEATS = stageSeats()
     local pool = {}
-    for k = 1, #STAGE_SEATS do
-      local seat = STAGE_SEATS[k]
+    for k = 1, #SEATS do
+      local seat = SEATS[k]
+      -- generated from this room's own collision, so this never rejects
+      -- anything today; kept because a repaint is one save away
       if seatUsable(STAGE_DEF, seat.x, seat.y) then pool[#pool + 1] = seat end
     end
     for k = #pool, 2, -1 do
       local m = rnd(k)
       pool[k], pool[m] = pool[m], pool[k]
     end
-    local take = CROWD_MIN + rnd(CROWD_MAX - CROWD_MIN + 1) - 1
+    local band = CROWD_BY_RANK[hallRank()] or CROWD_BY_RANK.NORMAL
+    local take = band[1] + rnd(band[2] - band[1] + 1) - 1
     local chosen = {}
     for k = 1, math.min(take, #pool) do chosen[k] = pool[k] end
 
@@ -5497,7 +5696,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.35.2"
+  local VERSION = "0.36.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.35.2
+## 0.36.0
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -16,7 +16,8 @@ has been rebuilt since. The short version:
 - **Four ranks in four towns** (0.34.41, 0.35.0): Goldenrod runs NORMAL,
   Ecruteak SUPER, Cianwood HYPER and Blackthorn MASTER. You climb by
   travelling, and a hall only takes your entry once you have won at the
-  rank below.
+  rank below. The higher the rank, the fuller the room and the sharper
+  your rivals (0.36.0).
 - **The halls are real places**: buildings on the street with their own
   doors (0.20, 0.34.40, 0.35.0), hand-built lobby and stage rooms
   (0.16-0.18), a live crowd with famous faces and named ordinary
@@ -35,6 +36,24 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category and per rank for Kanto
   Ribbons, and a long list of text-box and sprite fixes.
+
+New in 0.36.0: **the crowd grows with the rank.** A NORMAL contest draws
+12-16 people, SUPER 18-22, HYPER 24-28 and a MASTER contest 30-34, so
+Blackthorn feels like an event and Goldenrod feels like a local fixture.
+
+Every hall also has its own places to stand now, worked out from that room.
+Before this they all used one set of thirty laid out against Goldenrod, and
+in Ecruteak and Blackthorn nearly half of those fell inside a wall -- which
+meant the MASTER hall had the smallest crowd in the game. The rooms hold
+42, 45, 36 and 47.
+
+Nobody stands anywhere you cannot walk up to and talk to, even with every
+place taken.
+
+Your rivals were already thinking harder at higher ranks -- Normal picks at
+random, Super favours the contest's category, Hyper stops repeating itself
+and finishes its combos, Master works out its best move each turn. Going
+back down to a NORMAL hall gets you Normal opponents again, in any category.
 
 New in 0.35.2: the ECRUTEAK CONTEST HALL lobby was crowded. Ten people
 stood in it before the three waiting coordinators were added, one of them

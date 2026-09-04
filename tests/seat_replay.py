@@ -14,7 +14,12 @@ PRE-swap trio).
 It mirrors the CURRENT main.lua pools and guards, so it can only explain a
 screenshot taken on the current build. Edit observed() to what the screenshot
 shows, then run:  python tests/seat_replay.py
-(0.34.15's red blob: seed 24618 -> seat (1,8) = SPRITE_KC_BALLGUY.)
+(0.34.15's red blob: seed 24618 -> seat (1,8) = SPRITE_KC_BALLGUY, in
+GOLDENROD, on the seat list of the day.)
+
+Since 0.36.0 the places and the crowd size are per town and per rank, so a
+seed only explains a screenshot from the SAME hall:
+  python tests/seat_replay.py BLACKTHORN
 """
 import re, sys, os
 import numpy as np
@@ -31,14 +36,29 @@ CAST_GYM = lua_list("CAST_GYM"); CAST_FOLK = lua_list("CAST_FOLK")
 CAST_CUSTOM_RIVAL = lua_list("CAST_CUSTOM_RIVAL"); CAST_CUSTOM_CROWD = lua_list("CAST_CUSTOM_CROWD")
 pairs_body = re.search(r'local CAST_PAIRS = \{(.*?)\n  \}', SRC, re.S).group(1)
 CAST_PAIRS = re.findall(r'\{ "([A-Z0-9_]+)", "([A-Z0-9_]+)" \}', pairs_body)
-seats_body = re.search(r'local STAGE_SEATS = \{(.*?)\n  \}', SRC, re.S).group(1)
-STAGE_SEATS = [(int(x), int(y), f) for x, y, f in re.findall(r'x = (\d+), y = *(\d+), face = (\w+)', seats_body)]
+# Per town since 0.36.0. Which hall matters: the seats differ, so a seed
+# only explains a screenshot taken in the SAME hall. Pass the town as the
+# first argument; Goldenrod is the default because that is where every
+# screenshot before 0.35.0 was taken.
+TOWN = (sys.argv[1] if len(sys.argv) > 1 else "GOLDENROD").upper()
+seats_all = re.search(r'local KC_STAGE_SEATS = \{(.*?)\n  \}', SRC, re.S).group(1)
+town_body = re.search(r'\n    %s = \{(.*?)\n    \}' % TOWN, seats_all, re.S)
+if not town_body:
+    sys.exit("no seats for %s in KC_STAGE_SEATS" % TOWN)
+STAGE_SEATS = [(int(x), int(y), f) for x, y, f in
+               re.findall(r'x = (\d+), y = *(\d+), face = (\w+)', town_body.group(1))]
 STAND_ONLY = set(re.findall(r'(\w+) = true', re.search(r'local STAND_ONLY = \{([^}]*)\}', SRC).group(1)))
 LARRY_ODDS = int(re.search(r'local LARRY_ODDS = (\d+)', SRC).group(1))
-CROWD_MIN, CROWD_MAX = map(int, re.search(r'local CROWD_MIN, CROWD_MAX = (\d+), (\d+)', SRC).groups())
+# Per rank since 0.36.0, and the rank comes from the hall, so it follows
+# from the town rather than being asked for separately.
+RANK = re.search(r'\n  %s = \{\n    rank = "(\w+)"' % TOWN, SRC)
+RANK = RANK.group(1) if RANK else "NORMAL"
+bands = re.search(r'local CROWD_BY_RANK = \{(.*?)\n  \}', SRC, re.S).group(1)
+CROWD_MIN, CROWD_MAX = map(int, re.search(
+    r'%s\s*=\s*\{ *(\d+), *(\d+) *\}' % RANK, bands).groups())
 CROWD_NAMED_UNTIL = int(re.search(r'local CROWD_NAMED_UNTIL = (\d+)', SRC).group(1))
 N_COORD = 3
-print(f"pools: gym {len(CAST_GYM)} folk {len(CAST_FOLK)} rival {len(CAST_CUSTOM_RIVAL)} crowd {len(CAST_CUSTOM_CROWD)} pairs {len(CAST_PAIRS)} seats {len(STAGE_SEATS)} larry 1/{LARRY_ODDS} crowd {CROWD_MIN}-{CROWD_MAX} named<= {CROWD_NAMED_UNTIL}")
+print(f"{TOWN} ({RANK}): gym {len(CAST_GYM)} folk {len(CAST_FOLK)} rival {len(CAST_CUSTOM_RIVAL)} crowd {len(CAST_CUSTOM_CROWD)} pairs {len(CAST_PAIRS)} places {len(STAGE_SEATS)} larry 1/{LARRY_ODDS} crowd {CROWD_MIN}-{CROWD_MAX} named<= {CROWD_NAMED_UNTIL}")
 
 def seeded(seed):
     s = seed % 2147483647
