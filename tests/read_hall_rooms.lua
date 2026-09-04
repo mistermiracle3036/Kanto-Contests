@@ -47,6 +47,26 @@ local function deskCounter()
 end
 
 local TOWNS = {
+  -- Goldenrod's rooms predate this generator; the STAGE joined it when the
+  -- developer moved its staircases (0.36.5). Its lobby is still the older
+  -- hand-kept entry and is deliberately not read back here.
+  GOLDENROD = {
+    rank = "NORMAL", city = "GOLDENROD_CITY",
+    stage = {
+      id = "KC_JOHTO_CONTEST_STAGE", label = "CONTEST STAGE",
+      tilesId = "KC_GOLDENROD_STAGE_TILES", source = "TILESET_MART",
+      borderTile = 16,          -- the mart sheet's one solid-black tile
+      song = "GOLDENROD_GAME_CORNER",
+      width = 5, height = 7, arrival = { x = 3, y = 8 },
+      warps = { { 4, 13 }, { 5, 13 } }, warpTo = "KC_JOHTO_CONTEST_HALL",
+      force = {},
+      -- the judge on the stage itself; the other three stages have none
+      actors = {
+        { name = "KC_STAGE_JUDGE", marker = "kcStageJudge",
+          sprite = "SPRITE_GENTLEMAN", x = 5, y = 6, movement = 8 },
+      },
+    },
+  },
   CIANWOOD = {
     rank = "HYPER", city = "CIANWOOD_CITY",
     lobby = {
@@ -345,16 +365,23 @@ local function roomText(room, which)
   return table.concat(parts, "\n")
 end
 
+-- A town may ask for one room or both: Goldenrod's lobby is still the older
+-- hand-kept entry, so only its stage is read back.
 for _, key in ipairs(arg) do
   local town = assert(TOWNS[key], "no such town: " .. tostring(key))
-  town.lobby.actors = LOBBY_ACTORS
-  local lobby, stage = readRoom(town.lobby), readRoom(town.stage)
+  local lobby, stage
+  if town.lobby then
+    town.lobby.actors = LOBBY_ACTORS
+    lobby = readRoom(town.lobby)
+  end
+  if town.stage then stage = readRoom(town.stage) end
   print(("  %s = {"):format(key))
   print(('    rank = "%s",'):format(town.rank))
-  print(roomText(lobby, "lobby"))
-  print(roomText(stage, "stage"))
+  if lobby then print(roomText(lobby, "lobby")) end
+  if stage then print(roomText(stage, "stage")) end
   print("  },")
-  note("%s: lobby %d block(s), stage %d block(s)", key, #lobby.blocks, #stage.blocks)
+  note("%s: lobby %s block(s), stage %s block(s)", key,
+    lobby and #lobby.blocks or "-", stage and #stage.blocks or "-")
 end
 io.stderr:write(warnings .. " warning(s)\n")
 os.exit(warnings == 0 and 0 or 1)

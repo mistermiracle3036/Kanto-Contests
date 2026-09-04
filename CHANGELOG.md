@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.36.5
+
+New in 0.36.5: the GOLDENROD stage's staircases moved in from the corners,
+so all four halls now step down from the same two places. Nobody stands in
+front of them either -- one spectator in the way used to block the only
+route on and off the stage.
+
 ## 0.36.4
 
 New in 0.36.4: **the audience watches the contest.** They were lining the

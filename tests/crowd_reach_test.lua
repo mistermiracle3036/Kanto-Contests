@@ -34,6 +34,7 @@ local RESERVED = {
 -- people inside it in each of the walled rooms and one on a staircase.
 local PLAT = { x0 = 2, x1 = 7, y0 = 4, y1 = 9 }
 local RING_DIST = 2
+local STAIRS = 0x7A
 
 local function platformDist(x, y)
   local dx = math.max(PLAT.x0 - x, 0, x - PLAT.x1)
@@ -91,6 +92,45 @@ for town, tiers in pairs(SEATS) do
     end
     T.check(#onStage == 0, ("%s: nobody stands on the stage%s"):format(town,
       #onStage > 0 and (" -- " .. table.concat(onStage, " ")) or ""))
+
+    -- THE WAY ON AND OFF THE STAGE STAYS CLEAR (0.36.5, from the phone).
+    -- One spectator in front of the steps blocks the only route, and NPCs
+    -- block movement. Found from the collision rather than listed, so
+    -- moving a staircase in the editor moves the clear space with it: a
+    -- step is a cell on the stage painted STAIRS, or one on the stage's
+    -- front edge with a wall beside it. Cianwood's platform has no walls
+    -- and so no steps.
+    local blocked = {}
+    for _, engine in ipairs({ "gs", "crystal" }) do
+      local taken = {}
+      for _, seat in ipairs(list) do taken[seat.x .. "," .. seat.y] = true end
+      for x = PLAT.x0, PLAT.x1 do
+        for y = PLAT.y0, PLAT.y1 do
+          local b = byteAt(def, engine, x, y)
+          if b and b ~= SOLID then
+            local step = b == STAIRS
+            if y == PLAT.y1 then
+              for _, dx in ipairs({ -1, 1 }) do
+                if byteAt(def, engine, x + dx, y) == SOLID then step = true end
+              end
+            end
+            if step then
+              for _, d in ipairs(N4) do
+                local nx, ny = x + d[1], y + d[2]
+                local nb = byteAt(def, engine, nx, ny)
+                if nb and nb ~= SOLID and platformDist(nx, ny) > 0
+                  and taken[nx .. "," .. ny] then
+                  blocked[#blocked + 1] =
+                    ("(%d,%d) in front of the step at (%d,%d)"):format(nx, ny, x, y)
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    T.check(#blocked == 0, ("%s: the steps are not blocked%s"):format(town,
+      #blocked > 0 and (" -- " .. table.concat(blocked, ", ")) or ""))
 
     local ring = #(tiers.ring or {})
     T.check(ring * 2 > #list,
