@@ -886,3 +886,11 @@ else, then set slots 1 and 2 (a quad slot is (cy%2)*2 + (cx%2) + 1).
   runs one rank, the lobby knows the rank before the queue is drawn and the
   kcBestRank stopgap in KC_NAMED_FACES / drawCoordinators can go -- the hall's own
   rank drives how many famous faces turn up, and the rank menu at the desk goes too.
+
+- FIXED-RANK HALLS landed in 0.34.41. Each hall in KC_HALLS carries `rank`
+  and the desk no longer asks: GOLDENROD runs NORMAL, ECRUTEAK runs SUPER.
+  **HYPER and MASTER have no hall yet**, so they are unreachable until two
+  more towns get one -- that is the cost of true fixed-rank, and it is one
+  field per hall to change if a hall should carry a different rank.
+  The kcBestRank/kcFacesRank stopgap is gone with it: one building means
+  one rank, so the lobby queue and the stage line-up cannot disagree.

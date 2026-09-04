@@ -624,6 +624,13 @@ for _, s in ipairs(KC_SNACKS) do KC_SNACK_BY_ID[s.id] = s end
 -- crystal caches (scratchpad/verify_hall.lua).
 local KC_HALLS = {
   GOLDENROD = {
+    -- THE HALL'S RANK (0.34.41). Gen 3 gives each town's hall one rank --
+    -- Verdanturf Normal, Fallarbor Super, Slateport Hyper, Lilycove
+    -- Master -- and you climb by travelling, not by picking from a menu.
+    -- So the rank is a property of the BUILDING here, and the desk no
+    -- longer asks. Two halls exist, so two ranks are reachable; HYPER and
+    -- MASTER are waiting on their own towns (see NOTES.md).
+    rank = "NORMAL",
     lobby = {
       id = "KC_JOHTO_CONTEST_HALL",
       warps = {
@@ -884,6 +891,7 @@ local KC_HALLS = {
     },
   },
   ECRUTEAK = {
+    rank = "SUPER",
     lobby = {
       id = "KC_ECRUTEAK_CONTEST_HALL",
       warps = {
@@ -1151,12 +1159,53 @@ local KC_HALLS = {
 
 local function kcGold(mod, VERSION)
   -- The town this build's attendant leads into.
+  -- WHICH HALL THE PLAYER IS IN (0.34.41).
+  --
+  -- These were constants pinned to one town, which is why a second hall
+  -- could exist but never run a contest. They are variables now, re-aimed
+  -- by useTown() whenever the player enters a hall's city, lobby or stage.
+  -- Everything downstream still reads HALL / HALL_DEF / STAGE_DEF exactly
+  -- as before, so the rest of the mod did not have to learn about towns.
   local TOWN = "GOLDENROD"
   local HALL_DEF = KC_HALLS[TOWN].lobby
   local STAGE_DEF = KC_HALLS[TOWN].stage      -- nil for a one-room town
   local HALL = HALL_DEF.id
   local HALL_ARRIVAL_X = HALL_DEF.arrival.x
   local HALL_ARRIVAL_Y = HALL_DEF.arrival.y
+
+  -- Point the working set at one town. Cheap and idempotent, so it can be
+  -- called on every map entry without a guard.
+  local function useTown(key)
+    local town = key and KC_HALLS[key]
+    if not (town and town.lobby) then return false end
+    TOWN = key
+    HALL_DEF, STAGE_DEF = town.lobby, town.stage
+    HALL = HALL_DEF.id
+    HALL_ARRIVAL_X, HALL_ARRIVAL_Y = HALL_DEF.arrival.x, HALL_DEF.arrival.y
+    return true
+  end
+
+  -- Which town a map belongs to: its lobby, its stage, or the city the
+  -- hall stands in. Nil for anywhere else, and the caller leaves the
+  -- current town alone rather than guessing.
+  local CITY_OF = { GOLDENROD = "GOLDENROD_CITY", ECRUTEAK = "ECRUTEAK_CITY" }
+  local function townOfMap(mapId)
+    if not mapId then return nil end
+    for key, town in pairs(KC_HALLS) do
+      if (town.lobby and town.lobby.id == mapId)
+        or (town.stage and town.stage.id == mapId)
+        or CITY_OF[key] == mapId then
+        return key
+      end
+    end
+    return nil
+  end
+
+  -- The rank this hall runs. Named rather than read inline so the two
+  -- readers (the desk and the coordinator draw) cannot drift.
+  local function hallRank()
+    return (KC_HALLS[TOWN] and KC_HALLS[TOWN].rank) or "NORMAL"
+  end
 
   -- Every hall in KC_HALLS is registered, whether or not a town has an
   -- attendant leading into it yet: a map costs nothing until it is warped
@@ -2524,11 +2573,6 @@ local function kcGold(mod, VERSION)
     salt = (salt % 100003) + 7
     if mod.save then
       mod.save:set("kcSeedSalt", salt)
-      -- The famous-faces row is SNAPSHOT here too (0.34.30): the desk
-      -- raises kcBestRank between the queue draw and the stage draw, so
-      -- reading it live gave the two draws different rows on the first
-      -- contest at every new rank (code review). Both read this copy.
-      mod.save:set("kcFacesRank", mod.save:get("kcBestRank", "NORMAL"))
     end
     return salt
   end
@@ -2563,13 +2607,11 @@ local function kcGold(mod, VERSION)
   -- gauntlet rather than a contest; a single famous face is the treat.
   -- How many FAMOUS FACES (a custom rival, or a gym leader / Elite Four
   -- member) the three coordinators include, as cumulative percent for
-  -- 0, 1, 2 and 3 of them. Keyed by the highest rank the player has ever
-  -- ENTERED (kcBestRank -- read through kcFacesRank, the copy
-  -- rollSeedSalt takes on lobby entry, so the queue draw and the
-  -- stage draw see the same row even though the desk raises
-  -- kcBestRank between them) rather than the rank of this contest,
-  -- because the lobby queue is drawn before the rank is chosen and
-  -- the queue must match the stage. Retuned 0.34.29 from three
+  -- 0, 1, 2 and 3 of them. Keyed by the RANK THIS HALL RUNS (0.34.41).
+  -- It used to key off the highest rank the player had ever entered,
+  -- snapshotted on lobby entry because the desk could raise it between
+  -- the queue draw and the stage draw; one hall, one rank closes that
+  -- window and the snapshot is gone. Retuned 0.34.29 from three
   -- independent d10 slot rolls (which put two rivals AND Surge in a
   -- first NORMAL contest -- reported from device): a NORMAL-only player
   -- mostly meets one famous face, sometimes two, rarely three.
@@ -2583,15 +2625,13 @@ local function kcGold(mod, VERSION)
     for i, k in ipairs(KC_RANKS) do if k == r then return i end end
     return 1
   end
-  local function bestRankSoFar()
-    local r = mod.save and mod.save:get("kcBestRank", "NORMAL")
-    return KC_NAMED_FACES[r] and r or "NORMAL"
-  end
 
   local function drawCoordinators(rnd, used)
     -- tests/seat_replay.py mirrors this call for call -- keep them in step
-    local snap = mod.save and mod.save:get("kcFacesRank")
-    local dist = KC_NAMED_FACES[snap] or KC_NAMED_FACES[bestRankSoFar()]
+    -- The hall's own rank (0.34.41): one building, one rank, so the
+    -- lobby queue and the stage line-up read the same row by
+    -- construction.
+    local dist = KC_NAMED_FACES[hallRank()] or KC_NAMED_FACES.NORMAL
     local roll, named = rnd(100), 3
     for n = 0, 3 do
       if roll <= dist[n + 1] then named = n break end
@@ -2750,11 +2790,44 @@ local function kcGold(mod, VERSION)
 
     local coordinators = drawCoordinators(rnd, used)
 
-    -- Choose WHICH seats are filled. 10-15 of the 30 the developer
+    -- Is a cell somewhere a spectator can stand? The seat table was written
+  -- against GOLDENROD's stage, and Ecruteak's has pillars where that one
+  -- has open floor, so some seats would put a person inside a wall.
+  --
+  -- ONLY 0x07 (plain solid) is rejected, and that distinction is the whole
+  -- point. The first cut of this tested "walkable", which sounds right and
+  -- is wrong: 18 of Goldenrod's 30 seats sit on 0xB0-0xB3 (the
+  -- wall-FACING cells), because the audience is meant to stand at the rail
+  -- looking in -- so a walkability test would have quietly cut that
+  -- crowd from 30 to 12. Measured before trusting it: Goldenrod is
+  -- 0x00 x12 + 0xB0-B3 x18, Ecruteak is 0x00 x16 + 0x07 x14.
+  --
+  -- Quadrant order is TL, TR, BL, BR (LayeredMap/BorderFill).
+  local function seatUsable(def, x, y)
+    if not (def and def.blocks and def.tiles) then return true end
+    local GV = require("src.core.GameVersion")
+    local engine = GV.engine and GV.engine() or "gs"
+    local v = def.tiles.variants
+      and (def.tiles.variants[engine] or def.tiles.variants.gs)
+    local coll = v and v.collision
+    if not coll then return true end
+    local bx, by = math.floor(x / 2), math.floor(y / 2)
+    local id = def.blocks[by * def.width + bx + 1]
+    if not id then return false end
+    local quad = coll[id + 1]                 -- blocks are addressed id + 1
+    if not quad then return false end
+    local q = (y % 2) * 2 + (x % 2) + 1
+    return (quad[q] or 0) ~= 0x07            -- everything but a plain wall
+  end
+
+  -- Choose WHICH seats are filled. 10-15 of the 30 the developer
     -- marked out, so the hall is the same density each time but never
     -- the same shape.
     local pool = {}
-    for k = 1, #STAGE_SEATS do pool[k] = STAGE_SEATS[k] end
+    for k = 1, #STAGE_SEATS do
+      local seat = STAGE_SEATS[k]
+      if seatUsable(STAGE_DEF, seat.x, seat.y) then pool[#pool + 1] = seat end
+    end
     for k = #pool, 2, -1 do
       local m = rnd(k)
       pool[k], pool[m] = pool[m], pool[k]
@@ -3914,6 +3987,10 @@ local function kcGold(mod, VERSION)
     local ok, err = pcall(function()
       local mapId = ev and ev.mapId
       local world = mod.world:overworld()
+      -- Aim the working set at whichever hall this map belongs to BEFORE
+      -- anything below reads HALL / STAGE_DEF. A map that is no hall's
+      -- leaves the current one alone.
+      useTown(townOfMap(mapId))
       -- Give the party back the moment the player is anywhere but the
       -- stage. Deliberately not tied to one exit: a contest can end by
       -- winning, losing, walking out over the carpet, or a reload, and
@@ -4382,11 +4459,6 @@ local function kcGold(mod, VERSION)
           pendingRank = rank
           pendingContest = kind
           if mod.save then mod.save:set("kcPendingKind", kind) end
-          -- the highest rank ever entered drives how many famous faces
-          -- the line-ups carry (KC_NAMED_FACES)
-          if mod.save and rankIndex(rank) > rankIndex(bestRankSoFar()) then
-            mod.save:set("kcBestRank", rank)
-          end
           -- Advance the crowd seed BEFORE the warp, so map.entered draws
           -- a new audience for this contest. Reloading back into the same
           -- contest re-reads the same count and therefore reseats exactly
@@ -4413,30 +4485,25 @@ local function kcGold(mod, VERSION)
               end
         end)
           end -- proceed
-          -- Which ranks this POKeMON may enter: one above its wins in the
-          -- category. A single eligible rank asks no question.
+          -- NO RANK MENU any more (0.34.41): this hall runs one rank, so
+          -- the only question is whether this POKeMON has earned it. The
+          -- ladder is unchanged -- a mon may enter one rank above its wins
+          -- in the category -- it is just checked instead of offered.
+          local want = hallRank()
           local elig = eligibleRanks(party[slot], kind)
-          if #elig == 1 then
-            proceed(elig[1])
+          local allowed = false
+          for _, r in ipairs(elig) do if r == want then allowed = true end end
+          if allowed then
+            proceed(want)
           else
-            local items = {}
-            for i, r in ipairs(elig) do items[i] = r end
-            items[#items + 1] = "CANCEL"
-            local menu = { top = 1, left = 3, bottom = 2 + 2 * #items,
-                           right = 17, dataFlags = 0xc0, cursor = 1,
-                           items = items }
-            world:showText("Which rank?", function()
-              world:openScriptMenu(menu, "vertical", function(choice)
-                local r = elig[tonumber(choice) or 0]
-                if not r then
-                  -- the party is already parked: give it back
-                  restoreParty(world)
-                  world:showText("Take your time.\nThe stage waits.")
-                  return
-                end
-                proceed(r)
+            -- the party is already parked: give it back before refusing
+            restoreParty(world)
+            local need = KC_RANKS[math.max(1, rankIndex(want) - 1)]
+            -- dialogue-ok: rank names are six glyphs at most
+            world:showText(("This hall runs\n%s rank."):format(want),
+              function()
+                world:showText(("Win a %s\ncontest first."):format(need))
               end)
-            end)
           end
       end)
           end)
@@ -4732,7 +4799,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.40"
+  local VERSION = "0.34.41"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
