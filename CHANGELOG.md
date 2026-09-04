@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.41
+## 0.34.42
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -32,6 +32,12 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
   a long list of text-box and sprite fixes.
+
+New in 0.34.42: the contest cast talks. Nearly 600 lines of dialogue --
+every coordinator has their own voice in the queue, on stage, and after
+you beat them or they beat you, and the crowd has plenty to say. The
+ordinary trainers speak in character too: the sailor talks tides, the
+fisher waits for the bite, the granny has two faces.
 
 New in 0.34.41: each Contest Hall runs ONE rank, the way Gen 3 does it.
 Goldenrod holds NORMAL contests and Ecruteak holds SUPER, and the desk no
