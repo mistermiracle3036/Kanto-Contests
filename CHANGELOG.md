@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.35.0
+## 0.35.1
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -35,6 +35,10 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category and per rank for Kanto
   Ribbons, and a long list of text-box and sprite fixes.
+
+New in 0.35.1: the counter in the Blackthorn Contest Hall is drawn from
+different furniture, so it looks right on Gold and Silver as well as
+Crystal. It was a row of black gaps on those two.
 
 New in 0.35.0: **the last two halls are open, so every rank can be won.**
 
