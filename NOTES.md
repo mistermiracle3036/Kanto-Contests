@@ -889,9 +889,10 @@ else, then set slots 1 and 2 (a quad slot is (cy%2)*2 + (cx%2) + 1).
 
 - FIXED-RANK HALLS landed in 0.34.41. Each hall in KC_HALLS carries `rank`
   and the desk no longer asks: GOLDENROD runs NORMAL, ECRUTEAK runs SUPER.
-  **HYPER and MASTER have no hall yet**, so they are unreachable until two
-  more towns get one -- that is the cost of true fixed-rank, and it is one
-  field per hall to change if a hall should carry a different rank.
+  It is one field per hall to change if a hall should carry a different
+  rank. HYPER and MASTER had no hall for eleven versions; both landed in
+  0.35.0, and tests/hall_playable_test.lua now asserts that every rank has
+  one so that gap cannot reopen quietly.
   The kcBestRank/kcFacesRank stopgap is gone with it: one building means
   one rank, so the lobby queue and the stage line-up cannot disagree.
 
@@ -919,6 +920,41 @@ else, then set slots 1 and 2 (a quad slot is (cy%2)*2 + (cx%2) + 1).
 - Both cities use TILESET_JOHTO, the same tileset as Ecruteak, so the
   quarter-block facade technique transfers unchanged and Ecruteak's facade
   source blocks are available to reuse.
+
+- ALL FOUR HALLS ARE LIVE AS OF 0.35.0. Cianwood is painted in
+  TILESET_LIGHTHOUSE (seafront timber and blue trim, Music_Lighthouse) and
+  Blackthorn in TILESET_FACILITY for the lobby with TILESET_ELITE_FOUR_ROOM
+  for the stage (Music_DragonsDen and Music_IndigoPlateau). Doors at (7,23)
+  in Cianwood and (6,19) in Blackthorn.
+
+- WHAT THE EDITOR CANNOT PAINT, forced on readback and printed every time --
+  do not "clean this up" by trusting the paint:
+  * COUNTER (0x90) on the six desk cells (2..7, 2) of every lobby. The
+    editor's palette has no counter mode at all (LayeredMap CELL_COLL), and
+    0x90 is what doubles the reach of an A press so a player can talk to the
+    judge ACROSS the desk. Goldenrod has always shipped it. Note the judge is
+    reachable either way -- every lobby lets you walk round the desk -- so
+    this is about the natural approach, not a broken hall.
+  * A painted mat or staircase keeps plain-floor or solid collision. Two
+    real faults came back this way: Blackthorn's stage steps at (3,9)/(6,9)
+    were drawn but solid, sealing the platform the player is warped onto
+    (24 reachable cells against Ecruteak's 108), and Blackthorn's lobby exit
+    mat walked like floor, so the warp record was never looked up and the
+    room had no way out. Neither shows in a render or breaks a compile,
+    which is why tests/hall_playable_test.lua exists.
+
+- KC_STREETS replaced the ECRU_* locals in 0.35.0: one table keyed by town
+  carrying map, door cell, facade and signs, with STREET_OF / STREET_OF_LOBBY
+  built from it. **Each street keeps its OWN append base into TILESET_JOHTO**
+  -- all three share that tileset, so one shared base would have the second
+  town stamp the first town's blocks. Goldenrod is deliberately outside this
+  table: its facade bakes tile ids rather than (block, quadrant) references,
+  has its own stamping code and its own door at 35,4, and it works.
+
+- The Cianwood facade covers a hidden item at (4,19). Still obtainable --
+  (4,18) is open floor, so it can be faced from above. Its city sign at
+  (8,24) also survives, readable from (8,25), which is why Cianwood has no
+  KC sign of its own; Blackthorn's painted post at (9,19) does.
 
 - Editor rooms for both were seeded 2026-09-04 into the kc_layout bridge as
   VERBATIM CLONES of the Goldenrod pair -- painted cells, collision, the
