@@ -894,3 +894,38 @@ else, then set slots 1 and 2 (a quad slot is (cy%2)*2 + (cx%2) + 1).
   field per hall to change if a hall should carry a different rank.
   The kcBestRank/kcFacesRank stopgap is gone with it: one building means
   one rank, so the lobby queue and the stage line-up cannot disagree.
+
+- THE REMAINING TWO TOWNS ARE CIANWOOD (HYPER) AND BLACKTHORN (MASTER),
+  chosen 2026-09-04. Johto only, and the point was SPREAD: Goldenrod,
+  Ecruteak and Olivine are one walk, so a third hall along that line would
+  have made the ladder feel like one street. Cianwood is across the water
+  (boat from Olivine, or Surf) and Blackthorn is the far east corner past
+  the Ice Path, so the top two ranks sit at opposite ends of the region with
+  real obstacles between. Both are Fly points, so a rematch is cheap once
+  you have been.
+
+  Adjacency was never a correctness problem -- since 0.34.41 the desk
+  refuses a rank the POKeMON has not earned -- so this is a travel-FEEL
+  decision, and the bottom two ranks staying a short walk apart is good for
+  teaching the mechanic.
+
+  Ecruteak's Dance Theater is the venue to reach for IF a Grand Contest
+  above MASTER is ever built: an existing landmark, the Kimono Girls already
+  perform there, and it does not compete for a rank slot. No Gen 3/4 game
+  has such a tier -- MASTER is the ceiling and the Grand Festival is
+  anime-only -- so it would be ours, gated on contestRanks[CATEGORY].MASTER
+  in all five categories, which the save already records.
+
+- Both cities use TILESET_JOHTO, the same tileset as Ecruteak, so the
+  quarter-block facade technique transfers unchanged and Ecruteak's facade
+  source blocks are available to reuse.
+
+- Editor rooms for both were seeded 2026-09-04 into the kc_layout bridge as
+  VERBATIM CLONES of the Goldenrod pair -- painted cells, collision, the
+  generated OC_LAYOUT_* atlas and the map record, all under new ids
+  (KC_CIANWOOD_CONTEST_HALL/STAGE, KC_BLACKTHORN_CONTEST_HALL/STAGE, map
+  indices 1014-1017). Cloning all three sections matters: sharing
+  Goldenrod's atlas would mean painting Cianwood repaints Goldenrod. The
+  developer switches each room's tileset in the Maps panel
+  (LayeredMap.assignTileset keeps the layout and the collision and re-points
+  every cell at the new sheet) and replaces the tiles from there.
