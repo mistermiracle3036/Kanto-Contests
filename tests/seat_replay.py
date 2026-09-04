@@ -45,8 +45,21 @@ seats_all = re.search(r'local KC_STAGE_SEATS = \{(.*?)\n  \}', SRC, re.S).group(
 town_body = re.search(r'\n    %s = \{(.*?)\n    \}' % TOWN, seats_all, re.S)
 if not town_body:
     sys.exit("no seats for %s in KC_STAGE_SEATS" % TOWN)
-STAGE_SEATS = [(int(x), int(y), f) for x, y, f in
-               re.findall(r'x = (\d+), y = *(\d+), face = (\w+)', town_body.group(1))]
+
+
+def tier(name):
+    m = re.search(r'\n      %s = \{(.*?)\n      \}' % name, town_body.group(1), re.S)
+    if not m:
+        return []
+    return [(int(x), int(y), f) for x, y, f in
+            re.findall(r'x = (\d+), y = *(\d+), face = (\w+)', m.group(1))]
+
+
+# Two tiers since 0.36.4: ringside fills before the back of the room, and
+# each tier is shuffled separately, so the rng is consumed differently from
+# the single-list version and a pre-0.36.4 seed will not replay.
+RING, BACK = tier("ring"), tier("back")
+STAGE_SEATS = RING + BACK
 STAND_ONLY = set(re.findall(r'(\w+) = true', re.search(r'local STAND_ONLY = \{([^}]*)\}', SRC).group(1)))
 LARRY_ODDS = int(re.search(r'local LARRY_ODDS = (\d+)', SRC).group(1))
 # Per rank since 0.36.0, and the rank comes from the hall, so it follows
@@ -135,15 +148,21 @@ def adjacent_pairs(chosen):
                 out.append((a, b))
     return out
 
+def shuffled(rnd, src):
+    out = list(src)
+    for k in range(len(out), 1, -1):           # for k = #out, 2, -1
+        m = rnd(k)
+        out[k - 1], out[m - 1] = out[m - 1], out[k - 1]
+    return out
+
+
 def seating(seed):
     rnd = seeded(seed); used = set()
     coords = draw_coordinators(rnd, used)
-    pool = list(STAGE_SEATS)
-    for k in range(len(pool), 1, -1):          # for k = #pool, 2, -1
-        m = rnd(k)
-        pool[k - 1], pool[m - 1] = pool[m - 1], pool[k - 1]
+    ring, back = shuffled(rnd, RING), shuffled(rnd, BACK)
     take = CROWD_MIN + rnd(CROWD_MAX - CROWD_MIN + 1) - 1
-    chosen = pool[:min(take, len(pool))]
+    chosen = ring[:min(take, len(ring))]
+    chosen += back[:max(0, min(take - len(chosen), len(back)))]
     seat_for = {}
     if rnd(2) == 1:
         adj = adjacent_pairs(chosen)

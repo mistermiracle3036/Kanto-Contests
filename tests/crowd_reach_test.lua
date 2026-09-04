@@ -28,6 +28,19 @@ local RESERVED = {
   ["4,8"] = "a coordinator", ["5,8"] = "a coordinator", ["6,8"] = "a coordinator",
 }
 
+-- THE STAGE, in room coordinates: the raised area in Goldenrod and
+-- Cianwood, the walled box and its two staircases in Ecruteak and
+-- Blackthorn. Nobody in the audience stands on it. 0.36.3 shipped eleven
+-- people inside it in each of the walled rooms and one on a staircase.
+local PLAT = { x0 = 2, x1 = 7, y0 = 4, y1 = 9 }
+local RING_DIST = 2
+
+local function platformDist(x, y)
+  local dx = math.max(PLAT.x0 - x, 0, x - PLAT.x1)
+  local dy = math.max(PLAT.y0 - y, 0, y - PLAT.y1)
+  return math.max(dx, dy)
+end
+
 local src = assert(io.open("../Kanto-Contests/main.lua")):read("*a")
 
 -- KC_HALLS is at file scope and closes on column 0; the tables inside
@@ -57,13 +70,37 @@ end
 
 local N4 = { { 0, 1 }, { 0, -1 }, { 1, 0 }, { -1, 0 } }
 
-for town, list in pairs(SEATS) do
+for town, tiers in pairs(SEATS) do
+  local list = {}
+  for _, tier in ipairs({ "ring", "back" }) do
+    for _, seat in ipairs(tiers[tier] or {}) do list[#list + 1] = seat end
+  end
   local hall = H[town]
   T.check(hall ~= nil and hall.stage ~= nil, town .. " has a stage")
   if hall and hall.stage then
     local def = hall.stage
     local W = def.width * 2
     T.check(#list > 0, town .. ": the crowd has somewhere to stand")
+
+    -- The two faults 0.36.3 shipped, each now a check.
+    local onStage = {}
+    for _, seat in ipairs(list) do
+      if platformDist(seat.x, seat.y) == 0 then
+        onStage[#onStage + 1] = ("(%d,%d)"):format(seat.x, seat.y)
+      end
+    end
+    T.check(#onStage == 0, ("%s: nobody stands on the stage%s"):format(town,
+      #onStage > 0 and (" -- " .. table.concat(onStage, " ")) or ""))
+
+    local ring = #(tiers.ring or {})
+    T.check(ring * 2 > #list,
+      ("%s: most places are ringside (%d of %d within %d of the stage)")
+        :format(town, ring, #list, RING_DIST))
+    for _, seat in ipairs(tiers.ring or {}) do
+      T.check(platformDist(seat.x, seat.y) <= RING_DIST,
+        ("%s: ringside (%d,%d) really is within %d of the stage")
+          :format(town, seat.x, seat.y, RING_DIST))
+    end
 
     for _, engine in ipairs({ "gs", "crystal" }) do
       local tag = ("%s (%s)"):format(town, engine)
@@ -147,8 +184,14 @@ for i, rank in ipairs(order) do
     end
     local town = RANK_TOWN[rank]
     if town and SEATS[town] then
-      T.check(#SEATS[town] >= b[2],
-        ("%s holds %d, and %s can want up to %d"):format(town, #SEATS[town], rank, b[2]))
+      local ring = #(SEATS[town].ring or {})
+      local total = ring + #(SEATS[town].back or {})
+      T.check(total >= b[2],
+        ("%s holds %d, and %s can want up to %d"):format(town, total, rank, b[2]))
+      -- a full house at this rank still has to be mostly ringside
+      T.check(ring * 2 >= b[2],
+        ("%s seats %d ringside, enough for most of a %d crowd")
+          :format(town, ring, b[2]))
     end
   end
 end

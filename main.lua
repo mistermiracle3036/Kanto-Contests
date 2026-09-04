@@ -2903,186 +2903,219 @@ local function kcGold(mod, VERSION)
   -- tests/crowd_reach_test.lua asserts all of that against the shipped
   -- collision, so a repaint that walls somebody in fails rather than
   -- stranding them.
+  -- WHERE THE CROWD STANDS, per town, in two tiers (0.36.4).
+  --
+  -- The first cut of this ordered candidates by how many walls a cell had
+  -- its back to, which is literally "hug the outer wall", and reserved the
+  -- contest's own cells but not the STAGE. Both showed up on the phone at
+  -- once: Cianwood had 28 of 36 places along the back walls and nobody
+  -- ringside at all, while Ecruteak and Blackthorn put eleven people INSIDE
+  -- the walled platform, among the performers, and one on a staircase.
+  --
+  -- So the ordering is distance to the stage now, and the stage is off
+  -- limits. THE STAGE IS x 2..7, y 4..9 in every room -- all four were
+  -- painted over Goldenrod's layout, so that rectangle is the raised area
+  -- in Goldenrod and Cianwood and the walled box plus its two staircases in
+  -- Ecruteak and Blackthorn.
+  --
+  --   ring -- within two cells of the stage. Where an audience actually
+  --           stands: against the platform, looking in. Filled FIRST.
+  --   back -- further out, to fill the room once the ring is full.
+  --
+  -- Generated, not hand-placed, and every place satisfies the rule
+  -- tests/crowd_reach_test.lua asserts: with EVERY place taken at once the
+  -- floor left over is one region reachable from where the player lands,
+  -- and every occupant is adjacent to it. That is the real worst case --
+  -- freeing a place can only add floor, and added floor cannot disconnect a
+  -- walkway or take a neighbour away.
   local KC_STAGE_SEATS = {
     GOLDENROD = {
-      { x = 0, y =  1, face = FACE_DOWN   },
-      { x = 1, y =  1, face = FACE_DOWN   },
-      { x = 2, y =  1, face = FACE_DOWN   },
-      { x = 3, y =  1, face = FACE_DOWN   },
-      { x = 4, y =  1, face = FACE_DOWN   },
-      { x = 5, y =  1, face = FACE_DOWN   },
-      { x = 6, y =  1, face = FACE_DOWN   },
-      { x = 7, y =  1, face = FACE_DOWN   },
-      { x = 8, y =  1, face = FACE_DOWN   },
-      { x = 9, y =  1, face = FACE_DOWN   },
-      { x = 0, y =  3, face = FACE_RIGHT  },
-      { x = 9, y =  3, face = FACE_LEFT   },
-      { x = 0, y =  4, face = FACE_RIGHT  },
-      { x = 9, y =  4, face = FACE_LEFT   },
-      { x = 0, y =  5, face = FACE_RIGHT  },
-      { x = 9, y =  5, face = FACE_LEFT   },
-      { x = 0, y =  6, face = FACE_RIGHT  },
-      { x = 9, y =  6, face = FACE_LEFT   },
-      { x = 0, y =  7, face = FACE_RIGHT  },
-      { x = 9, y =  7, face = FACE_LEFT   },
-      { x = 0, y =  8, face = FACE_RIGHT  },
-      { x = 9, y =  8, face = FACE_LEFT   },
-      { x = 0, y =  9, face = FACE_RIGHT  },
-      { x = 2, y =  9, face = FACE_UP     },
-      { x = 7, y =  9, face = FACE_UP     },
-      { x = 9, y =  9, face = FACE_LEFT   },
-      { x = 0, y = 10, face = FACE_RIGHT  },
-      { x = 3, y = 10, face = FACE_RIGHT  },
-      { x = 4, y = 10, face = FACE_RIGHT  },
-      { x = 5, y = 10, face = FACE_LEFT   },
-      { x = 6, y = 10, face = FACE_LEFT   },
-      { x = 9, y = 10, face = FACE_LEFT   },
-      { x = 0, y = 11, face = FACE_UP     },
-      { x = 9, y = 11, face = FACE_UP     },
-      { x = 0, y = 12, face = FACE_UP     },
-      { x = 9, y = 12, face = FACE_UP     },
-      { x = 0, y = 13, face = FACE_UP     },
-      { x = 2, y = 13, face = FACE_UP     },
-      { x = 3, y = 13, face = FACE_UP     },
-      { x = 6, y = 13, face = FACE_UP     },
-      { x = 7, y = 13, face = FACE_UP     },
-      { x = 9, y = 13, face = FACE_UP     },
+      ring = {
+        { x = 1, y =  3, face = FACE_DOWN   },
+        { x = 2, y =  3, face = FACE_DOWN   },
+        { x = 3, y =  3, face = FACE_DOWN   },
+        { x = 4, y =  3, face = FACE_DOWN   },
+        { x = 5, y =  3, face = FACE_DOWN   },
+        { x = 6, y =  3, face = FACE_DOWN   },
+        { x = 7, y =  3, face = FACE_DOWN   },
+        { x = 8, y =  3, face = FACE_DOWN   },
+        { x = 1, y =  4, face = FACE_RIGHT  },
+        { x = 8, y =  4, face = FACE_LEFT   },
+        { x = 1, y =  5, face = FACE_RIGHT  },
+        { x = 8, y =  5, face = FACE_LEFT   },
+        { x = 1, y =  6, face = FACE_RIGHT  },
+        { x = 8, y =  6, face = FACE_LEFT   },
+        { x = 1, y =  7, face = FACE_RIGHT  },
+        { x = 8, y =  7, face = FACE_LEFT   },
+        { x = 1, y =  8, face = FACE_RIGHT  },
+        { x = 8, y =  8, face = FACE_LEFT   },
+        { x = 1, y =  9, face = FACE_RIGHT  },
+        { x = 8, y =  9, face = FACE_LEFT   },
+        { x = 1, y = 10, face = FACE_UP     },
+        { x = 2, y = 10, face = FACE_UP     },
+        { x = 3, y = 10, face = FACE_RIGHT  },
+        { x = 4, y = 10, face = FACE_RIGHT  },
+        { x = 5, y = 10, face = FACE_LEFT   },
+        { x = 6, y = 10, face = FACE_LEFT   },
+        { x = 8, y = 10, face = FACE_UP     },
+        { x = 0, y =  2, face = FACE_DOWN   },
+        { x = 1, y =  2, face = FACE_DOWN   },
+        { x = 2, y =  2, face = FACE_DOWN   },
+        { x = 3, y =  2, face = FACE_DOWN   },
+        { x = 4, y =  2, face = FACE_DOWN   },
+        { x = 5, y =  2, face = FACE_DOWN   },
+        { x = 6, y =  2, face = FACE_DOWN   },
+        { x = 7, y =  2, face = FACE_DOWN   },
+        { x = 8, y =  2, face = FACE_DOWN   },
+        { x = 1, y = 11, face = FACE_UP     },
+        { x = 2, y = 11, face = FACE_UP     },
+        { x = 6, y = 11, face = FACE_UP     },
+        { x = 8, y = 11, face = FACE_UP     },
+      },
+      back = {
+        { x = 0, y =  1, face = FACE_DOWN   },
+        { x = 1, y = 12, face = FACE_UP     },
+        { x = 2, y = 12, face = FACE_UP     },
+        { x = 3, y = 12, face = FACE_UP     },
+        { x = 6, y = 12, face = FACE_UP     },
+        { x = 8, y = 12, face = FACE_UP     },
+      },
     },
     ECRUTEAK = {
-      { x = 0, y =  1, face = FACE_DOWN   },
-      { x = 1, y =  1, face = FACE_DOWN   },
-      { x = 2, y =  1, face = FACE_DOWN   },
-      { x = 3, y =  1, face = FACE_DOWN   },
-      { x = 4, y =  1, face = FACE_DOWN   },
-      { x = 5, y =  1, face = FACE_DOWN   },
-      { x = 6, y =  1, face = FACE_DOWN   },
-      { x = 7, y =  1, face = FACE_DOWN   },
-      { x = 8, y =  1, face = FACE_DOWN   },
-      { x = 9, y =  1, face = FACE_DOWN   },
-      { x = 1, y =  3, face = FACE_RIGHT  },
-      { x = 2, y =  3, face = FACE_RIGHT  },
-      { x = 3, y =  3, face = FACE_RIGHT  },
-      { x = 4, y =  3, face = FACE_RIGHT  },
-      { x = 5, y =  3, face = FACE_LEFT   },
-      { x = 6, y =  3, face = FACE_LEFT   },
-      { x = 7, y =  3, face = FACE_LEFT   },
-      { x = 8, y =  3, face = FACE_LEFT   },
-      { x = 0, y =  4, face = FACE_DOWN   },
-      { x = 0, y =  5, face = FACE_DOWN   },
-      { x = 2, y =  5, face = FACE_RIGHT  },
-      { x = 3, y =  5, face = FACE_DOWN   },
-      { x = 4, y =  5, face = FACE_DOWN   },
-      { x = 5, y =  5, face = FACE_DOWN   },
-      { x = 6, y =  5, face = FACE_DOWN   },
-      { x = 7, y =  5, face = FACE_LEFT   },
-      { x = 2, y =  7, face = FACE_RIGHT  },
-      { x = 7, y =  7, face = FACE_LEFT   },
-      { x = 2, y =  8, face = FACE_RIGHT  },
-      { x = 7, y =  8, face = FACE_LEFT   },
-      { x = 3, y =  9, face = FACE_UP     },
-      { x = 1, y = 10, face = FACE_RIGHT  },
-      { x = 2, y = 10, face = FACE_RIGHT  },
-      { x = 4, y = 10, face = FACE_RIGHT  },
-      { x = 5, y = 10, face = FACE_LEFT   },
-      { x = 7, y = 10, face = FACE_LEFT   },
-      { x = 8, y = 10, face = FACE_LEFT   },
-      { x = 0, y = 12, face = FACE_UP     },
-      { x = 9, y = 12, face = FACE_UP     },
-      { x = 0, y = 13, face = FACE_UP     },
-      { x = 2, y = 13, face = FACE_UP     },
-      { x = 3, y = 13, face = FACE_UP     },
-      { x = 6, y = 13, face = FACE_UP     },
-      { x = 7, y = 13, face = FACE_UP     },
-      { x = 9, y = 13, face = FACE_UP     },
+      ring = {
+        { x = 1, y =  3, face = FACE_RIGHT  },
+        { x = 2, y =  3, face = FACE_RIGHT  },
+        { x = 3, y =  3, face = FACE_RIGHT  },
+        { x = 4, y =  3, face = FACE_RIGHT  },
+        { x = 5, y =  3, face = FACE_LEFT   },
+        { x = 6, y =  3, face = FACE_LEFT   },
+        { x = 7, y =  3, face = FACE_LEFT   },
+        { x = 8, y =  3, face = FACE_LEFT   },
+        { x = 1, y = 10, face = FACE_RIGHT  },
+        { x = 2, y = 10, face = FACE_RIGHT  },
+        { x = 3, y = 10, face = FACE_UP     },
+        { x = 4, y = 10, face = FACE_RIGHT  },
+        { x = 5, y = 10, face = FACE_LEFT   },
+        { x = 7, y = 10, face = FACE_LEFT   },
+        { x = 8, y = 10, face = FACE_LEFT   },
+        { x = 0, y =  2, face = FACE_DOWN   },
+        { x = 1, y =  2, face = FACE_DOWN   },
+        { x = 8, y =  2, face = FACE_DOWN   },
+        { x = 1, y = 11, face = FACE_UP     },
+        { x = 3, y = 11, face = FACE_UP     },
+        { x = 5, y = 11, face = FACE_UP     },
+        { x = 7, y = 11, face = FACE_UP     },
+        { x = 8, y = 11, face = FACE_UP     },
+      },
+      back = {
+        { x = 0, y =  1, face = FACE_DOWN   },
+        { x = 3, y =  1, face = FACE_DOWN   },
+        { x = 4, y =  1, face = FACE_DOWN   },
+        { x = 5, y =  1, face = FACE_DOWN   },
+        { x = 6, y =  1, face = FACE_DOWN   },
+        { x = 1, y = 12, face = FACE_UP     },
+        { x = 3, y = 12, face = FACE_UP     },
+        { x = 7, y = 12, face = FACE_UP     },
+        { x = 8, y = 12, face = FACE_UP     },
+      },
     },
     CIANWOOD = {
-      { x = 0, y =  1, face = FACE_DOWN   },
-      { x = 1, y =  1, face = FACE_DOWN   },
-      { x = 2, y =  1, face = FACE_DOWN   },
-      { x = 3, y =  1, face = FACE_DOWN   },
-      { x = 4, y =  1, face = FACE_DOWN   },
-      { x = 5, y =  1, face = FACE_DOWN   },
-      { x = 6, y =  1, face = FACE_DOWN   },
-      { x = 7, y =  1, face = FACE_DOWN   },
-      { x = 8, y =  1, face = FACE_DOWN   },
-      { x = 9, y =  1, face = FACE_DOWN   },
-      { x = 0, y =  3, face = FACE_RIGHT  },
-      { x = 9, y =  3, face = FACE_LEFT   },
-      { x = 0, y =  4, face = FACE_RIGHT  },
-      { x = 9, y =  4, face = FACE_LEFT   },
-      { x = 0, y =  5, face = FACE_RIGHT  },
-      { x = 9, y =  5, face = FACE_LEFT   },
-      { x = 0, y =  6, face = FACE_RIGHT  },
-      { x = 9, y =  6, face = FACE_LEFT   },
-      { x = 0, y =  7, face = FACE_RIGHT  },
-      { x = 9, y =  7, face = FACE_LEFT   },
-      { x = 0, y =  8, face = FACE_RIGHT  },
-      { x = 9, y =  8, face = FACE_LEFT   },
-      { x = 0, y =  9, face = FACE_RIGHT  },
-      { x = 9, y =  9, face = FACE_LEFT   },
-      { x = 0, y = 10, face = FACE_RIGHT  },
-      { x = 9, y = 10, face = FACE_LEFT   },
-      { x = 0, y = 11, face = FACE_UP     },
-      { x = 9, y = 11, face = FACE_UP     },
-      { x = 0, y = 12, face = FACE_UP     },
-      { x = 9, y = 12, face = FACE_UP     },
-      { x = 0, y = 13, face = FACE_UP     },
-      { x = 2, y = 13, face = FACE_UP     },
-      { x = 3, y = 13, face = FACE_UP     },
-      { x = 6, y = 13, face = FACE_UP     },
-      { x = 7, y = 13, face = FACE_UP     },
-      { x = 9, y = 13, face = FACE_UP     },
+      ring = {
+        { x = 1, y =  3, face = FACE_DOWN   },
+        { x = 2, y =  3, face = FACE_DOWN   },
+        { x = 3, y =  3, face = FACE_DOWN   },
+        { x = 4, y =  3, face = FACE_DOWN   },
+        { x = 5, y =  3, face = FACE_DOWN   },
+        { x = 6, y =  3, face = FACE_DOWN   },
+        { x = 7, y =  3, face = FACE_DOWN   },
+        { x = 8, y =  3, face = FACE_DOWN   },
+        { x = 1, y =  4, face = FACE_RIGHT  },
+        { x = 8, y =  4, face = FACE_LEFT   },
+        { x = 1, y =  5, face = FACE_RIGHT  },
+        { x = 8, y =  5, face = FACE_LEFT   },
+        { x = 1, y =  6, face = FACE_RIGHT  },
+        { x = 8, y =  6, face = FACE_LEFT   },
+        { x = 1, y =  7, face = FACE_RIGHT  },
+        { x = 8, y =  7, face = FACE_LEFT   },
+        { x = 1, y =  8, face = FACE_RIGHT  },
+        { x = 8, y =  8, face = FACE_LEFT   },
+        { x = 1, y =  9, face = FACE_RIGHT  },
+        { x = 8, y =  9, face = FACE_LEFT   },
+        { x = 1, y = 10, face = FACE_UP     },
+        { x = 2, y = 10, face = FACE_UP     },
+        { x = 3, y = 10, face = FACE_UP     },
+        { x = 4, y = 10, face = FACE_UP     },
+        { x = 5, y = 10, face = FACE_UP     },
+        { x = 6, y = 10, face = FACE_UP     },
+        { x = 8, y = 10, face = FACE_UP     },
+        { x = 0, y =  2, face = FACE_DOWN   },
+        { x = 1, y =  2, face = FACE_DOWN   },
+        { x = 2, y =  2, face = FACE_DOWN   },
+        { x = 3, y =  2, face = FACE_DOWN   },
+        { x = 4, y =  2, face = FACE_DOWN   },
+        { x = 5, y =  2, face = FACE_DOWN   },
+        { x = 6, y =  2, face = FACE_DOWN   },
+        { x = 7, y =  2, face = FACE_DOWN   },
+        { x = 8, y =  2, face = FACE_DOWN   },
+        { x = 1, y = 11, face = FACE_UP     },
+        { x = 2, y = 11, face = FACE_UP     },
+        { x = 3, y = 11, face = FACE_UP     },
+        { x = 4, y = 11, face = FACE_UP     },
+        { x = 5, y = 11, face = FACE_UP     },
+        { x = 6, y = 11, face = FACE_UP     },
+        { x = 8, y = 11, face = FACE_UP     },
+      },
+      back = {
+        { x = 0, y =  1, face = FACE_DOWN   },
+        { x = 1, y = 12, face = FACE_UP     },
+        { x = 6, y = 12, face = FACE_UP     },
+        { x = 8, y = 12, face = FACE_UP     },
+        { x = 3, y = 13, face = FACE_UP     },
+      },
     },
     BLACKTHORN = {
-      { x = 0, y =  1, face = FACE_DOWN   },
-      { x = 1, y =  1, face = FACE_DOWN   },
-      { x = 2, y =  1, face = FACE_DOWN   },
-      { x = 3, y =  1, face = FACE_DOWN   },
-      { x = 4, y =  1, face = FACE_DOWN   },
-      { x = 5, y =  1, face = FACE_DOWN   },
-      { x = 6, y =  1, face = FACE_DOWN   },
-      { x = 7, y =  1, face = FACE_DOWN   },
-      { x = 8, y =  1, face = FACE_DOWN   },
-      { x = 9, y =  1, face = FACE_DOWN   },
-      { x = 1, y =  3, face = FACE_RIGHT  },
-      { x = 2, y =  3, face = FACE_RIGHT  },
-      { x = 3, y =  3, face = FACE_RIGHT  },
-      { x = 4, y =  3, face = FACE_RIGHT  },
-      { x = 5, y =  3, face = FACE_LEFT   },
-      { x = 6, y =  3, face = FACE_LEFT   },
-      { x = 7, y =  3, face = FACE_LEFT   },
-      { x = 8, y =  3, face = FACE_LEFT   },
-      { x = 0, y =  4, face = FACE_DOWN   },
-      { x = 0, y =  5, face = FACE_DOWN   },
-      { x = 2, y =  5, face = FACE_RIGHT  },
-      { x = 3, y =  5, face = FACE_DOWN   },
-      { x = 4, y =  5, face = FACE_DOWN   },
-      { x = 5, y =  5, face = FACE_DOWN   },
-      { x = 6, y =  5, face = FACE_DOWN   },
-      { x = 7, y =  5, face = FACE_LEFT   },
-      { x = 2, y =  7, face = FACE_RIGHT  },
-      { x = 7, y =  7, face = FACE_LEFT   },
-      { x = 2, y =  8, face = FACE_RIGHT  },
-      { x = 7, y =  8, face = FACE_LEFT   },
-      { x = 1, y =  9, face = FACE_DOWN   },
-      { x = 3, y =  9, face = FACE_UP     },
-      { x = 8, y =  9, face = FACE_DOWN   },
-      { x = 2, y = 10, face = FACE_RIGHT  },
-      { x = 4, y = 10, face = FACE_RIGHT  },
-      { x = 5, y = 10, face = FACE_LEFT   },
-      { x = 7, y = 10, face = FACE_LEFT   },
-      { x = 0, y = 11, face = FACE_UP     },
-      { x = 9, y = 11, face = FACE_UP     },
-      { x = 0, y = 12, face = FACE_UP     },
-      { x = 3, y = 12, face = FACE_UP     },
-      { x = 6, y = 12, face = FACE_UP     },
-      { x = 9, y = 12, face = FACE_UP     },
-      { x = 0, y = 13, face = FACE_UP     },
-      { x = 2, y = 13, face = FACE_UP     },
-      { x = 7, y = 13, face = FACE_UP     },
-      { x = 9, y = 13, face = FACE_UP     },
+      ring = {
+        { x = 1, y =  3, face = FACE_RIGHT  },
+        { x = 2, y =  3, face = FACE_RIGHT  },
+        { x = 3, y =  3, face = FACE_RIGHT  },
+        { x = 4, y =  3, face = FACE_RIGHT  },
+        { x = 5, y =  3, face = FACE_LEFT   },
+        { x = 6, y =  3, face = FACE_LEFT   },
+        { x = 7, y =  3, face = FACE_LEFT   },
+        { x = 8, y =  3, face = FACE_LEFT   },
+        { x = 1, y =  9, face = FACE_DOWN   },
+        { x = 8, y =  9, face = FACE_DOWN   },
+        { x = 1, y = 10, face = FACE_UP     },
+        { x = 2, y = 10, face = FACE_RIGHT  },
+        { x = 3, y = 10, face = FACE_UP     },
+        { x = 4, y = 10, face = FACE_RIGHT  },
+        { x = 5, y = 10, face = FACE_LEFT   },
+        { x = 7, y = 10, face = FACE_LEFT   },
+        { x = 8, y = 10, face = FACE_UP     },
+        { x = 0, y =  2, face = FACE_DOWN   },
+        { x = 1, y =  2, face = FACE_DOWN   },
+        { x = 8, y =  2, face = FACE_DOWN   },
+        { x = 1, y = 11, face = FACE_UP     },
+        { x = 3, y = 11, face = FACE_UP     },
+        { x = 5, y = 11, face = FACE_UP     },
+        { x = 7, y = 11, face = FACE_UP     },
+        { x = 8, y = 11, face = FACE_UP     },
+      },
+      back = {
+        { x = 0, y =  1, face = FACE_DOWN   },
+        { x = 3, y =  1, face = FACE_DOWN   },
+        { x = 4, y =  1, face = FACE_DOWN   },
+        { x = 5, y =  1, face = FACE_DOWN   },
+        { x = 6, y =  1, face = FACE_DOWN   },
+        { x = 1, y = 12, face = FACE_UP     },
+        { x = 8, y = 12, face = FACE_UP     },
+      },
     },
   }
+  -- Goldenrod's, for a town added without its own list.
+  local function stageSeats()
+    return KC_STAGE_SEATS[TOWN] or KC_STAGE_SEATS.GOLDENROD
+  end
   -- Goldenrod's, for a town added without its own list.
   local function stageSeats()
     return KC_STAGE_SEATS[TOWN] or KC_STAGE_SEATS.GOLDENROD
@@ -3095,11 +3128,16 @@ local function kcGold(mod, VERSION)
   -- 42 (Goldenrod), 45 (Ecruteak), 36 (Cianwood) and 47 (Blackthorn) --
   -- and the draw takes the smaller of the band and what the room has, so
   -- a repaint that loses places quietly seats fewer rather than erroring.
+  -- Refitted in 0.36.4. Reserving the stage cost the two walled rooms
+  -- their eleven on-platform places each, so Ecruteak and Blackthorn hold
+  -- 32 where Goldenrod holds 46 and Cianwood 48. Every band now fits its
+  -- own hall with headroom, and the ladder still doubles from bottom to
+  -- top. tests/crowd_reach_test.lua fails if a band outgrows its room.
   local CROWD_BY_RANK = {
-    NORMAL = { 12, 16 },
-    SUPER  = { 18, 22 },
-    HYPER  = { 24, 28 },
-    MASTER = { 30, 34 },
+    NORMAL = { 10, 14 },
+    SUPER  = { 16, 20 },
+    HYPER  = { 22, 26 },
+    MASTER = { 26, 30 },
   }
   -- The FIRST dozen carry the named faces; everyone after that is drawn
   -- almost entirely from the vanilla trainers, so a bigger crowd reads as
@@ -3682,22 +3720,31 @@ local function kcGold(mod, VERSION)
   -- Choose WHICH seats are filled. 10-15 of the 30 the developer
     -- marked out, so the hall is the same density each time but never
     -- the same shape.
+    -- RINGSIDE FIRST, then the back of the room. Both tiers are shuffled
+    -- so the shape is never the same twice, but the ring is exhausted
+    -- before anybody stands at the back -- which is the whole point:
+    -- a crowd watches the stage, it does not line the walls.
     local SEATS = stageSeats()
-    local pool = {}
-    for k = 1, #SEATS do
-      local seat = SEATS[k]
-      -- generated from this room's own collision, so this never rejects
-      -- anything today; kept because a repaint is one save away
-      if seatUsable(STAGE_DEF, seat.x, seat.y) then pool[#pool + 1] = seat end
+    local function usable(list)
+      local out = {}
+      for k = 1, #(list or {}) do
+        local seat = list[k]
+        -- generated from this room's own collision, so this never rejects
+        -- anything today; kept because a repaint is one save away
+        if seatUsable(STAGE_DEF, seat.x, seat.y) then out[#out + 1] = seat end
+      end
+      for k = #out, 2, -1 do
+        local m = rnd(k)
+        out[k], out[m] = out[m], out[k]
+      end
+      return out
     end
-    for k = #pool, 2, -1 do
-      local m = rnd(k)
-      pool[k], pool[m] = pool[m], pool[k]
-    end
+    local ring, back = usable(SEATS.ring), usable(SEATS.back)
     local band = CROWD_BY_RANK[hallRank()] or CROWD_BY_RANK.NORMAL
     local take = band[1] + rnd(band[2] - band[1] + 1) - 1
     local chosen = {}
-    for k = 1, math.min(take, #pool) do chosen[k] = pool[k] end
+    for k = 1, math.min(take, #ring) do chosen[k] = ring[k] end
+    for k = 1, math.min(take - #chosen, #back) do chosen[#chosen + 1] = back[k] end
 
     -- One pair sometimes sits together, in seats that are actually next
     -- to each other -- worked out from the seats CHOSEN this contest.
@@ -5802,7 +5849,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.36.3"
+  local VERSION = "0.36.4"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

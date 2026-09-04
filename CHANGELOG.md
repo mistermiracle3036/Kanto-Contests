@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.36.4
+
+New in 0.36.4: **the audience watches the contest.** They were lining the
+back walls of the room -- and in Ecruteak and Blackthorn, eleven of them
+were standing on the stage itself, in among the performers, with another on
+a staircase. Now they gather around the stage and face it, and the ones
+nearest fill up before anybody stands at the back.
+
+Crowd sizes moved with it, because reserving the stage cost the two walled
+halls the places they should never have had: a NORMAL contest draws 10-14,
+SUPER 16-20, HYPER 22-26 and MASTER 26-30.
+
 ## 0.36.3
 
 - Simplified the judging move hint after phone feedback: the upper-left
