@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.42
+## 0.34.43
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -32,6 +32,11 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category for Kanto Ribbons, and
   a long list of text-box and sprite fixes.
+
+New in 0.34.43: the Ecruteak hall no longer has a fragment of wall tiling
+away around the outside of both rooms, and the judge stands behind his
+desk instead of on it. The snack seller and the appraiser, who were off
+the edge of the room entirely, are back at their counters.
 
 New in 0.34.42: the contest cast talks. Nearly 600 lines of dialogue --
 every coordinator has their own voice in the queue, on stage, and after
