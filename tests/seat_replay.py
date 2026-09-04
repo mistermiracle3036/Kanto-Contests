@@ -69,15 +69,40 @@ def seeded(seed):
         return (s % n) + 1
     return rnd
 
+# Venue weighting (0.36.1): the mod expands a pool so a name with weight N
+# appears N times, then draws uniformly, so the rng is consumed exactly as
+# before -- one roll per attempt -- and a seed still replays. Mirrored here
+# by expanding the same way, from the same table.
+VENUE = {}
+_vw = re.search(r'local KC_VENUE_WEIGHT = \{(.*?)\n  \}', SRC, re.S).group(1)
+for _town, _body in re.findall(r'(\w+) = \{(.*?)\n    \}', _vw, re.S):
+    VENUE[_town] = {k: int(v) for k, v in re.findall(r'(\w+) = (\d+),', _body)}
+
+
+def weighted(pool):
+    w = VENUE.get(TOWN, {})
+    out = [n for n in pool for _ in range(w.get(n, 1))]
+    return out or pool
+
+
 def draw_from(pool, used, rnd):
+    wpool = weighted(pool)
     for _ in range(40):
-        pick = pool[rnd(len(pool)) - 1]
+        pick = wpool[rnd(len(wpool)) - 1]
         if pick and pick not in used:
+            used.add(pick); return pick
+    # then the first free one in order, which is what the mod does rather
+    # than falling through to the folk pool
+    for pick in pool:
+        if pick not in used:
             used.add(pick); return pick
     return None
 
 NAMED_FACES = {k: [int(x) for x in v.split(",")] for k, v in re.findall(r'(\w+) *= *\{ *([\d, ]+)\}', re.search(r'local KC_NAMED_FACES = \{(.*?)\n  \}', SRC, re.S).group(1))}
-BEST_RANK = "NORMAL"   # the save's kcBestRank at the time of the screenshot
+# How many famous faces the coordinator draw allows. This used to read a
+# saved kcBestRank; since 0.34.41 it is the RANK THE HALL RUNS, so it
+# follows from the town like everything else here.
+BEST_RANK = RANK
 
 def draw_coordinators(rnd, used, best=None):
     dist = NAMED_FACES[best or BEST_RANK]

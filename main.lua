@@ -3288,10 +3288,113 @@ local function kcGold(mod, VERSION)
   -- `kind` (optional) skips picks the worksheet keeps out of this
   -- contest type. A SKIPPED pick is not marked used; the pick that is
   -- returned is.
+  -- WHO TURNS UP WHERE (0.36.1). Authored by ChatGPT against
+  -- exchange/work-orders/kanto_contests-venue-crowd-affinity.md; every name
+  -- was checked against the four cast lists on intake.
+  --
+  -- A name absent from a town gets 1, which is the old behaviour, so only
+  -- the leanings are written. 0 means never here, and is used sparingly --
+  -- a face nobody ever sees in three of four towns is worse than a mild
+  -- lean. This is about PLACE and nothing else: rank already drives crowd
+  -- size and rival AI, so a NORMAL contest held in Blackthorn still feels
+  -- like Blackthorn.
+  local KC_VENUE_WEIGHT = {
+    GOLDENROD = {
+      WHITNEY = 4,
+      SAGE = 0,
+      CLERK = 4,
+      BEAUTY = 3,
+      ROCKER = 3,
+      ROCKET = 2,
+      ROCKET_GIRL = 2,
+      KC_LEAR = 3,
+      KC_ROSA = 3,
+      KC_STADIUM_GIRL = 2,
+      KC_BALLGUY = 4,
+      KC_BILL = 3,
+    },
+    ECRUTEAK = {
+      MORTY = 4,
+      KAREN = 3,
+      KIMONO_GIRL = 4,
+      SAGE = 4,
+      ELDER = 3,
+      GRAMPS = 2,
+      CLERK = 0,
+      KC_N = 3,
+      KC_WES = 3,
+      KC_EUSINE = 4,
+      KC_RUIN_MANIAC = 4,
+      KC_AGATHA = 3,
+    },
+    CIANWOOD = {
+      CHUCK = 4,
+      JASMINE = 3,
+      BRUNO = 3,
+      SAILOR = 4,
+      FISHER = 4,
+      PHARMACIST = 4,
+      BLACK_BELT = 4,
+      CLERK = 0,
+      KC_BEA = 4,
+      KC_AJ = 4,
+      KC_WES = 3,
+      KC_RANGER = 3,
+    },
+    BLACKTHORN = {
+      CLAIR = 4,
+      LANCE = 4,
+      PRYCE = 3,
+      WHITNEY = 0,
+      COOLTRAINER_M = 4,
+      COOLTRAINER_F = 4,
+      ELDER = 3,
+      RED = 4,
+      CAL = 3,
+      KC_GREEN = 3,
+      KC_WES = 3,
+      KC_BEA = 2,
+    },
+  }
+
+  -- The weighting is applied by EXPANDING the pool -- a name with weight 3
+  -- appears three times -- rather than by rolling against a weight. That
+  -- keeps the draw one `rnd(#pool)` per attempt, which is what
+  -- tests/seat_replay.py mirrors and what makes a seed reproducible.
+  --
+  -- Cached per town, keyed on the pool table itself, and rebuilt when the
+  -- player walks into a different hall.
+  local venueCache = { town = nil, pools = {} }
+  local function venuePool(pool)
+    local w = KC_VENUE_WEIGHT[TOWN]
+    if not w then return pool end
+    if venueCache.town ~= TOWN then venueCache = { town = TOWN, pools = {} } end
+    local hit = venueCache.pools[pool]
+    if hit then return hit end
+    local out = {}
+    for _, name in ipairs(pool) do
+      for _ = 1, (w[name] or 1) do out[#out + 1] = name end
+    end
+    -- a pool weighted away to nothing would make every draw fail
+    if #out == 0 then out = pool end
+    venueCache.pools[pool] = out
+    return out
+  end
+
   local function drawFrom(pool, used, rnd, kind)
+    local weighted = venuePool(pool)
     for _ = 1, 40 do
-      local pick = pool[rnd(#pool)]
+      local pick = weighted[rnd(#weighted)]
       if pick and not used[pick] and allowedFor(pick, kind) then used[pick] = true return pick end
+    end
+    -- Then take the first free one in order. The weighted list repeats a
+    -- name up to four times, so a MASTER-sized crowd late in the draw
+    -- collides far more often than a 15-person one did and forty rolls can
+    -- miss the last free face -- which used to mean falling through to the
+    -- folk pool and quietly ignoring which pool was chosen. Sweeping the
+    -- ORIGINAL list is deterministic, so a seed still replays exactly.
+    for _, pick in ipairs(pool) do
+      if not used[pick] and allowedFor(pick, kind) then used[pick] = true return pick end
     end
     return nil
   end
@@ -5696,7 +5799,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.36.0"
+  local VERSION = "0.36.1"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

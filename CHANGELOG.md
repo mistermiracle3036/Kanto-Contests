@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.36.0
+## 0.36.1
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -36,6 +36,14 @@ has been rebuilt since. The short version:
 - Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
   scarves (0.10.9), wins recorded per category and per rank for Kanto
   Ribbons, and a long list of text-box and sprite fixes.
+
+New in 0.36.1: **each hall draws its own kind of crowd.** Whitney and the
+department-store staff belong to Goldenrod; Ecruteak fills up with sages,
+elders, a Kimono Girl and Eusine; Cianwood brings sailors, fishers, the
+pharmacist and the black belts; Blackthorn is Clair, Lance and the dragon
+clan. Nobody is locked to one town -- everyone can turn up anywhere -- but
+walking from one hall into another should now feel like a different room
+full of different people.
 
 New in 0.36.0: **the crowd grows with the rank.** A NORMAL contest draws
 12-16 people, SUPER 18-22, HYPER 24-28 and a MASTER contest 30-34, so
