@@ -61,13 +61,16 @@ function S:layout()
   return L
 end
 
--- Gen 3's panel colours; the player's row is the light-green one
+-- Restrained GBC-style window colours. White stays behind the opaque battle
+-- art; cream, lavender and the player's mint tint belong to the UI only.
 S.C = {
   stage      = { 88, 168, 72 }, stageLight = { 120, 200, 96 },
-  panel      = { 250, 250, 136 }, panelMine = { 208, 248, 200 },
-  panelLine  = { 168, 152, 72 }, ink = { 40, 40, 40 },
-  heart      = { 224, 32, 32 }, heartJam = { 32, 32, 32 },
-  bar        = { 240, 120, 120 }, box = { 248, 184, 184 },
+  panel      = { 248, 240, 216 }, panelMine = { 216, 240, 208 },
+  panelLine  = { 152, 144, 176 }, ink = { 48, 40, 64 },
+  heart      = { 208, 64, 96 }, heartJam = { 48, 40, 64 },
+  bar        = { 224, 144, 160 }, box = { 232, 224, 240 },
+  paper      = { 255, 255, 255 }, muted = { 200, 192, 208 },
+  combo      = { 32, 112, 56 }, disabled = { 144, 144, 152 },
 }
 
 local HEART = {
@@ -126,7 +129,7 @@ end
 function S:queueIntro()
   -- dialogue-ok: rank and category are at most 6 glyphs -> 15
   self:say(("The %s\n%s CONTEST!"):format(self.rank, self.kind))
-  self:say("The stage scores\nare in!")
+  self:say("Stage scores set\nthe first order.")
   self.phase = "intro"
 end
 
@@ -312,7 +315,10 @@ function S:resolveNext()
 end
 
 function S:queueTally()
-  local final = self.E.final(self.s)
+  -- Reuse the ceremony's ranking: final() draws a random exact-tie break.
+  -- Drawing it twice could crown one winner and award another.
+  local final = self.final or self.E.final(self.s)
+  self.final = final
   self:say("The JUDGE tallies\nthe scores...")
   local place
   local P = { "1st", "2nd", "3rd", "4th" }
@@ -526,6 +532,55 @@ local function drawHeart(px, py, color)
   end
 end
 
+-- Integer-pixel window trim (no rounded/subpixel outlines at native size).
+local function window(px, py, w, h, fill)
+  local G = love.graphics
+  rgb(S.C.ink); G.rectangle("fill", px, py, w, h)
+  rgb(S.C.paper); G.rectangle("fill", px + 1, py + 1, w - 2, h - 2)
+  rgb(fill); G.rectangle("fill", px + 2, py + 2, w - 4, h - 4)
+end
+
+function S:comboReady(id)
+  local c = self.s.c[1]
+  return not c.skipping and not c.exploded and not c.nervous
+    and c.attention and c.prevMove and self.E.isCombo(self.s, c.prevMove, id)
+end
+
+function S:moveTag(mv)
+  -- Only announce an actionable bonus on the highlighted move. A starter
+  -- is merely a possible setup, not a combo the player can use right now.
+  if mv and (mv.pp == nil or mv.pp > 0) and self:comboReady(mv.id) then
+    return "COMBO", "READY!", true
+  end
+  return nil
+end
+
+-- A quiet category tab and five turn pips occupy only the vacant upper
+-- left. A ready combo gets a small badge; other moves leave the stage clear.
+function S:drawStageTrim()
+  local G, m = love.graphics, self:mods()
+  window(2, 2, 88, 15, S.C.box)
+  if m.Font then rgb(S.C.ink); m.Font.draw(clip(self.kind, 6), 6, 5) end
+  for i = 1, self.E.TURNS do
+    rgb(i <= (self.s.turn or 0) and S.C.heart or S.C.muted)
+    G.rectangle("fill", 64 + (i - 1) * 4, 7, 3, 4)
+  end
+  -- The original sprite boxes and their white backgrounds are untouched.
+  rgb(S.C.muted); G.rectangle("fill", 98, 58, 52, 1)
+  rgb(S.C.box); G.rectangle("fill", 104, 59, 40, 1)
+  if m.Font then rgb(S.C.ink); m.Font.draw("JUDGE", 104, 63) end
+  if self.phase == "menu" and #self.msgs == 0 and self.moveMenu == "full" then
+    local tag, detail, combo = self:moveTag(self:menuMove())
+    if not tag then return end
+    window(2, 20, 92, 26, combo and S.C.panelMine or S.C.panel)
+    if m.Font then
+      rgb(combo and S.C.combo or S.C.ink)
+      m.Font.draw(tag, 6, 24)
+      m.Font.draw(detail, 6, 35)
+    end
+  end
+end
+
 -- the performer's back pic at Gold's player box (tiles 2,6; 6 tiles),
 -- through the species palette, honouring the animation's hide/slide/shade
 function S:drawPerformer()
@@ -593,6 +648,7 @@ end
 function S:drawArenaBackground()
   local G = love.graphics
   rgb({ 255, 255, 255 }); G.rectangle("fill", 0, 0, S.ARENA_W, 96)
+  self:drawStageTrim()
   self:drawJudge()
   self:drawPerformer()
 end
@@ -618,20 +674,21 @@ function S:drawApplause()
   local msg = self.msgs[1]
   local level = (msg and msg.applauseLevel) or math.min(self.s.applause, 5)
   local wild = msg and msg.wild
-  -- wild: every dot lit and the whole box flashing between its two colours
-  -- on an 8-frame beat, with the label saying so
+  -- Five inset pixel lamps; the wild snapshot still lights every lamp.
   local hot = wild and (self.frame % 8 < 4)
-  rgb(hot and { 255, 96, 160 } or { 255, 232, 120 }); G.rectangle("fill", 2, 18, 72, 26, 4, 4)
-  rgb(hot and { 255, 255, 255 } or S.C.bar); G.rectangle("line", 2, 18, 72, 26, 4, 4)
+  window(2, 20, 88, 26, hot and S.C.box or S.C.panel)
   if m.Font then
-    rgb(hot and { 255, 255, 255 } or S.C.heart)
-    m.Font.draw(wild and "WILD!!" or "APPLAUSE", 6, 20)
+    rgb(wild and S.C.heart or S.C.ink)
+    m.Font.draw(wild and "WILD!!" or "APPLAUSE", 6, 24)
   end
   for i = 1, 5 do
-    if wild then rgb(hot and { 255, 255, 255 } or { 240, 48, 120 })
-    elseif i <= level then rgb({ 240, 48, 120 })
-    else rgb({ 255, 250, 200 }) end
-    G.circle("fill", 10 + (i - 1) * 13, 37, hot and 5 or 4)
+    local x = 8 + (i - 1) * 15
+    rgb(S.C.panelLine); G.rectangle("fill", x, 35, 11, 7)
+    rgb((wild or i <= level) and (hot and S.C.bar or S.C.heart) or S.C.paper)
+    G.rectangle("fill", x + 1, 36, 9, 5)
+    if wild or i <= level then
+      rgb(S.C.paper); G.rectangle("fill", x + 2, 36, 2, 1)
+    end
   end
 end
 
@@ -651,7 +708,7 @@ function S:drawTextBox()
       if i <= 4 then
         local row = self.s.moves[mv.id]
         local cat = row and row.cat or "----"
-        m.Chrome.print(("%-6s %s"):format(cat:sub(1, 6), clip(self:moveName(mv.id), 11)), 2, 12 + i)
+        m.Chrome.print(("%-6s %s"):format(cat:sub(1, 6), clip(self:moveName(mv.id), 10)), 2, 12 + i)
       end
     end
     m.Chrome.cursor(1, 12 + math.min(self.menuCursor, math.max(1, #moves)))
@@ -683,9 +740,7 @@ end
 
 -- The card, in the text box's 18x4 interior (tile rows 13-16):
 --   13  APPEAL and its hearts (one per 10 points, up to 8)
---   14  JAM and its dark hearts, or the combo note: COMBO! when this move
---       follows the one just performed (the JUDGE doubles it), STARTER
---       for a combo opener, AFTER <move> for a finisher
+--   14  JAM and its dark hearts; the combo note now has its own stage tab
 --   15-16  the effect's own two lines (the KC_CONTEST_EFFECTS text)
 function S:drawMoveInfo()
   local m = self:mods()
@@ -698,22 +753,11 @@ function S:drawMoveInfo()
   local appeal = eff and eff.appeal or 0
   local jam = eff and eff.jam or 0
   m.Chrome.print("APPEAL", 1, 13)
-  for i = 1, math.min(8, math.floor(appeal / 10)) do drawHeart(64 + (i - 1) * 9, 13 * 8 + 1, S.C.heart) end
-  local x = 1
-  if jam > 0 then
-    m.Chrome.print("JAM", 1, 14)
-    for i = 1, math.min(8, math.floor(jam / 10)) do drawHeart(40 + (i - 1) * 9, 14 * 8 + 1, S.C.heartJam) end
-    x = 5 + math.min(8, math.floor(jam / 10)) * 9 / 8 + 1
+  m.Chrome.print("JAM", 1, 14)
+  for i = 1, 8 do
+    drawHeart(64 + (i - 1) * 9, 105, i <= math.floor(appeal / 10) and S.C.heart or S.C.box)
+    drawHeart(64 + (i - 1) * 9, 113, i <= math.floor(jam / 10) and S.C.heartJam or S.C.box)
   end
-  local prev = self.s.c[1].prevMove
-  local tag
-  if prev and self.E.isCombo(self.s, prev, mv.id) then tag = "COMBO!"
-  elseif row and row.starter then tag = "STARTER"
-  elseif row and row.after and row.after[1] and jam <= 0 then
-    -- dialogue-ok: "AFTER " is 6, the name clipped to 10 -> 16
-    tag = "AFTER " .. clip(self:starterName(row.after[1]), 10)
-  end
-  if tag then m.Chrome.print(tag, math.floor(x), 14) end
   local text = eff and eff.text or ""
   local a, b = tostring(text):match("^(.-)\n(.*)$")
   m.Chrome.print(a or text, 1, 15)
@@ -729,23 +773,24 @@ function S:drawMoveList()
   local L = self.currentLayout or self:layout()
   local _, cur, moves = self:menuMove()
   local panelW = L.w - L.panelX
-  local prev = self.s.c[1].prevMove
   for slot = 1, self.E.CONTESTANTS do
     local x0, y = L.panelX, L.panelY + (slot - 1) * L.rowH
     rgb(slot == cur and S.C.panelMine or S.C.panel)
     G.rectangle("fill", x0, y, panelW, L.rowH)
-    rgb(S.C.panelLine); G.rectangle("line", x0 + 0.5, y + 0.5, panelW - 1, L.rowH - 1)
+    rgb(S.C.paper); G.rectangle("fill", x0, y, panelW, 1)
+    rgb(S.C.panelLine); G.rectangle("fill", x0, y + L.rowH - 1, panelW, 1)
     local mv = moves[slot]
     if mv and m.Font then
       local row = self.s.moves[mv.id]
       local name = clip(self:moveName(mv.id), 10)
       local cat = (row and row.cat or "----"):sub(1, 6)
       local noPP = mv.pp ~= nil and mv.pp <= 0
-      local combo = prev and self.E.isCombo(self.s, prev, mv.id)
-      rgb(noPP and { 150, 150, 150 } or (combo and { 24, 120, 40 } or S.C.ink))
+      local combo = self:comboReady(mv.id)
+      rgb(noPP and S.C.disabled or (combo and S.C.combo or S.C.ink))
       if L.name == "wide" then
-        m.Font.draw(name, x0 + 10, y + 4)
-        m.Font.draw(cat, x0 + 10, y + 16)
+        -- Ten full glyphs need ALL 80px; put the cursor beside category.
+        m.Font.draw(name, x0, y + 4)
+        m.Font.draw(cat, x0 + 12, y + 19)
       else
         m.Font.draw(name, x0 + 12, y + 5)
         m.Font.draw(cat, x0 + panelW - 6 * 8 - 4, y + 5)
@@ -753,8 +798,8 @@ function S:drawMoveList()
     end
     if slot == cur then
       rgb(S.C.ink)
-      local cy = y + math.floor(L.rowH / 2)
-      G.polygon("fill", x0 + 3, cy - 3, x0 + 3, cy + 3, x0 + 8, cy)
+      local cy = y + (L.name == "wide" and 23 or 9)
+      for i = 0, 3 do G.rectangle("fill", x0 + 3 + i, cy - 3 + i, 1, 7 - i * 2) end
     end
   end
 end
@@ -782,7 +827,8 @@ function S:drawPanel()
     local lit = winner == ci and (self.frame % 16 < 8)
     rgb(lit and { 255, 255, 255 } or (ci == 1 and S.C.panelMine or S.C.panel))
     G.rectangle("fill", x0, y, panelW, L.rowH)
-    rgb(S.C.panelLine); G.rectangle("line", x0 + 0.5, y + 0.5, panelW - 1, L.rowH - 1)
+    rgb(S.C.paper); G.rectangle("fill", x0, y, panelW, 1)
+    rgb(S.C.panelLine); G.rectangle("fill", x0, y + L.rowH - 1, panelW, 1)
     local nick, trainer = self:names(ci)
     local h = self.turnHearts[ci] or 0
     local color = h >= 0 and S.C.heart or S.C.heartJam
@@ -793,11 +839,12 @@ function S:drawPanel()
       -- 80px wide, 36 tall: nick / trainer stacked, hearts, then the bar
       if m.Font then
         rgb(S.C.ink)
-        m.Font.draw(nick, x0 + 1, y + 2)        -- 10 glyphs = the panel's 80px
+        m.Font.draw(nick, x0, y + 2)            -- exactly 80px for 10 glyphs
         m.Font.draw("/" .. trainer, x0 + 3, y + 11)
       end
       for i = 1, math.min(8, math.abs(h)) do drawHeart(x0 + 3 + (i - 1) * 9, y + 21, color) end
-      rgb(S.C.bar); G.rectangle("fill", x0 + 4, y + 31, 70, 1)
+      rgb(S.C.muted); G.rectangle("fill", x0 + 4, y + 30, 70, 3)
+      rgb(S.C.bar); G.rectangle("fill", x0 + 4, y + 30, math.floor(70 * frac), 3)
       drawHeart(x0 + 4 + math.floor(70 * frac) - 3, y + 28, S.C.heart)
     else
       -- 160px wide, 18 tall: "NICK/TRAINER" on one line (at most 18
@@ -807,8 +854,16 @@ function S:drawPanel()
         m.Font.draw(nick .. "/" .. trainer, x0 + 3, y + 1)
       end
       for i = 1, math.min(8, math.abs(h)) do drawHeart(x0 + 3 + (i - 1) * 9, y + 10, color) end
-      rgb(S.C.bar); G.rectangle("fill", x0 + 82, y + 14, 72, 1)
-      drawHeart(x0 + 82 + math.floor(72 * frac) - 3, y + 11, S.C.heart)
+      rgb(S.C.muted); G.rectangle("fill", x0 + 83, y + 13, 69, 3)
+      rgb(S.C.bar); G.rectangle("fill", x0 + 83, y + 13, math.floor(69 * frac), 3)
+      drawHeart(x0 + 83 + math.floor(69 * frac) - 3, y + 11, S.C.heart)
+      -- Performer cue stays beyond the longest nickname/trainer line.
+      if self.performer == ci and self.phase ~= "ceremony" and self.phase ~= "tally" then
+        rgb(S.C.ink)
+        G.rectangle("fill", x0 + 152, y + 3, 2, 5)
+        G.rectangle("fill", x0 + 154, y + 4, 2, 3)
+        G.rectangle("fill", x0 + 156, y + 5, 1, 1)
+      end
     end
   end
 end

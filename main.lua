@@ -4501,11 +4501,10 @@ local function kcGold(mod, VERSION)
     stageRivals = {}
     stagePlayerHearts = nil     -- never carry a previous contest's number
     local steps = {
-      function(next_) world:showText("Hello! Let's get\nstarted with this", next_) end,
+      function(next_) world:showText("Welcome, everyone!\nThe stage is set.", next_) end,
       -- dialogue-ok: rank and category are both at most 6 glyphs -> 13
       function(next_) world:showText(("%s %s\nCONTEST!"):format(rank, kind), next_) end,
-      function(next_) world:showText("These are our\ncoordinators and", next_) end,
-      function(next_) world:showText("their partners.", next_) end,
+      function(next_) world:showText("Four coordinators.\nReady to shine!", next_) end,
     }
     for n, npc in ipairs(castOnStage(world, true)) do
       for _, fn in ipairs(appealSteps(world, npc, n)) do
@@ -4513,7 +4512,7 @@ local function kcGold(mod, VERSION)
       end
     end
     steps[#steps + 1] = function(next_)
-      world:showText("And now.. our\nnext coordinator!", next_)
+      world:showText("And now, our\nfinal coordinator!", next_)
     end
     steps[#steps + 1] = function(next_)
       world:showText(("Please welcome\n%s!"):format(name), next_)
@@ -4554,8 +4553,12 @@ local function kcGold(mod, VERSION)
           local myHearts = mine and kcIntroHearts(mine, pendingContest or "COOL",
                                                   pendingRank or "NORMAL") or 0
           stagePlayerHearts = myHearts
+          -- Match the rivals' reaction beat: keep the player on their mark
+          -- while the text box is down and the audience hearts are visible.
+          kcHoldPlayer = true
           popHearts(world, myHearts)
           waitFrames(heartsHold(myHearts), function()
+            kcHoldPlayer = false
             world:showText(("%s scores\n%d hearts!"):format(name, myHearts), next_)
           end)
         end)
@@ -5799,7 +5802,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.36.1"
+  local VERSION = "0.36.3"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

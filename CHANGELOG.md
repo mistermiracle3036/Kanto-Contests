@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.36.3
+
+- Simplified the judging move hint after phone feedback: the upper-left
+  badge now reads COMBO / READY! only when the highlighted usable move
+  completes an armed combo. Removed STARTER / LINK MOVES, AFTER, and the
+  generic MOVE INFO / CHOOSE ACT panels; otherwise that space stays clear.
+- The ready badge and green combo text respect lost judge attention and
+  known skipped, retired, or nervous states. Zero-PP moves do not get a
+  ready badge. Appeal/jam hearts, effects, and contest rules are unchanged.
+
+## 0.36.2
+
+- **Judging window polish for Crystal/Gen 2:** cream and lavender pixel
+  windows, mint player/selection rows, a category tab with five appeal-turn
+  pips, inset applause lamps, and filled score rails with heart markers.
+  The white arena, original sprite boxes and move-animation coordinates
+  are preserved. Portrait stays 160x216 with four 18px rows.
+- **A clearer move card:** appeal and jam use aligned eight-heart tracks;
+  COMBO / STARTER / AFTER now has a separate upper-left window, so a
+  jamming finisher can show its prerequisite without losing the effect
+  description. Combo hints now respect the judge's attention.
+- **Names fit:** landscape gives ten-character move and contestant names
+  the full 80px width. The portrait score marker no longer spills past
+  the screen, and the classic menu keeps its text inside the window.
+- **One winner:** the ceremony and announced results now reuse the same
+  final ranking instead of rerolling exact ties.
+- **Introduction polish:** complete announcement pages, an explicit link
+  between stage scores and first appeal order, and the player stays on
+  their mark during their own audience-heart reaction, like the rivals.
+- **Known gameplay issue found during review (unchanged):** choosing an
+  appeal consumes the entrant's battle PP. An entrant with all moves at
+  zero PP cannot advance past the menu. Heal before testing; contest PP
+  policy and the no-usable-move path need a separate gameplay fix.
+
 ## 0.36.1
 
 **Updating from 0.8.2?** That was the last public release, and the mod
