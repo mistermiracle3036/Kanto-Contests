@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.35.0
+
+**Updating from 0.8.2?** That was the last public release, and the mod
+has been rebuilt since. The short version:
+
+- **Contests follow the Ruby/Sapphire rules now** (0.31-0.34): four
+  coordinators, five appeal turns, real move effects and combos, jams,
+  the applause meter, and a judging screen laid out like the Gen 3
+  one -- hearts and a score bar per contestant, your POKeMON on stage
+  with its move animation, and a move card that shows each move's
+  appeal, jam, combo role and effect while you choose.
+- **Every move carries its contest data** (0.32) and a **CONTEST MOVES
+  page** sits in the summary after MOVES (0.33).
+- **Four ranks in four towns** (0.34.41, 0.35.0): Goldenrod runs NORMAL,
+  Ecruteak SUPER, Cianwood HYPER and Blackthorn MASTER. You climb by
+  travelling, and a hall only takes your entry once you have won at the
+  rank below.
+- **The halls are real places**: buildings on the street with their own
+  doors (0.20, 0.34.40, 0.35.0), hand-built lobby and stage rooms
+  (0.16-0.18), a live crowd with famous faces and named ordinary
+  trainers (0.21, 0.34.27), a queue you stand in behind the people you
+  will compete against (0.22), a walk-on and an introduction round on
+  stage where the crowd's hearts pop one seat at a time and applause
+  plays (0.24-0.26, 0.34.9-0.34.24).
+- **You enter one POKeMON**, picked from the party screen (0.27-0.28);
+  its condition, sheen and scarf decide its introduction hearts
+  (0.34.25).
+- **Coordinators are cast with care**: each brings POKeMON that suit
+  them (0.29), gym leaders wear their real colours (0.34.22), the
+  worksheet's type limits and signature POKeMON apply (0.34.28), and a
+  NORMAL contest mostly features one famous face (0.34.29). The cast
+  talks, too -- nearly 600 lines of it (0.34.42).
+- Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
+  scarves (0.10.9), wins recorded per category and per rank for Kanto
+  Ribbons, and a long list of text-box and sprite fixes.
+
+New in 0.35.0: **the last two halls are open, so every rank can be won.**
+
+The CIANWOOD CONTEST HALL runs HYPER contests, in a seafront room of
+lighthouse timber and blue trim. The BLACKTHORN CONTEST HALL runs MASTER,
+a pagoda on the west side of town with the Elite Four's own brick and
+banners on the stage.
+
+Both are a journey rather than a walk. Goldenrod, Ecruteak and Olivine sit
+along one road, so a third hall there would have made the climb feel like
+one street; Cianwood is across the water and Blackthorn is the far east
+corner past the Ice Path. Both are Fly points, so coming back for another
+contest is cheap.
+
+Four wins in a category still unlock nothing you have not earned -- the
+attendant turns you away at the desk until you have taken the rank below.
+
 ## 0.34.44
 
 **Updating from 0.8.2?** That was the last public release, and the mod

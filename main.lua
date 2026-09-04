@@ -1155,6 +1155,558 @@ local KC_HALLS = {
 
     },
   },
+  CIANWOOD = {
+    rank = "HYPER",
+    lobby = {
+      id = "KC_CIANWOOD_CONTEST_HALL",
+      warps = {
+        { x = 4, y = 7, destMap = "CIANWOOD_CITY", destWarp = 1 },
+        { x = 5, y = 7, destMap = "CIANWOOD_CITY", destWarp = 1 },
+      },
+      label = "CIANWOOD CONTEST HALL",
+      song = "OLIVINE_LIGHTHOUSE_1F",
+      palette = "PALETTE_DAY",
+      width = 5, height = 4,
+      arrival = { x = 4, y = 7 },
+      tiles = {
+        id = "KC_CIANWOOD_HALL_TILES",
+        source = "TILESET_LIGHTHOUSE",
+        variants = {
+          gs = {
+            image = "assets/generated/tilesets/lighthouse.png",
+            imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
+            border = 0,
+            tilePalettes = {
+              1, 4, 4, 4, 6, 4, 4, 2, 2, 2, 2, 6, 2, 2, 2, 2, 7, 4, 7, 6,
+              2, 4, 4, 2, 2, 2, 2, 4, 2, 2, 2, 2, 7, 7, 4, 6, 2, 4, 4, 1,
+              1, 1, 1, 6, 2, 7, 1, 1, 7, 7, 4, 4, 2, 2, 6, 1, 1, 1, 1, 6,
+              6, 7, 6, 4, 2, 2, 7, 7, 6, 6, 1, 1, 2, 2, 1, 1, 3, 3, 7, 7,
+              2, 2, 7, 7, 7, 7, 1, 1, 2, 2, 3, 3, 7, 7, 1, 1,
+            },
+            blocks = {
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },   -- 0: the border block
+              { 16, 16, 14, 15, 18, 18, 30, 31, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 16, 16, 16, 16, 18, 18, 18, 18, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 16, 16, 2, 3, 18, 18, 18, 18, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 16, 16, 2, 3, 18, 18, 45, 61, 4, 4, 82, 83, 4, 4, 92, 93 },
+              { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 5, 51, 51, 51, 50, 17, 17, 17, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 51, 51, 51, 51, 17, 17, 17, 17, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 51, 51, 51, 6, 17, 17, 17, 34, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 9, 10, 4, 4, 25, 44 },
+              { 4, 4, 4, 4, 4, 4, 4, 4, 10, 10, 10, 12, 68, 69, 44, 28 },
+              { 4, 4, 20, 26, 4, 4, 59, 60, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 44, 44, 44, 53, 11, 11, 59, 60, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 35, 35, 35, 35 },
+            },
+            collision = {
+              { 0x07, 0x07, 0x07, 0x07 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x07 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x07 },
+              { 0x00, 0x00, 0x07, 0x07 },
+              { 0x00, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x70, 0x70 },
+            },
+          },
+          crystal = {
+            image = "assets/generated/tilesets/lighthouse.png",
+            imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
+            border = 0,
+            tilePalettes = {
+              1, 4, 4, 4, 6, 4, 4, 2, 2, 7, 7, 6, 7, 2, 2, 2, 7, 4, 7, 6,
+              7, 4, 4, 2, 2, 7, 7, 4, 7, 2, 2, 2, 7, 7, 4, 6, 2, 4, 4, 1,
+              1, 1, 1, 6, 7, 7, 1, 1, 7, 7, 4, 4, 2, 7, 6, 1, 1, 1, 1, 6,
+              6, 7, 6, 4, 5, 5, 7, 7, 6, 6, 6, 6, 2, 2, 1, 1, 3, 3, 7, 7,
+              5, 5, 7, 7, 7, 7, 1, 1, 2, 2, 3, 3, 7, 7, 1, 1, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 6, 6, 7, 1, 1, 6, 6, 2, 2, 2, 2, 6,
+              2, 2, 2, 2, 7, 4, 7, 6, 2, 4, 4, 2, 2, 2, 2, 4, 2, 2, 2, 2,
+              7, 7, 4, 6, 2, 4, 4, 1, 1, 1, 1, 6, 2, 7, 1, 1, 7, 7, 4, 4,
+              2, 2, 6, 1, 1, 1, 1, 6, 6, 7, 6, 4, 2, 2, 7, 7, 6, 6, 1, 1,
+              2, 2, 1, 1, 3, 3, 7, 7, 2, 2, 7, 7, 7, 7, 1, 1, 2, 2, 3, 3,
+              7, 7, 1, 1,
+            },
+            blocks = {
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },   -- 0: the border block
+              { 16, 16, 14, 15, 18, 18, 30, 31, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 16, 16, 16, 16, 18, 18, 18, 18, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 16, 16, 2, 3, 18, 18, 18, 18, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 16, 16, 2, 3, 18, 18, 45, 61, 4, 4, 82, 83, 4, 4, 92, 93 },
+              { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 5, 51, 51, 51, 50, 17, 17, 17, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 51, 51, 51, 51, 17, 17, 17, 17, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 51, 51, 51, 6, 17, 17, 17, 34, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 9, 10, 4, 4, 25, 44 },
+              { 4, 4, 4, 4, 4, 4, 4, 4, 10, 10, 10, 12, 68, 69, 44, 28 },
+              { 4, 4, 20, 26, 4, 4, 59, 60, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 130, 130, 130, 53, 11, 11, 59, 60, 4, 4, 4, 4, 4, 4, 4, 4 },
+              { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 35, 35, 35, 35 },
+            },
+            collision = {
+              { 0x07, 0x07, 0x07, 0x07 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x07 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x07 },
+              { 0x00, 0x00, 0x07, 0x07 },
+              { 0x00, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x70, 0x70 },
+            },
+          },
+        },
+      },
+      blocks = {
+        1, 2, 2, 3, 4,
+        5, 6, 7, 8, 5,
+        9, 10, 5, 5, 5,
+        11, 12, 13, 5, 5,
+      },
+      actors = {
+        { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
+          sprite = "SPRITE_GENTLEMAN", x = 4, y = 1, movement = 6 },
+        { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
+          sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
+        { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
+          sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
+        { name = "KC_AUD_1", marker = "kcAudience",
+          sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
+        { name = "KC_AUD_2", marker = "kcAudience",
+          sprite = "SPRITE_GRANNY", x = 2, y = 4, movement = 9 },
+        { name = "KC_AUD_3", marker = "kcAudience",
+          sprite = "SPRITE_TWIN", x = 6, y = 6, movement = 7 },
+      },
+    },
+    stage = {
+      id = "KC_CIANWOOD_CONTEST_STAGE",
+      warps = {
+        { x = 4, y = 13, destMap = "KC_CIANWOOD_CONTEST_HALL", destWarp = 1 },
+        { x = 5, y = 13, destMap = "KC_CIANWOOD_CONTEST_HALL", destWarp = 1 },
+      },
+      label = "CIANWOOD STAGE",
+      song = "GOLDENROD_GAME_CORNER",
+      palette = "PALETTE_DAY",
+      width = 5, height = 7,
+      arrival = { x = 3, y = 8 },
+      tiles = {
+        id = "KC_CIANWOOD_STAGE_TILES",
+        source = "TILESET_LIGHTHOUSE",
+        variants = {
+          gs = {
+            image = "assets/generated/tilesets/lighthouse.png",
+            imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
+            border = 0,
+            tilePalettes = {
+              1, 4, 4, 4, 6, 4, 4, 2, 2, 2, 2, 6, 2, 2, 2, 2, 7, 4, 7, 6,
+              2, 4, 4, 2, 2, 2, 2, 4, 2, 2, 2, 2, 7, 7, 4, 6, 2, 4, 4, 1,
+              1, 1, 1, 6, 2, 7, 1, 1, 7, 7, 4, 4, 2, 2, 6, 1, 1, 1, 1, 6,
+              6, 7, 6, 4, 2, 2, 7, 7, 6, 6, 1, 1, 2, 2, 1, 1, 3, 3, 7, 7,
+              2, 2, 7, 7, 7, 7, 1, 1, 2, 2, 3, 3, 7, 7, 1, 1,
+            },
+            blocks = {
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },   -- 0: the border block
+              { 16, 16, 16, 16, 18, 18, 18, 18, 7, 8, 7, 8, 23, 24, 23, 24 },
+              { 16, 16, 16, 16, 18, 18, 18, 18, 7, 8, 13, 29, 23, 24, 29, 13 },
+              { 16, 16, 16, 16, 18, 18, 18, 18, 13, 29, 13, 29, 29, 13, 29, 13 },
+              { 16, 16, 16, 16, 18, 18, 18, 18, 13, 29, 7, 8, 29, 13, 23, 24 },
+              { 2, 3, 16, 16, 18, 18, 18, 18, 7, 8, 7, 8, 23, 24, 23, 24 },
+              { 7, 8, 7, 8, 23, 24, 23, 24, 13, 29, 13, 29, 29, 13, 29, 13 },
+              { 7, 8, 13, 29, 23, 24, 29, 13, 13, 29, 13, 29, 29, 13, 29, 13 },
+              { 13, 29, 13, 29, 29, 13, 29, 13, 13, 29, 13, 29, 29, 13, 29, 13 },
+              { 13, 29, 7, 8, 29, 13, 23, 24, 13, 29, 13, 29, 29, 13, 29, 13 },
+              { 13, 29, 13, 29, 29, 13, 29, 13, 5, 51, 51, 51, 21, 1, 1, 1 },
+              { 13, 29, 13, 29, 29, 13, 29, 13, 51, 51, 51, 51, 1, 1, 1, 1 },
+              { 13, 29, 13, 29, 29, 13, 29, 13, 51, 51, 51, 6, 1, 1, 1, 22 },
+              { 7, 8, 13, 29, 23, 24, 29, 13, 7, 8, 13, 29, 23, 24, 29, 13 },
+              { 21, 1, 1, 1, 21, 1, 1, 1, 21, 1, 1, 1, 21, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 22, 1, 1, 1, 22, 1, 1, 1, 22, 1, 1, 1, 22 },
+              { 13, 29, 7, 8, 29, 13, 23, 24, 13, 29, 7, 8, 29, 13, 23, 24 },
+              { 21, 1, 1, 1, 21, 1, 1, 1, 21, 1, 21, 22, 50, 17, 21, 22 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 17, 17, 17, 17 },
+              { 1, 1, 1, 22, 1, 1, 1, 22, 21, 22, 1, 22, 21, 22, 17, 34 },
+              { 7, 8, 7, 8, 23, 24, 23, 24, 7, 8, 7, 8, 23, 24, 23, 24 },
+              { 13, 29, 13, 29, 29, 13, 29, 13, 36, 36, 36, 36, 52, 52, 52, 52 },
+            },
+            collision = {
+              { 0x07, 0x07, 0x07, 0x07 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x70, 0x70 },
+            },
+          },
+          crystal = {
+            image = "assets/generated/tilesets/lighthouse.png",
+            imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
+            border = 0,
+            tilePalettes = {
+              1, 4, 4, 4, 6, 4, 4, 2, 2, 7, 7, 6, 7, 2, 2, 2, 7, 4, 7, 6,
+              7, 4, 4, 2, 2, 7, 7, 4, 7, 2, 2, 2, 7, 7, 4, 6, 2, 4, 4, 1,
+              1, 1, 1, 6, 7, 7, 1, 1, 7, 7, 4, 4, 2, 7, 6, 1, 1, 1, 1, 6,
+              6, 7, 6, 4, 5, 5, 7, 7, 6, 6, 6, 6, 2, 2, 1, 1, 3, 3, 7, 7,
+              5, 5, 7, 7, 7, 7, 1, 1, 2, 2, 3, 3, 7, 7, 1, 1, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 6, 6, 7, 1, 1, 6, 6, 2, 2, 2, 2, 6,
+              2, 2, 2, 2, 7, 4, 7, 6, 2, 4, 4, 2, 2, 2, 2, 4, 2, 2, 2, 2,
+              7, 7, 4, 6, 2, 4, 4, 1, 1, 1, 1, 6, 2, 7, 1, 1, 7, 7, 4, 4,
+              2, 2, 6, 1, 1, 1, 1, 6, 6, 7, 6, 4, 2, 2, 7, 7, 6, 6, 1, 1,
+              2, 2, 1, 1, 3, 3, 7, 7, 2, 2, 7, 7, 7, 7, 1, 1, 2, 2, 3, 3,
+              7, 7, 1, 1,
+            },
+            blocks = {
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },   -- 0: the border block
+              { 16, 16, 16, 16, 18, 18, 18, 18, 7, 8, 7, 8, 23, 24, 23, 24 },
+              { 16, 16, 16, 16, 18, 18, 18, 18, 7, 8, 13, 29, 23, 24, 29, 13 },
+              { 16, 16, 16, 16, 18, 18, 18, 18, 13, 29, 13, 29, 29, 13, 29, 13 },
+              { 16, 16, 16, 16, 18, 18, 18, 18, 13, 29, 7, 8, 29, 13, 23, 24 },
+              { 2, 3, 16, 16, 18, 18, 18, 18, 7, 8, 7, 8, 23, 24, 23, 24 },
+              { 7, 8, 7, 8, 23, 24, 23, 24, 13, 29, 13, 29, 29, 13, 29, 13 },
+              { 7, 8, 13, 29, 23, 24, 29, 13, 13, 29, 13, 29, 29, 13, 29, 13 },
+              { 13, 29, 13, 29, 29, 13, 29, 13, 13, 29, 13, 29, 29, 13, 29, 13 },
+              { 13, 29, 7, 8, 29, 13, 23, 24, 13, 29, 13, 29, 29, 13, 29, 13 },
+              { 13, 29, 13, 29, 29, 13, 29, 13, 5, 51, 51, 51, 21, 1, 1, 1 },
+              { 13, 29, 13, 29, 29, 13, 29, 13, 51, 51, 51, 51, 1, 1, 1, 1 },
+              { 13, 29, 13, 29, 29, 13, 29, 13, 51, 51, 51, 6, 1, 1, 1, 22 },
+              { 7, 8, 13, 29, 23, 24, 29, 13, 7, 8, 13, 29, 23, 24, 29, 13 },
+              { 21, 1, 1, 1, 21, 1, 1, 1, 21, 1, 1, 1, 21, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 22, 1, 1, 1, 22, 1, 1, 1, 22, 1, 1, 1, 22 },
+              { 13, 29, 7, 8, 29, 13, 23, 24, 13, 29, 7, 8, 29, 13, 23, 24 },
+              { 21, 1, 1, 1, 21, 1, 1, 1, 21, 1, 21, 22, 50, 17, 21, 22 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 17, 17, 17, 17 },
+              { 1, 1, 1, 22, 1, 1, 1, 22, 21, 22, 1, 22, 21, 22, 17, 34 },
+              { 7, 8, 7, 8, 23, 24, 23, 24, 7, 8, 7, 8, 23, 24, 23, 24 },
+              { 13, 29, 13, 29, 29, 13, 29, 13, 36, 36, 36, 36, 52, 52, 52, 52 },
+            },
+            collision = {
+              { 0x07, 0x07, 0x07, 0x07 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x70, 0x70 },
+            },
+          },
+        },
+      },
+      blocks = {
+        1, 2, 3, 4, 5,
+        6, 7, 8, 9, 6,
+        8, 10, 11, 12, 8,
+        13, 14, 15, 16, 17,
+        7, 18, 19, 20, 9,
+        8, 8, 8, 8, 8,
+        21, 8, 22, 8, 21,
+      },
+    },
+  },
+  BLACKTHORN = {
+    rank = "MASTER",
+    lobby = {
+      id = "KC_BLACKTHORN_CONTEST_HALL",
+      warps = {
+        { x = 4, y = 7, destMap = "BLACKTHORN_CITY", destWarp = 1 },
+        { x = 5, y = 7, destMap = "BLACKTHORN_CITY", destWarp = 1 },
+      },
+      label = "BLACKTHORN CONTEST HALL",
+      song = "DRAGONS_DEN_1F",
+      palette = "PALETTE_DAY",
+      width = 5, height = 4,
+      arrival = { x = 4, y = 7 },
+      tiles = {
+        id = "KC_BLACKTHORN_HALL_TILES",
+        source = "TILESET_FACILITY",
+        variants = {
+          gs = {
+            image = "assets/generated/tilesets/facility.png",
+            imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
+            border = 0,
+            tilePalettes = {
+              1, 4, 6, 6, 6, 6, 6, 6, 6, 6, 1, 1, 2, 2, 6, 6, 7, 7, 6, 6,
+              6, 6, 1, 1, 7, 7, 1, 1, 7, 7, 6, 6, 7, 7, 3, 4, 4, 4, 2, 2,
+              6, 6, 6, 6, 3, 3, 6, 6, 7, 7, 3, 3, 2, 2, 1, 2, 2, 2, 6, 6,
+              3, 3, 6, 6, 6, 6, 6, 3, 3, 1, 6, 4, 6, 6, 1, 6, 6, 6, 6, 1,
+              6, 6, 6, 6, 6, 1, 6, 7, 7, 7, 1, 6, 1, 1, 1, 1,
+            },
+            blocks = {
+              { 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54 },   -- 0: the border block
+              { 34, 34, 34, 34, 34, 34, 34, 34, 35, 36, 36, 37, 87, 88, 88, 89 },
+              { 34, 34, 34, 34, 34, 34, 34, 34, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 1, 38, 1, 38, 38, 1, 38, 1, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 133, 0, 196, 16, 0, 188, 3, 190, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 196, 16, 196, 16, 3, 190, 3, 190, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 196, 16, 203, 105, 3, 190, 219, 91, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 14, 15, 1, 38, 30, 31, 38, 1, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 1, 38, 14, 15, 38, 1, 30, 31, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 44, 45, 1, 38, 60, 61, 38, 1, 46, 47, 1, 38, 62, 63, 38, 1 },
+              { 1, 38, 1, 38, 38, 1, 38, 1, 56, 56, 56, 56, 57, 57, 57, 57 },
+            },
+            collision = {
+              { 0x07, 0x07, 0x07, 0x07 },
+              { 0x07, 0x07, 0x07, 0x07 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x07, 0x00, 0x07, 0x00 },
+              { 0x00, 0x00, 0x70, 0x70 },
+            },
+          },
+          crystal = {
+            image = "assets/generated/tilesets/facility.png",
+            imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
+            border = 0,
+            tilePalettes = {
+              1, 4, 6, 6, 6, 6, 6, 6, 6, 6, 1, 1, 2, 2, 6, 6, 7, 7, 6, 6,
+              6, 6, 1, 1, 7, 7, 1, 1, 7, 7, 6, 6, 7, 7, 3, 4, 4, 4, 2, 2,
+              6, 6, 6, 6, 3, 3, 6, 6, 7, 7, 3, 3, 2, 2, 1, 2, 2, 2, 6, 6,
+              3, 3, 6, 6, 6, 6, 6, 3, 3, 1, 6, 4, 6, 6, 1, 6, 6, 6, 6, 1,
+              6, 6, 6, 6, 6, 1, 6, 7, 7, 7, 1, 6, 1, 1, 1, 1, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 1, 4, 6, 6, 6, 6, 6, 6, 6, 6, 1, 1,
+              2, 2, 6, 6, 7, 7, 6, 6, 6, 6, 1, 1, 7, 7, 1, 1, 7, 7, 6, 6,
+              7, 7, 3, 4, 4, 4, 2, 2, 6, 6, 6, 6, 3, 3, 6, 6, 7, 7, 3, 3,
+              2, 2, 1, 2, 2, 2, 6, 6, 3, 3, 6, 6, 6, 6, 6, 3, 3, 1, 6, 4,
+              6, 6, 1, 6, 6, 6, 6, 1, 6, 6, 6, 6, 6, 1, 6, 7, 7, 7, 1, 6,
+              1, 1, 1, 1,
+            },
+            blocks = {
+              { 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54 },   -- 0: the border block
+              { 34, 34, 34, 34, 34, 34, 34, 34, 35, 36, 36, 37, 87, 88, 88, 89 },
+              { 34, 34, 34, 34, 34, 34, 34, 34, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 1, 38, 1, 38, 38, 1, 38, 1, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 6, 187, 171, 159, 6, 6, 6, 6, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 171, 159, 171, 159, 6, 6, 6, 6, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 171, 159, 191, 6, 6, 6, 6, 6, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 14, 15, 1, 38, 30, 31, 38, 1, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 1, 38, 14, 15, 38, 1, 30, 31, 1, 38, 1, 38, 38, 1, 38, 1 },
+              { 44, 45, 1, 38, 60, 61, 38, 1, 46, 47, 1, 38, 62, 63, 38, 1 },
+              { 1, 38, 1, 38, 38, 1, 38, 1, 56, 56, 56, 56, 57, 57, 57, 57 },
+            },
+            collision = {
+              { 0x07, 0x07, 0x07, 0x07 },
+              { 0x07, 0x07, 0x07, 0x07 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x07, 0x00, 0x07, 0x00 },
+              { 0x00, 0x00, 0x70, 0x70 },
+            },
+          },
+        },
+      },
+      blocks = {
+        1, 2, 2, 2, 2,
+        3, 4, 5, 6, 3,
+        7, 3, 3, 3, 8,
+        7, 9, 10, 3, 8,
+      },
+      actors = {
+        { name = "KC_HALL_JUDGE", marker = "kcHallJudge",
+          sprite = "SPRITE_GENTLEMAN", x = 4, y = 1, movement = 6 },
+        { name = "KC_HALL_VENDOR", marker = "kcHallVendor",
+          sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
+        { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
+          sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
+        { name = "KC_AUD_1", marker = "kcAudience",
+          sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
+        { name = "KC_AUD_2", marker = "kcAudience",
+          sprite = "SPRITE_GRANNY", x = 2, y = 4, movement = 9 },
+        { name = "KC_AUD_3", marker = "kcAudience",
+          sprite = "SPRITE_TWIN", x = 6, y = 6, movement = 7 },
+      },
+    },
+    stage = {
+      id = "KC_BLACKTHORN_CONTEST_STAGE",
+      warps = {
+        { x = 4, y = 13, destMap = "KC_BLACKTHORN_CONTEST_HALL", destWarp = 1 },
+        { x = 5, y = 13, destMap = "KC_BLACKTHORN_CONTEST_HALL", destWarp = 1 },
+      },
+      label = "BLACKTHORN STAGE",
+      song = "WILLS_ROOM",
+      palette = "PALETTE_DAY",
+      width = 5, height = 7,
+      arrival = { x = 3, y = 8 },
+      tiles = {
+        id = "KC_BLACKTHORN_STAGE_TILES",
+        source = "TILESET_ELITE_FOUR_ROOM",
+        variants = {
+          gs = {
+            image = "assets/generated/tilesets/elite_four_room.png",
+            imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
+            border = 0,
+            tilePalettes = {
+              1, 7, 2, 2, 2, 7, 7, 3, 3, 1, 3, 3, 3, 3, 4, 3, 1, 4, 4, 4,
+              2, 7, 7, 6, 6, 2, 1, 3, 3, 3, 3, 3, 2, 2, 1, 1, 4, 1, 1, 1,
+              1, 2, 1, 1, 1, 7, 3, 6, 2, 2, 1, 1, 4, 1, 1, 1, 2, 4, 1, 1,
+              1, 1, 2, 2, 1, 1, 1, 1, 1, 6, 6, 6, 4, 4, 4, 4, 4, 4, 7, 7,
+              4, 3, 3, 6, 1, 1, 1, 1, 1, 1, 4, 2, 4, 4, 7, 7,
+            },
+            blocks = {
+              { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },   -- 0: the border block
+              { 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 32, 33, 1, 1, 48, 49, 1, 1, 34, 35, 1, 1, 50, 51 },
+              { 42, 43, 42, 43, 58, 59, 58, 59, 5, 6, 5, 6, 21, 22, 21, 22 },
+              { 32, 33, 1, 1, 48, 49, 1, 1, 34, 35, 1, 1, 50, 51, 1, 1 },
+              { 1, 1, 42, 43, 1, 1, 58, 59, 1, 1, 32, 33, 1, 1, 48, 49 },
+              { 5, 6, 5, 6, 21, 22, 21, 22, 5, 6, 5, 6, 21, 22, 21, 22 },
+              { 42, 43, 1, 1, 58, 59, 1, 1, 32, 33, 1, 1, 48, 49, 1, 1 },
+              { 1, 1, 34, 35, 1, 1, 50, 51, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 5, 6, 5, 6, 21, 22, 21, 22, 80, 80, 26, 26, 36, 36, 26, 26 },
+              { 5, 6, 5, 6, 21, 22, 21, 22, 80, 80, 80, 80, 36, 36, 36, 36 },
+              { 5, 6, 5, 6, 21, 22, 21, 22, 26, 26, 80, 80, 26, 26, 36, 36 },
+              { 34, 35, 1, 1, 50, 51, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 7, 8, 1, 1, 23, 24 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 20, 20, 20, 20 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 62, 63, 1, 1, 23, 24, 1, 1 },
+            },
+            collision = {
+              { 0x07, 0x07, 0x07, 0x07 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x07, 0x00, 0x07 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x00, 0x07, 0x00 },
+              { 0x00, 0x07, 0x00, 0x07 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x07, 0x00, 0x07, 0x00 },
+              { 0x00, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x07, 0x00 },
+              { 0x00, 0x00, 0x07, 0x07 },
+              { 0x00, 0x00, 0x00, 0x07 },
+              { 0x07, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x07 },
+              { 0x00, 0x00, 0x70, 0x70 },
+              { 0x00, 0x00, 0x07, 0x00 },
+            },
+          },
+          crystal = {
+            image = "assets/generated/tilesets/elite_four_room.png",
+            imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
+            border = 0,
+            tilePalettes = {
+              1, 7, 2, 2, 2, 7, 7, 3, 3, 1, 3, 3, 3, 3, 4, 3, 1, 4, 4, 4,
+              2, 7, 7, 6, 6, 2, 1, 3, 3, 3, 3, 3, 2, 2, 1, 1, 4, 1, 1, 1,
+              1, 2, 1, 1, 1, 7, 3, 6, 2, 2, 1, 1, 4, 1, 1, 1, 2, 4, 1, 1,
+              1, 1, 2, 2, 1, 1, 1, 1, 1, 6, 6, 6, 4, 4, 4, 4, 4, 4, 7, 7,
+              4, 3, 3, 6, 1, 1, 1, 1, 1, 1, 4, 2, 4, 4, 7, 7, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+              8, 8, 8, 8, 8, 8, 8, 8, 1, 7, 2, 2, 2, 7, 7, 3, 3, 1, 3, 3,
+              3, 3, 4, 3, 1, 4, 4, 4, 2, 7, 7, 6, 6, 2, 1, 3, 3, 3, 3, 3,
+              2, 2, 1, 1, 4, 1, 1, 1, 1, 2, 1, 1, 1, 7, 3, 6, 2, 2, 1, 1,
+              4, 1, 1, 1, 2, 4, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 6, 6, 6,
+              4, 4, 4, 4, 4, 4, 7, 7, 4, 3, 3, 6, 1, 1, 1, 1, 1, 1, 4, 2,
+              4, 4, 7, 7,
+            },
+            blocks = {
+              { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },   -- 0: the border block
+              { 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 32, 33, 1, 1, 48, 49, 1, 1, 34, 35, 1, 1, 50, 51 },
+              { 42, 43, 42, 43, 58, 59, 58, 59, 5, 6, 5, 6, 21, 22, 21, 22 },
+              { 32, 33, 1, 1, 48, 49, 1, 1, 34, 35, 1, 1, 50, 51, 1, 1 },
+              { 1, 1, 42, 43, 1, 1, 58, 59, 1, 1, 32, 33, 1, 1, 48, 49 },
+              { 5, 6, 5, 6, 21, 22, 21, 22, 5, 6, 5, 6, 21, 22, 21, 22 },
+              { 42, 43, 1, 1, 58, 59, 1, 1, 32, 33, 1, 1, 48, 49, 1, 1 },
+              { 1, 1, 34, 35, 1, 1, 50, 51, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 5, 6, 5, 6, 21, 22, 21, 22, 80, 80, 26, 26, 36, 36, 26, 26 },
+              { 5, 6, 5, 6, 21, 22, 21, 22, 80, 80, 80, 80, 36, 36, 36, 36 },
+              { 5, 6, 5, 6, 21, 22, 21, 22, 26, 26, 80, 80, 26, 26, 36, 36 },
+              { 34, 35, 1, 1, 50, 51, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 7, 8, 1, 1, 23, 24 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 20, 20, 20, 20 },
+              { 1, 1, 1, 1, 1, 1, 1, 1, 62, 63, 1, 1, 23, 24, 1, 1 },
+            },
+            collision = {
+              { 0x07, 0x07, 0x07, 0x07 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x00, 0x07, 0x00, 0x07 },
+              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x07, 0x00, 0x07, 0x00 },
+              { 0x00, 0x07, 0x00, 0x07 },
+              { 0x00, 0x00, 0x00, 0x00 },
+              { 0x07, 0x00, 0x07, 0x00 },
+              { 0x00, 0x07, 0x00, 0x00 },
+              { 0x00, 0x00, 0x07, 0x00 },
+              { 0x00, 0x00, 0x07, 0x07 },
+              { 0x00, 0x00, 0x00, 0x07 },
+              { 0x07, 0x00, 0x00, 0x00 },
+              { 0x00, 0x00, 0x00, 0x07 },
+              { 0x00, 0x00, 0x70, 0x70 },
+              { 0x00, 0x00, 0x07, 0x00 },
+            },
+          },
+        },
+      },
+      blocks = {
+        1, 1, 1, 1, 1,
+        2, 2, 2, 2, 2,
+        3, 4, 4, 4, 5,
+        6, 7, 7, 7, 8,
+        9, 10, 11, 12, 13,
+        2, 2, 2, 2, 2,
+        2, 14, 15, 16, 2,
+      },
+    },
+  },
 }
 
 local function kcGold(mod, VERSION)
@@ -1188,7 +1740,10 @@ local function kcGold(mod, VERSION)
   -- Which town a map belongs to: its lobby, its stage, or the city the
   -- hall stands in. Nil for anywhere else, and the caller leaves the
   -- current town alone rather than guessing.
-  local CITY_OF = { GOLDENROD = "GOLDENROD_CITY", ECRUTEAK = "ECRUTEAK_CITY" }
+  local CITY_OF = {
+    GOLDENROD = "GOLDENROD_CITY", ECRUTEAK = "ECRUTEAK_CITY",
+    CIANWOOD = "CIANWOOD_CITY", BLACKTHORN = "BLACKTHORN_CITY",
+  }
   local function townOfMap(mapId)
     if not mapId then return nil end
     for key, town in pairs(KC_HALLS) do
@@ -3893,26 +4448,120 @@ local function kcGold(mod, VERSION)
     { bx = 10, by = 13, q = { 2, 0, 2, 1, 71, 3, 2, 3 }, coll = { 0x00, 0x00, 0x07, 0x00 } },
   }
 
-  local ECRU_MAP = "ECRUTEAK_CITY"
-  local ECRU_HALL_DEF = KC_HALLS.ECRUTEAK and KC_HALLS.ECRUTEAK.lobby
-  -- the door the developer painted, and the pavement square below it
-  local ECRU_DOOR_X, ECRU_DOOR_Y = 14, 21
-  -- the two signs: the city's own text moved to the new post, and the
-  -- hall's name where the old post used to stand
-  local ECRU_SIGNS = {
-    -- dialogue-ok: 13 / 17 then 14 / 17
-    ["20,27"] = "ECRUTEAK CITY\nA Historical City"
-      .. "\fWhere the Past\nMeets the Present",
-    -- dialogue-ok: 13 / 12
-    ["15,22"] = "ECRUTEAK CITY\nCONTEST HALL",
+  local KC_CIANWOOD_FACADE = {
+    { bx = 6, by = 8, q = { 53, 3, 53, 3, 53, 3, 53, 3 }, coll = { 0x21, 0x21, 0x21, 0x21 } },
+    { bx = 7, by = 8, q = { 53, 3, 53, 1, 53, 2, 53, 3 }, coll = { 0x21, 0x21, 0x21, 0x21 } },
+    { bx = 2, by = 9, q = { 1, 0, 1, 1, 44, 2, 42, 2 }, coll = { 0x00, 0x00, 0x07, 0x07 } },
+    { bx = 3, by = 9, q = { 1, 0, 1, 1, 42, 2, 42, 2 }, coll = { 0x00, 0x00, 0x07, 0x07 } },
+    { bx = 4, by = 9, q = { 1, 0, 1, 1, 42, 2, 45, 3 }, coll = { 0x00, 0x00, 0x07, 0x07 } },
+    { bx = 6, by = 9, q = { 53, 3, 53, 3, 53, 3, 53, 3 }, coll = { 0x21, 0x21, 0x21, 0x21 } },
+    { bx = 1, by = 10, q = { 113, 0, 105, 3, 113, 2, 107, 3 }, coll = { 0x00, 0x07, 0x00, 0x07 } },
+    { bx = 2, by = 10, q = { 34, 0, 34, 1, 16, 0, 15, 0 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 3, by = 10, q = { 34, 1, 34, 1, 6, 0, 6, 0 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 4, by = 10, q = { 34, 1, 35, 1, 16, 1, 15, 1 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 6, by = 10, q = { 53, 3, 53, 3, 1, 0, 53, 3 }, coll = { 0x21, 0x21, 0x00, 0x21 } },
+    { bx = 1, by = 11, q = { 111, 0, 109, 1, 111, 2, 105, 3 }, coll = { 0x00, 0x07, 0x00, 0x07 } },
+    { bx = 2, by = 11, q = { 19, 2, 6, 0, 16, 2, 16, 3 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 3, by = 11, q = { 6, 0, 6, 0, 16, 3, 20, 3 }, coll = { 0x07, 0x07, 0x07, 0x71 } },
+    { bx = 4, by = 11, q = { 6, 0, 15, 3, 16, 3, 17, 3 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 5, by = 11, q = { 1, 0, 1, 0, 1, 0, 1, 0 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+    { bx = 6, by = 11, q = { 1, 0, 53, 1, 1, 0, 53, 3 }, coll = { 0x00, 0x21, 0x00, 0x21 } },
+    { bx = 4, by = 12, q = { 69, 0, 69, 1, 69, 2, 1, 0 }, coll = { 0x07, 0x00, 0x00, 0x00 } },
+    { bx = 5, by = 12, q = { 1, 0, 1, 0, 1, 0, 1, 0 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+    { bx = 6, by = 12, q = { 1, 0, 53, 1, 1, 0, 53, 3 }, coll = { 0x00, 0x21, 0x00, 0x21 } },
+    { bx = 6, by = 13, q = { 1, 0, 53, 1, 1, 0, 1, 0 }, coll = { 0x00, 0x21, 0x00, 0x00 } },
+    { bx = 7, by = 13, q = { 53, 0, 53, 1, 1, 0, 1, 0 }, coll = { 0x21, 0x21, 0x00, 0x00 } },
+    { bx = 7, by = 15, q = { 1, 0, 69, 0, 1, 2, 1, 3 }, coll = { 0x00, 0x07, 0x00, 0x00 } },
+  }
+  local KC_BLACKTHORN_FACADE = {
+    { bx = 1, by = 5, q = { 113, 0, 113, 1, 109, 3, 109, 2 }, coll = { 0x00, 0x00, 0x07, 0x07 } },
+    { bx = 2, by = 5, q = { 105, 0, 105, 1, 109, 2, 109, 3 }, coll = { 0x00, 0x07, 0x07, 0x07 } },
+    { bx = 1, by = 6, q = { 105, 3, 24, 0, 105, 3, 24, 2 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 2, by = 6, q = { 25, 0, 25, 0, 24, 3, 24, 3 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 3, by = 6, q = { 25, 0, 25, 0, 24, 3, 24, 3 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 4, by = 6, q = { 25, 1, 105, 1, 25, 3, 105, 3 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 0, by = 7, q = { 114, 0, 114, 1, 113, 2, 113, 2 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+    { bx = 1, by = 7, q = { 105, 3, 36, 2, 105, 3, 36, 0 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 2, by = 7, q = { 37, 2, 37, 2, 37, 0, 37, 0 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 3, by = 7, q = { 37, 2, 37, 2, 37, 0, 37, 0 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 4, by = 7, q = { 37, 3, 105, 1, 37, 1, 105, 3 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 0, by = 8, q = { 113, 0, 113, 1, 113, 2, 113, 2 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+    { bx = 1, by = 8, q = { 105, 3, 36, 2, 105, 3, 36, 0 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 2, by = 8, q = { 37, 2, 37, 2, 37, 0, 37, 0 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 3, by = 8, q = { 37, 2, 37, 2, 37, 0, 37, 0 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 4, by = 8, q = { 37, 3, 109, 1, 37, 1, 105, 3 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 0, by = 9, q = { 113, 0, 113, 2, 113, 2, 113, 3 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+    { bx = 1, by = 9, q = { 105, 3, 36, 2, 105, 3, 38, 2 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 2, by = 9, q = { 37, 2, 37, 2, 47, 2, 47, 2 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 3, by = 9, q = { 37, 2, 37, 2, 29, 2, 47, 2 }, coll = { 0x07, 0x07, 0x71, 0x07 } },
+    { bx = 4, by = 9, q = { 37, 3, 109, 3, 47, 3, 120, 3 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 1, by = 10, q = { 108, 2, 111, 3, 113, 3, 111, 3 }, coll = { 0x07, 0x07, 0x00, 0x07 } },
+    { bx = 2, by = 10, q = { 86, 0, 86, 1, 86, 2, 86, 2 }, coll = { 0xA3, 0xA3, 0x07, 0x07 } },
+    { bx = 3, by = 10, q = { 86, 0, 86, 1, 1, 1, 86, 3 }, coll = { 0xA3, 0xA3, 0x00, 0x07 } },
+    { bx = 1, by = 11, q = { 111, 0, 111, 3, 111, 2, 111, 3 }, coll = { 0x00, 0x07, 0x00, 0x07 } },
+    { bx = 2, by = 11, q = { 86, 0, 86, 1, 86, 2, 86, 2 }, coll = { 0xA3, 0xA3, 0x07, 0x07 } },
+    { bx = 3, by = 11, q = { 86, 0, 86, 1, 86, 2, 1, 3 }, coll = { 0xA3, 0xA3, 0x07, 0x00 } },
   }
 
-  local ecruFacadeBase = nil
+  -- EVERY TOWN WHOSE HALL STANDS IN A PAINTED FACADE (0.35.0).
+  --
+  -- This was three ECRU_* locals when Ecruteak was the only one. Cianwood
+  -- and Blackthorn want exactly the same four things -- stamp the facade on
+  -- entry, open the door on a step, answer a painted sign, put the player
+  -- back on the pavement -- so it is a table now and each reader looks the
+  -- town up by map id.
+  --
+  -- GOLDENROD IS NOT IN HERE and should not be added: its facade bakes tile
+  -- ids rather than (block, quadrant) references, has its own stamping code
+  -- and its own door at 35,4, and it works. Folding it in would be a rewrite
+  -- of the one street that has never gone wrong.
+  --
+  -- `door` is the cell the developer painted, and the pavement square below
+  -- it is where the player lands coming back out.
+  local KC_STREETS = {
+    ECRUTEAK = {
+      map = "ECRUTEAK_CITY", door = { x = 14, y = 21 },
+      facade = KC_ECRUTEAK_FACADE,
+      -- the two signs: the city's own text moved to the new post, and the
+      -- hall's name where the old post used to stand
+      signs = {
+        -- dialogue-ok: 13 / 17 then 14 / 17
+        ["20,27"] = "ECRUTEAK CITY\nA Historical City"
+          .. "\fWhere the Past\nMeets the Present",
+        -- dialogue-ok: 13 / 12
+        ["15,22"] = "ECRUTEAK CITY\nCONTEST HALL",
+      },
+    },
+    CIANWOOD = {
+      map = "CIANWOOD_CITY", door = { x = 7, y = 23 },
+      facade = KC_CIANWOOD_FACADE,
+      -- No painted post here, so no sign to answer. The city's own sign
+      -- beside the door keeps its vanilla text, which is still readable
+      -- from the pavement below it.
+      signs = {},
+    },
+    BLACKTHORN = {
+      map = "BLACKTHORN_CITY", door = { x = 6, y = 19 },
+      facade = KC_BLACKTHORN_FACADE,
+      signs = {
+        -- dialogue-ok: 15 / 12
+        ["9,19"] = "BLACKTHORN CITY\nCONTEST HALL",
+      },
+    },
+  }
+  -- map id -> street, and the lobby id -> street, both built once
+  local STREET_OF, STREET_OF_LOBBY = {}, {}
+  for key, street in pairs(KC_STREETS) do
+    street.town = key
+    street.hall = KC_HALLS[key] and KC_HALLS[key].lobby
+    STREET_OF[street.map] = street
+    if street.hall then STREET_OF_LOBBY[street.hall.id] = street end
+  end
 
   -- Build one composed block's 16 tiles from the tileset in play.
   -- Quadrant q of a block covers the 2x2 tile square at
   -- ((q//2)*2, (q%2)*2) inside its 4x4 grid (BorderFill/LayeredMap).
-  local function ecruTiles(entry, ts)
+  local function facadeTiles(entry, ts)
     local tiles = {}
     for ty = 0, 3 do
       for tx = 0, 3 do
@@ -3927,7 +4576,8 @@ local function kcGold(mod, VERSION)
     return tiles
   end
 
-  local function ensureEcruteakFacade()
+  local function ensureStreetFacade(street)
+    if not (street and street.facade) then return end
     local data = mod.game and mod.game.data
     local tsets = data and (data.gen2Tilesets or data.tilesets)
     local ts = tsets and tsets.TILESET_JOHTO
@@ -3944,41 +4594,44 @@ local function kcGold(mod, VERSION)
     -- #ts.blocks, which is 128 for TILESET_JOHTO, and the guard below
     -- refuses to stamp rather than trusting that. Read, never hardcoded:
     -- another mod may have appended here first.
-    if not (ecruFacadeBase
-        and ts.blocks[ecruFacadeBase + 1]
-        and ts.blocks[ecruFacadeBase + 1].kcEcruteak) then
+    -- Each street keeps its OWN append base. All three share TILESET_JOHTO,
+    -- so a single shared base would have the second town stamp the first
+    -- town's blocks; the marker is per town for the same reason.
+    if not (street.base
+        and ts.blocks[street.base + 1]
+        and ts.blocks[street.base + 1].kcFacade == street.town) then
       if #ts.blocks < 1 then
         mod.log:warn("kc facade: johto tileset is empty; refusing to stamp block 0")
         return
       end
-      ecruFacadeBase = #ts.blocks
+      street.base = #ts.blocks
       ts.collision = ts.collision or {}
-      for i, e in ipairs(KC_ECRUTEAK_FACADE) do
-        local tiles = ecruTiles(e, ts)
+      for i, e in ipairs(street.facade) do
+        local tiles = facadeTiles(e, ts)
         -- a marker on our own block, so the re-append check above can
         -- tell OUR block from whatever a rebuilt game.data left behind
-        tiles.kcEcruteak = true
-        ts.blocks[ecruFacadeBase + i] = tiles
-        ts.collision[ecruFacadeBase + i] = e.coll
+        tiles.kcFacade = street.town
+        ts.blocks[street.base + i] = tiles
+        ts.collision[street.base + i] = e.coll
       end
     end
-    for i, e in ipairs(KC_ECRUTEAK_FACADE) do
-      local id = ecruFacadeBase + i - 1
+    for i, e in ipairs(street.facade) do
+      local id = street.base + i - 1
       -- the same rule again at the point of use: never stamp the void
       if id > 0 then mod.world:replaceBlock(e.bx, e.by, id) end
     end
   end
 
-  local function enterEcruteakHall(world)
-    if not ECRU_HALL_DEF then return end
+  local function enterStreetHall(street, world)
+    if not (street and street.hall) then return end
     hallReturn = mod.world:current()
     if world and world.playSfxNamed then
       pcall(world.playSfxNamed, world, "Sfx_EnterDoor", 31)
     end
-    local ok, err = mod.world:warpTo(ECRU_HALL_DEF.id,
-      ECRU_HALL_DEF.arrival.x, ECRU_HALL_DEF.arrival.y, "up")
+    local ok, err = mod.world:warpTo(street.hall.id,
+      street.hall.arrival.x, street.hall.arrival.y, "up")
     if not ok then
-      mod.log:warn("ecruteak hall warp failed: %s", tostring(err))
+      mod.log:warn("%s hall warp failed: %s", street.town, tostring(err))
       world:showText("KC error: hall\nentrance failed")
     end
   end
@@ -4006,8 +4659,8 @@ local function kcGold(mod, VERSION)
         -- ensureGoldenrodAttendant is left defined but unused rather than
         -- deleted, because the Gen 1 arm still has its own attendant and
         -- ripping the shared helper out would touch that too.
-      elseif mapId == ECRU_MAP then
-        ensureEcruteakFacade()
+      elseif STREET_OF[mapId] then
+        ensureStreetFacade(STREET_OF[mapId])
       elseif mapId == HALL then
         ensureRoomActors(world, HALL_DEF)
         ensureLobbyQueue(world)
@@ -4131,16 +4784,19 @@ local function kcGold(mod, VERSION)
     if not ok then mod.log:warn("kc door: %s", tostring(err)) end
   end)
 
-  -- Ecruteak's door, the same way: the painted cell carries COLL_DOOR but
-  -- the map has no warp RECORD there, and adding one would mean patching
-  -- the map's `warps` LIST, which replaces wholesale and would erase any
-  -- other mod's. An exact-cell step trigger costs nothing and collides
-  -- with nobody.
+  -- Every painted door, the same way: the cell carries COLL_DOOR but the
+  -- map has no warp RECORD there, and adding one would mean patching the
+  -- map's `warps` LIST, which replaces wholesale and would erase any other
+  -- mod's. An exact-cell step trigger costs nothing and collides with
+  -- nobody. The cell is matched exactly rather than by collision byte:
+  -- 0x71 is on every door in the city and a byte test would fire on all
+  -- of them.
   mod.events:on("world.stepped", function(ev)
-    if not (ev and ev.mapId == ECRU_MAP) then return end
-    if ev.x ~= ECRU_DOOR_X or ev.y ~= ECRU_DOOR_Y then return end
-    local ok, err = pcall(enterEcruteakHall, mod.world:overworld())
-    if not ok then mod.log:warn("kc ecruteak door: %s", tostring(err)) end
+    local street = ev and STREET_OF[ev.mapId]
+    if not street then return end
+    if ev.x ~= street.door.x or ev.y ~= street.door.y then return end
+    local ok, err = pcall(enterStreetHall, street, mod.world:overworld())
+    if not ok then mod.log:warn("kc %s door: %s", street.town, tostring(err)) end
   end)
 
   -- The two signs.
@@ -4153,8 +4809,10 @@ local function kcGold(mod, VERSION)
   -- reports the faced cell and says "none" when nothing there claimed it,
   -- which is exactly a painted-on sign with no event behind it.
   mod.events:on("world.interacted", function(ev)
-    if not (ev and ev.mapId == ECRU_MAP and ev.kind == "none") then return end
-    local line = ECRU_SIGNS[tostring(ev.x) .. "," .. tostring(ev.y)]
+    if not (ev and ev.kind == "none") then return end
+    local street = STREET_OF[ev.mapId]
+    if not street then return end
+    local line = street.signs[tostring(ev.x) .. "," .. tostring(ev.y)]
     if not line then return end
     local world = mod.world:overworld()
     if world then pcall(world.showText, world, line) end
@@ -4189,10 +4847,11 @@ local function kcGold(mod, VERSION)
       local bx = (back and back.x) or entranceCell.x
       local by = ((back and back.y) or entranceCell.y) + 1
       return (back and back.mapId) or KCG.map, bx, by
-    elseif ECRU_HALL_DEF and hereId == ECRU_HALL_DEF.id then
-      -- out of the Ecruteak hall onto the pavement below its door, never
-      -- onto the door itself (that cell is the way back in)
-      return ECRU_MAP, ECRU_DOOR_X, ECRU_DOOR_Y + 1
+    elseif STREET_OF_LOBBY[hereId] then
+      -- out of the hall onto the pavement below its door, never onto the
+      -- door itself (that cell is the way back in)
+      local street = STREET_OF_LOBBY[hereId]
+      return street.map, street.door.x, street.door.y + 1
     elseif STAGE_DEF and hereId == STAGE_DEF.id then
       -- The carpet is the ONLY way off the stage now, so this path has
       -- to do what leaveStage does. It did not, and a player who walked
@@ -4810,7 +5469,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.34.44"
+  local VERSION = "0.35.0"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
