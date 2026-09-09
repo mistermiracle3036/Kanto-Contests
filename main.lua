@@ -1907,58 +1907,68 @@ local function kcGold(mod, VERSION)
   -- art is only for characters Gen 2 has none for.
   --
   -- Artists are credited in THIRD_PARTY_NOTICES.md, per sheet.
+  --
+  -- Rows are KEYED (0.37.5) so `python exchange/sprite_registry.py check`
+  -- can read them: it parses `image = ".../<name>.png"` plus the
+  -- palette / paletteId / trueColor beside it, row by row, and the old
+  -- positional rows were invisible to it -- its "0 divergences" never
+  -- covered this mod. `trueColor = true` ONLY where the copy is the
+  -- developer-approved COLOUR sheet (sprites/canonical_color/, REGISTRY
+  -- `color`): a coloured PNG through a stock OBJ palette throws the
+  -- colour away, and a grey sheet flagged trueColor draws grey.
+  -- tests/asset_png_check.py holds both directions.
   local KC_CUSTOM_SPRITES = {
-    { "SPRITE_KC_AGATHA", "agatha.png", "PAL_OW_PINK", 4 },
-    { "SPRITE_KC_AJ", "aj.png", "PAL_OW_GREEN", 2 },
-    { "SPRITE_KC_ARCHER", "archer.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_ARIANA", "ariana.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_ASH", "ash.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_BALLGUY", "ballguy.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_BARRY", "barry.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_BEA", "bea.png", "PAL_OW_PINK", 4 },
-    { "SPRITE_KC_BILL", "bill.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_BREEDER", "breeder.png", "PAL_OW_GREEN", 2 },
-    { "SPRITE_KC_BRENDAN", "brendan.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_CHEF", "chef.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_COLRESS", "colress.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_DAWN", "dawn.png", "PAL_OW_PINK", 4 },
-    { "SPRITE_KC_DUPLICA", "duplica.png", "PAL_OW_PINK", 4 },
-    { "SPRITE_KC_EUSINE", "eusine.png", "PAL_OW_PINK", 4 },
-    { "SPRITE_KC_GIOVANNI", "giovanni.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_GISELLE", "giselle.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_GLORIA", "gloria.png", "PAL_OW_GREEN", 2 },
-    { "SPRITE_KC_GREEN", "green.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_HILBERT", "hilbert.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_HILDA", "hilda.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_HUGH", "hugh.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_INGO", "ingo.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_JULIANA", "juliana.png", "PAL_OW_PINK", 4 },
-    { "SPRITE_KC_LARRY", "larry.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_LEAF", "leaf.png", "PAL_OW_GREEN", 2 },
-    { "SPRITE_KC_LEAR", "lear.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_LILLIE", "lillie.png", "PAL_OW_PINK", 4 },
-    { "SPRITE_KC_LOOKER", "looker.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_LORELEI", "lorelei.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_LYRA", "lyra.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_MAXIE", "maxie.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_MAY", "may.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_MICHAEL", "michael.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_MINA", "mina.png", "PAL_OW_PINK", 4 },
-    { "SPRITE_KC_N", "n.png", "PAL_OW_GREEN", 2 },
-    { "SPRITE_KC_NATE", "nate.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_NURSE_JOY", "nurse_joy.png", "PAL_OW_PINK", 4 },
-    { "SPRITE_KC_OFFICER_JENNY", "officer_jenny.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_PETREL", "petrel.png", "PAL_OW_GREEN", 2 },
-    { "SPRITE_KC_PIERS", "piers.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_PROTON", "proton.png", "PAL_OW_PINK", 4 },
-    { "SPRITE_KC_RANGER", "ranger.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_ROCKET_EXECUTIVE", "rocket_executive.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_ROSA", "rosa.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_ROXIE", "roxie.png", "PAL_OW_PINK", 4 },
-    { "SPRITE_KC_RUIN_MANIAC", "ruin_maniac.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_SANTA", "santa.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_STADIUM_BOY", "stadium_boy.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_STADIUM_GIRL", "stadium_girl.png", "PAL_OW_RED", 0 },
+    { id = "SPRITE_KC_AGATHA", image = "assets/agatha.png", palette = "PAL_OW_PINK", paletteId = 4, trueColor = true },
+    { id = "SPRITE_KC_AJ", image = "assets/aj.png", palette = "PAL_OW_GREEN", paletteId = 2 },
+    { id = "SPRITE_KC_ARCHER", image = "assets/archer.png", palette = "PAL_OW_BLUE", paletteId = 1, trueColor = true },
+    { id = "SPRITE_KC_ARIANA", image = "assets/ariana.png", palette = "PAL_OW_RED", paletteId = 0, trueColor = true },
+    { id = "SPRITE_KC_ASH", image = "assets/ash.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_BALLGUY", image = "assets/ballguy.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_BARRY", image = "assets/barry.png", palette = "PAL_OW_BROWN", paletteId = 3 },
+    { id = "SPRITE_KC_BEA", image = "assets/bea.png", palette = "PAL_OW_PINK", paletteId = 4 },
+    { id = "SPRITE_KC_BILL", image = "assets/bill.png", palette = "PAL_OW_BROWN", paletteId = 3 },
+    { id = "SPRITE_KC_BREEDER", image = "assets/breeder.png", palette = "PAL_OW_GREEN", paletteId = 2 },
+    { id = "SPRITE_KC_BRENDAN", image = "assets/brendan.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_CHEF", image = "assets/chef.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_COLRESS", image = "assets/colress.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_DAWN", image = "assets/dawn.png", palette = "PAL_OW_PINK", paletteId = 4, trueColor = true },
+    { id = "SPRITE_KC_DUPLICA", image = "assets/duplica.png", palette = "PAL_OW_PINK", paletteId = 4, trueColor = true },
+    { id = "SPRITE_KC_EUSINE", image = "assets/eusine.png", palette = "PAL_OW_PINK", paletteId = 4, trueColor = true },
+    { id = "SPRITE_KC_GIOVANNI", image = "assets/giovanni.png", palette = "PAL_OW_BROWN", paletteId = 3, trueColor = true },
+    { id = "SPRITE_KC_GISELLE", image = "assets/giselle.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_GLORIA", image = "assets/gloria.png", palette = "PAL_OW_GREEN", paletteId = 2 },
+    { id = "SPRITE_KC_GREEN", image = "assets/green.png", palette = "PAL_OW_BROWN", paletteId = 3 },
+    { id = "SPRITE_KC_HILBERT", image = "assets/hilbert.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_HILDA", image = "assets/hilda.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_HUGH", image = "assets/hugh.png", palette = "PAL_OW_BLUE", paletteId = 1, trueColor = true },
+    { id = "SPRITE_KC_INGO", image = "assets/ingo.png", palette = "PAL_OW_BROWN", paletteId = 3, trueColor = true },
+    { id = "SPRITE_KC_JULIANA", image = "assets/juliana.png", palette = "PAL_OW_PINK", paletteId = 4, trueColor = true },
+    { id = "SPRITE_KC_LARRY", image = "assets/larry.png", palette = "PAL_OW_BROWN", paletteId = 3, trueColor = true },
+    { id = "SPRITE_KC_LEAF", image = "assets/leaf.png", palette = "PAL_OW_GREEN", paletteId = 2 },
+    { id = "SPRITE_KC_LEAR", image = "assets/lear.png", palette = "PAL_OW_BROWN", paletteId = 3 },
+    { id = "SPRITE_KC_LILLIE", image = "assets/lillie.png", palette = "PAL_OW_PINK", paletteId = 4 },
+    { id = "SPRITE_KC_LOOKER", image = "assets/looker.png", palette = "PAL_OW_BROWN", paletteId = 3 },
+    { id = "SPRITE_KC_LORELEI", image = "assets/lorelei.png", palette = "PAL_OW_RED", paletteId = 0, trueColor = true },
+    { id = "SPRITE_KC_LYRA", image = "assets/lyra.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_MAXIE", image = "assets/maxie.png", palette = "PAL_OW_RED", paletteId = 0, trueColor = true },
+    { id = "SPRITE_KC_MAY", image = "assets/may.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_MICHAEL", image = "assets/michael.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_MINA", image = "assets/mina.png", palette = "PAL_OW_PINK", paletteId = 4 },
+    { id = "SPRITE_KC_N", image = "assets/n.png", palette = "PAL_OW_GREEN", paletteId = 2, trueColor = true },
+    { id = "SPRITE_KC_NATE", image = "assets/nate.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_NURSE_JOY", image = "assets/nurse_joy.png", palette = "PAL_OW_PINK", paletteId = 4 },
+    { id = "SPRITE_KC_OFFICER_JENNY", image = "assets/officer_jenny.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_PETREL", image = "assets/petrel.png", palette = "PAL_OW_GREEN", paletteId = 2 },
+    { id = "SPRITE_KC_PIERS", image = "assets/piers.png", palette = "PAL_OW_BROWN", paletteId = 3 },
+    { id = "SPRITE_KC_PROTON", image = "assets/proton.png", palette = "PAL_OW_PINK", paletteId = 4, trueColor = true },
+    { id = "SPRITE_KC_RANGER", image = "assets/ranger.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_ROCKET_EXECUTIVE", image = "assets/rocket_executive.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_ROSA", image = "assets/rosa.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_ROXIE", image = "assets/roxie.png", palette = "PAL_OW_PINK", paletteId = 4 },
+    { id = "SPRITE_KC_RUIN_MANIAC", image = "assets/ruin_maniac.png", palette = "PAL_OW_BROWN", paletteId = 3, trueColor = true },
+    { id = "SPRITE_KC_SANTA", image = "assets/santa.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_STADIUM_BOY", image = "assets/stadium_boy.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_STADIUM_GIRL", image = "assets/stadium_girl.png", palette = "PAL_OW_RED", paletteId = 0 },
     -- Alt COSTUMES. Registered so they exist for later, deliberately NOT
     -- in any cast pool: they are the same person in a different outfit,
     -- Each draws on its OWN OBJ palette -- green on PAL_OW_GREEN, blue on
@@ -1966,26 +1976,55 @@ local function kcGold(mod, VERSION)
     -- in the overworld. The art is near-identical to the base (a costume
     -- differs by a few shading pixels at 16x16); the palette is what
     -- carries it.
-    { "SPRITE_KC_DAWN_WINTER", "dawn_winter.png", "PAL_OW_RED", 0 },
-    { "SPRITE_KC_BRENDAN_GREEN", "brendan_green.png", "PAL_OW_GREEN", 2 },
-    { "SPRITE_KC_BRENDAN_BLUE", "brendan_blue.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_MAY_GREEN", "may_green.png", "PAL_OW_GREEN", 2 },
-    { "SPRITE_KC_MAY_BLUE", "may_blue.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_SUZIE", "suzie.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_VOLKNER", "volkner.png", "PAL_OW_BROWN", 3 },
-    { "SPRITE_KC_WALLY", "wally.png", "PAL_OW_GREEN", 2 },
-    { "SPRITE_KC_WES", "wes.png", "PAL_OW_BLUE", 1 },
-    { "SPRITE_KC_YELLOW", "yellow.png", "PAL_OW_BROWN", 3 },
+    { id = "SPRITE_KC_DAWN_WINTER", image = "assets/dawn_winter.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_BRENDAN_GREEN", image = "assets/brendan_green.png", palette = "PAL_OW_GREEN", paletteId = 2 },
+    { id = "SPRITE_KC_BRENDAN_BLUE", image = "assets/brendan_blue.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_MAY_GREEN", image = "assets/may_green.png", palette = "PAL_OW_GREEN", paletteId = 2 },
+    { id = "SPRITE_KC_MAY_BLUE", image = "assets/may_blue.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_SUZIE", image = "assets/suzie.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_VOLKNER", image = "assets/volkner.png", palette = "PAL_OW_BROWN", paletteId = 3 },
+    { id = "SPRITE_KC_WALLY", image = "assets/wally.png", palette = "PAL_OW_GREEN", paletteId = 2, trueColor = true },
+    { id = "SPRITE_KC_WES", image = "assets/wes.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_YELLOW", image = "assets/yellow.png", palette = "PAL_OW_BROWN", paletteId = 3, trueColor = true },
+    -- Polished Crystal / EeVeeEe1999 guests (0.37.5), registered in the
+    -- store by the checker on 2026-09-08 with per-artist credit (see
+    -- THIRD_PARTY_NOTICES.md). The named Sinnoh faces compete; the trainer
+    -- classes and DJ Mary watch. Fantina is deliberately NOT here: she
+    -- has her own role in the Dusk challenge and never sits in the crowd.
+    { id = "SPRITE_KC_ARTIST", image = "assets/artist.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_BOARDER", image = "assets/boarder.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_BUCK", image = "assets/buck.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_CAPTAIN", image = "assets/captain.png", palette = "PAL_OW_BLUE", paletteId = 1, trueColor = true },
+    { id = "SPRITE_KC_CHERYL", image = "assets/cheryl.png", palette = "PAL_OW_GREEN", paletteId = 2, trueColor = true },
+    { id = "SPRITE_KC_CYNTHIA", image = "assets/cynthia.png", palette = "PAL_OW_BLUE", paletteId = 1, trueColor = true },
+    { id = "SPRITE_KC_ENGINEER", image = "assets/engineer.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_EXTERMINATOR", image = "assets/exterminator.png", palette = "PAL_OW_GREEN", paletteId = 2 },
+    { id = "SPRITE_KC_IVY", image = "assets/ivy.png", palette = "PAL_OW_BLUE", paletteId = 1, trueColor = true },
+    { id = "SPRITE_KC_MARLEY", image = "assets/marley.png", palette = "PAL_OW_BLUE", paletteId = 1, trueColor = true },
+    { id = "SPRITE_KC_MARY", image = "assets/mary.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_MAYLENE", image = "assets/maylene.png", palette = "PAL_OW_RED", paletteId = 0 },
+    { id = "SPRITE_KC_MIRA", image = "assets/mira.png", palette = "PAL_OW_PINK", paletteId = 4 },
+    { id = "SPRITE_KC_RILEY", image = "assets/riley.png", palette = "PAL_OW_BLUE", paletteId = 1 },
+    { id = "SPRITE_KC_SLOT_MANIAC", image = "assets/slot_maniac.png", palette = "PAL_OW_BROWN", paletteId = 3 },
+    { id = "SPRITE_KC_STEVEN", image = "assets/steven.png", palette = "PAL_OW_BLUE", paletteId = 1, trueColor = true },
+    { id = "SPRITE_KC_TAMER", image = "assets/tamer.png", palette = "PAL_OW_BROWN", paletteId = 3 },
+    { id = "SPRITE_KC_VETERAN_M", image = "assets/veteran_m.png", palette = "PAL_OW_BLUE", paletteId = 1, trueColor = true },
+    { id = "SPRITE_KC_WALKER", image = "assets/walker.png", palette = "PAL_OW_BLUE", paletteId = 1 },
   }
   for _, row in ipairs(KC_CUSTOM_SPRITES) do
-    mod.content.sprites:register(row[1], {
-      id = row[1],
-      image = mod.path .. "/assets/" .. row[2],
+    mod.content.sprites:register(row.id, {
+      id = row.id,
+      image = mod.path .. "/" .. row.image,
       frames = 6,
       walker = true,
       spriteType = "WALKING_SPRITE",
-      palette = row[3],
-      paletteId = row[4],
+      palette = row.palette,
+      paletteId = row.paletteId,
+      -- engine: SpriteRenderer.resolveImage draws a trueColor def's image
+      -- as-is when GbcPalette.mode == "gbc" (PaletteFX.honorsTrueColor);
+      -- in any other colour mode it falls through to the OBJ bake, which
+      -- is what palette/paletteId are still here for.
+      trueColor = row.trueColor or nil,
     })
   end
 
@@ -3198,6 +3237,9 @@ local function kcGold(mod, VERSION)
     "KC_BARRY", "KC_MAY", "KC_COLRESS", "KC_HUGH", "KC_LORELEI",
     "KC_MAXIE", "KC_WALLY", "KC_MINA", "KC_GLORIA", "KC_ROXIE",
     "KC_AJ", "KC_PIERS",
+    -- the Sinnoh faces from the Polished Crystal set (0.37.5)
+    "KC_BUCK", "KC_CHERYL", "KC_CYNTHIA", "KC_IVY", "KC_MARLEY",
+    "KC_MAYLENE", "KC_MIRA", "KC_RILEY", "KC_STEVEN",
   }
   local CAST_CUSTOM_CROWD = {
     -- KC_BALLGUY was the "red blob" of 0.34.15 (seat (1,8), seed 24618,
@@ -3212,6 +3254,10 @@ local function kcGold(mod, VERSION)
     "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BALLGUY", "KC_BILL",
     "KC_INGO", "KC_AGATHA", "KC_ARCHER", "KC_ARIANA", "KC_GIOVANNI",
     "KC_PETREL", "KC_PROTON", "KC_OFFICER_JENNY", "KC_RUIN_MANIAC",
+    -- the trainer classes and DJ Mary from the Polished Crystal set
+    -- (0.37.5); they watch and never compete
+    "KC_ARTIST", "KC_BOARDER", "KC_CAPTAIN", "KC_ENGINEER", "KC_EXTERMINATOR",
+    "KC_MARY", "KC_SLOT_MANIAC", "KC_TAMER", "KC_VETERAN_M", "KC_WALKER",
   }
 
   -- Sprites whose vanilla sheet is 16x48 -- three frames, DOWN only, no
@@ -4009,6 +4055,19 @@ local function kcGold(mod, VERSION)
     SPRITE_KC_MINA     = { "CLEFAIRY", "SMOOCHUM", "JIGGLYPUFF", "TOGEPI" },
     SPRITE_KC_ROXIE    = { "KOFFING", "GRIMER", "ZUBAT", "VOLTORB" },
     SPRITE_KC_AJ       = { "SANDSHREW", "MACHOP", "MANKEY", "GEODUDE" },
+    -- The Sinnoh faces (0.37.5): what they are known for, cut down to
+    -- what Gen 2 has. Cynthia's Togekiss is Togetic here (the approval
+    -- note says the same for Indigo); Steven keeps to steel; Riley has
+    -- only Ursaring in range, so he borrows Heracross.
+    SPRITE_KC_CYNTHIA  = { "TOGETIC", "GENGAR", "MILTANK", "GYARADOS" },
+    SPRITE_KC_STEVEN   = { "SKARMORY", "STEELIX", "MAGNETON", "FORRETRESS" },
+    SPRITE_KC_MAYLENE  = { "MACHOKE", "HITMONCHAN", "HITMONLEE", "HITMONTOP" },
+    SPRITE_KC_BUCK     = { "UMBREON", "SHUCKLE", "MAGCARGO", "PRIMEAPE" },
+    SPRITE_KC_CHERYL   = { "CHANSEY", "BLISSEY", "WOBBUFFET", "PILOSWINE" },
+    SPRITE_KC_MIRA     = { "KADABRA", "ALAKAZAM", "TOGETIC", "PORYGON2" },
+    SPRITE_KC_RILEY    = { "URSARING", "HERACROSS", "MACHOKE", "SKARMORY" },
+    SPRITE_KC_MARLEY   = { "ARCANINE", "UMBREON", "ELECTRODE", "SNEASEL" },
+    SPRITE_KC_IVY      = { "GLOOM", "VILEPLUME", "WEEPINBELL", "RATICATE" },
     -- Johto leaders
     SPRITE_FALKNER  = { "PIDGEY", "PIDGEOTTO", "HOOTHOOT" },
     SPRITE_BUGSY    = { "SCYTHER", "BUTTERFREE", "LEDYBA" },
@@ -5824,7 +5883,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.36.5"
+  local VERSION = "0.37.5"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

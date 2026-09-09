@@ -44,7 +44,7 @@ end
 -- exact failure this file exists to stop. So assert the other direction:
 -- every SPRITE_KC_* a pool names must actually be REGISTERED by the mod.
 local registered = {}
-for id in src:gmatch('{ "(SPRITE_KC_[A-Z_0-9]+)", "') do registered[id] = true end
+for id in src:gmatch('{ id = "(SPRITE_KC_[A-Z_0-9]+)", image = "') do registered[id] = true end
 local unregistered = {}
 for _, e in ipairs(names) do
   if ours(e.id) and not registered[e.id] then
