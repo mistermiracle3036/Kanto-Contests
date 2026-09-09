@@ -8,7 +8,7 @@
 package.path = "./?.lua;./?/init.lua;" .. package.path
 local T = require("tests.harness")
 
-local E = dofile("../Kanto-Contests/contest_engine.lua")
+local E = dofile(assert(arg[1], "pass mod directory") .. "/contest_engine.lua")
 
 -- ---------------------------------------------------------------- fixtures
 

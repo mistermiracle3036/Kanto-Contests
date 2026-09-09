@@ -10,8 +10,8 @@
 package.path = "./?.lua;./?/init.lua;" .. package.path
 local T = require("tests.harness")
 
-local E = dofile("../Kanto-Contests/contest_engine.lua")
-local S = dofile("../Kanto-Contests/contest_screen.lua")
+local E = dofile(assert(arg[1], "pass mod directory") .. "/contest_engine.lua")
+local S = dofile(assert(arg[1], "pass mod directory") .. "/contest_screen.lua")
 
 -- ---------------------------------------------------------------- fixtures
 
@@ -226,8 +226,28 @@ do
   readAll(scr2); tick(scr2); readAll(scr2)
   scr2.s.c[1].mon.moves[1].pp = 0
   press(scr2, "a")
-  T.check(scr2.msgs[1] and scr2.msgs[1].text:find("No PP", 1, true), "a move with no PP is refused")
-  T.eq(scr2.phase, "menu", "and the menu stays open")
+  T.eq(scr2.s.c[1].mon.moves[1].pp,0,"appeals preserve battle PP")
+  T.eq(scr2.phase, "resolve", "zero-PP moves can appeal")
 end
 
+do
+  for _,startingPP in ipairs({0,1}) do
+    local screen,state,done=newScreen({"POUND"})
+    state.c[1].mon.moves[1].pp=startingPP
+    for _=1,450 do
+      if screen.finished then break end
+      if #screen.msgs>0 or screen.phase=="menu" then press(screen,"a") else tick(screen) end
+    end
+    T.check(screen.finished,"low-PP entrant finishes all five appeals")
+    T.eq(state.c[1].mon.moves[1].pp,startingPP,"battle PP unchanged after complete contest")
+    T.eq(#done,1,"result completes once")
+  end
+  local screen,state,done=newScreen({"POUND"})
+  readAll(screen);tick(screen);readAll(screen)
+  press(screen,"b"); T.eq(screen.phase,"withdraw","B requests withdrawal")
+  press(screen,"b"); T.eq(screen.phase,"menu","B cancels withdrawal")
+  press(screen,"b");press(screen,"a")
+  T.check(screen.finished and done[1].final.withdrawn,"A confirms withdrawal")
+  T.eq(#done,1,"withdrawal completes once")
+end
 T.finish("contest screen")

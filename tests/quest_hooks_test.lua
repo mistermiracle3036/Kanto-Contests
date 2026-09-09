@@ -24,7 +24,10 @@ T.eq(run.mod and run.mod.state, "loaded", "mod loaded on gen 2")
 
 local exports = run.loader and run.loader.exports and run.loader.exports.kanto_contests
 T.check(type(exports) == "table", "kanto_contests exports exist")
-T.eq(exports and exports.questHooks, 1, "questHooks version is 1")
+-- 2 since 0.36.7 (ChatGPT phone builds, integrated 0.37.6): additive only --
+-- results carry the real category/rank/entrant, bestRankFor/bestRank
+-- exports, the Grand Hall pair behind save.kc.grandHall. 1-readers keep working.
+T.eq(exports and exports.questHooks, 2, "questHooks version is 2")
 T.eq(type(exports and exports.lastContest), "function", "lastContest() is exported")
 T.eq(exports and exports.lastContest(), nil, "no contest yet -> lastContest() is nil")
 

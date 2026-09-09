@@ -396,6 +396,19 @@ function S:update(_dt)
     return
   end
 
+  if self.phase == "withdraw" then
+    if self:pressed("a") then
+      self.msgs = {}
+      self.finished = true
+      self.phase = "done"
+      if self.onDone then self.onDone(4, { withdrawn = true }) end
+    elseif self:pressed("b") then
+      self.msgs = {}
+      self.phase = "menu"
+    end
+    return
+  end
+
   -- messages: A advances
   if #self.msgs > 0 then
     -- the crowd's roar, the first frame a wild line is up. SFX_KC_APPLAUSE
@@ -419,16 +432,16 @@ function S:update(_dt)
     local n = math.max(1, #moves)
     if self:pressed("up") then self.menuCursor = (self.menuCursor - 2) % n + 1
     elseif self:pressed("down") then self.menuCursor = self.menuCursor % n + 1
+    elseif self:pressed("b") then
+      self.phase = "withdraw"
+      self:say("Withdraw? A: yes\nB: keep performing")
     elseif self:pressed("a") then
       self:click()
       local m = moves[self.menuCursor]
-      if m and (m.pp == nil or m.pp > 0) then
-        if m.pp then m.pp = m.pp - 1 end
+      if m then
         self.chosen = m.id
         self.phase = "resolving"
         self:resolveNext()
-      elseif m then
-        self:say("No PP left for\nthis move!")
       end
     end
   elseif self.phase == "resolve" then
@@ -549,7 +562,7 @@ end
 function S:moveTag(mv)
   -- Only announce an actionable bonus on the highlighted move. A starter
   -- is merely a possible setup, not a combo the player can use right now.
-  if mv and (mv.pp == nil or mv.pp > 0) and self:comboReady(mv.id) then
+  if mv and self:comboReady(mv.id) then
     return "COMBO", "READY!", true
   end
   return nil
@@ -572,7 +585,7 @@ function S:drawStageTrim()
   if self.phase == "menu" and #self.msgs == 0 and self.moveMenu == "full" then
     local tag, detail, combo = self:moveTag(self:menuMove())
     if not tag then return end
-    window(2, 20, 92, 26, combo and S.C.panelMine or S.C.panel)
+    window(2, 20, 88, 26, combo and S.C.panelMine or S.C.panel)
     if m.Font then
       rgb(combo and S.C.combo or S.C.ink)
       m.Font.draw(tag, 6, 24)
@@ -784,9 +797,8 @@ function S:drawMoveList()
       local row = self.s.moves[mv.id]
       local name = clip(self:moveName(mv.id), 10)
       local cat = (row and row.cat or "----"):sub(1, 6)
-      local noPP = mv.pp ~= nil and mv.pp <= 0
       local combo = self:comboReady(mv.id)
-      rgb(noPP and S.C.disabled or (combo and S.C.combo or S.C.ink))
+      rgb(combo and S.C.combo or S.C.ink)
       if L.name == "wide" then
         -- Ten full glyphs need ALL 80px; put the cursor beside category.
         m.Font.draw(name, x0, y + 4)

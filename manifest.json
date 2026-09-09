@@ -1,7 +1,7 @@
 {
   "id": "kanto_contests",
   "name": "Kanto Contests (Alpha)",
-  "version": "0.37.5",
+  "version": "0.37.6",
   "api": 2,
   "games": [
     "gen1",
@@ -13,12 +13,13 @@
   "category": "QUEST",
   "game_version": ">=0.1.75 <2.0.0",
   "priority": 100,
-  "affects_link": false,
+  "affects_link": true,
   "permissions": [
     "engine_internals"
   ],
   "dependencies": [],
   "optional_dependencies": [],
   "conflicts": [],
-  "description": "ALPHA / proof of concept -- playable but unfinished. Ruby/Sapphire-style Pokemon Contests in Kanto and Johto: raise condition with PokeSnacks, earn and wear contest scarves, then pick one of the five contests -- COOL, BEAUTY, CUTE, SMART or TOUGH -- and appeal with your POKeMON's move categories. Coordinators and contest ranks are still to come. Wins are recorded per category on the POKeMON, so Kanto Ribbons awards the matching ribbon."
+  "description": "Five contest categories, four Johto ranks, PokeSnacks, scarves and rival coordinators. Challenge Fantina at MASTER rank and earn a Dusk Stone. Includes optional Honchkrow and Mismagius support; no species-framework dependency.",
+  "assets_transforms": "transforms.lua"
 }

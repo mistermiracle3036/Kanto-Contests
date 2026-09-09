@@ -1,5 +1,5 @@
 return {
-  summary = "ALPHA / proof of concept. R/S-style Pokemon Contests in Kanto and Johto: pick one of the five contests -- COOL, BEAUTY, CUTE, SMART or TOUGH -- and appeal to the judge, scored by each move's contest category.",
+  summary = "Development preview: five contest categories, four Johto ranks, rival coordinators, snacks and scarves. Challenge Fantina at MASTER and earn a Dusk Stone.",
   author = "Mister Miracle",
   tags = { "contests", "quest", "celadon", "goldenrod", "alpha" },
   differences = {
@@ -7,10 +7,15 @@ return {
     "Adds a contest judge who runs all five contests; you pick one and appeal in a battle-style round.",
     "Every move carries a contest category, shown in place of its type during a contest.",
     "Adds five earned contest scarves that boost matching Introduction scores.",
-    "Three rival coordinators appear in every contest and can jam your routine, healing the judge's meter.",
+    "Johto judging lasts five turns, with combos and jams. Appeals do not spend battle PP; B offers withdrawal.",
+    "Fantina returns for MASTER attempts until your first victory against her, then gives one Dusk Stone in the lobby.",
+    "The stone evolves Murkrow into Honchkrow or Misdreavus into Mismagius. Both species and their support are bundled without another dependency.",
+    "Independent options disable the stone reward or bundled evolutions for another dex expansion. Fully restart after changing species content.",
     "Contests award no EXP and allow no switching or items -- one POKeMON performs the whole routine.",
     "Records contest wins per category on the POKeMON so Kanto Ribbons can award the matching ribbon.",
   },
-  credits = { "Contest design based on Pokemon Ruby/Sapphire." },
-  compat = "Takes over TEXT_CELADONCITY_LITTLE_GIRL (with vanilla fallback on decline). Kanto Ribbons 0.18.0+ optional; it has artwork for the Cool Ribbon only, so the other four contests record their win and award retroactively once it draws them. Contest HUD is drawn for the classic battle layout; the widescreen layout plays but looks like an ordinary battle."
+  credits = { "Contest design inspired by Generation III; move/effect data transcribed from pokeemerald.",
+    "Polished Crystal by Rangi42 and contributors. Honchkrow: bloodless (BloodlessNS). Mismagius: bloodless with SoupPotato. Further credits are in THIRD_PARTY_NOTICES.md.",
+    "Species/dex/save support adapted from Expanded Species 0.7.0 by Mister Miracle (MIT). Fantina's commissioned overworld art is by Blaklyte, using the updated Indigo Conference colors." },
+  compat = "No companion mod required. Optional Kanto Ribbons reads saved contest victories. Grand Hall/Trainer Journey hooks remain supported. Disable Bundled evolutions for another dex pack and restart; compatible external Honchkrow/Mismagius can receive the stone evolution. Existing bundled Pokemon are protected while unavailable. The new Fantina and evolution content applies to Gen 2."
 }

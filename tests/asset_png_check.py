@@ -54,6 +54,16 @@ table = src[src.index("local KC_CUSTOM_SPRITES = {"):src.index("for _, row in ip
 registered = {}
 for m in re.finditer(r'\{ id = "SPRITE_KC_[A-Z0-9_]+", image = "assets/([a-z0-9_]+)\.png"([^}]*)\}', table):
     registered[m.group(1) + ".png"] = "trueColor = true" in m.group(2)
+# ... plus any walker registered inline elsewhere (dusk_challenge.lua does
+# Fantina's: image=mod.assets:path("assets/fantina.png"),...,trueColor=true)
+for f in glob.glob(os.path.join(here, "..", "*.lua")):
+    for m in re.finditer(r'sprites:register\((.{0,600}?)\}\)', open(f, encoding="utf-8").read(), re.S):
+        body = m.group(1)
+        img = re.search(r'"assets/([a-z0-9_]+)\.png"', body)
+        if img and img.group(1) + ".png" not in registered:
+            registered[img.group(1) + ".png"] = re.search(r'trueColor\s*=\s*true', body) is not None
+# species battle pics and party icons are not walkers: covered by tests/run.py
+SPECIES_ART = re.compile(r"_(front|back|icon)\.png$")
 
 # Sheets known bad and BENCHED (not in any pool) until sprites/canonical is
 # repaired by the mod checker. Reported as WARN, not FAIL, so the check stays
@@ -63,7 +73,7 @@ BENCHED = {}   # ballguy.png was here 0.34.16-0.34.20; canonical fixed 2026-09-0
 bad = 0
 for p in sorted(glob.glob(os.path.join(assets, "*.png"))):
     name = os.path.basename(p)
-    if name == "contest_tiles.png":
+    if name == "contest_tiles.png" or SPECIES_ART.search(name):
         continue
     im = Image.open(p); problems = []
     if name not in registered:

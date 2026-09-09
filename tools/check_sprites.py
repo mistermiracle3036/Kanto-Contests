@@ -31,6 +31,15 @@ except ImportError:
 
 VANILLA_MAX_FLAT_EDGE = 10
 GREYS = [0, 85, 170, 255]
+# Approved COLOUR sheets (0.37.6): the developer's approved main colour
+# applied to the same art, registered trueColor = true and copied byte-for-
+# byte from the project's sprites/canonical_color store. They carry alpha
+# (RGBA, one fully transparent value) and exactly four colours, and the
+# grey-palette rule does not apply; the bleed and flat-edge geometry rules
+# still do. When the store is beside this repo the bytes are held against
+# it; tests/asset_png_check.py holds the registration flag against the file.
+COLOUR_STORE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..",
+                            "sprites", "canonical_color")
 
 
 def defects(path):
@@ -40,7 +49,15 @@ def defects(path):
     out = []
     g = im.convert("L")
     vals = sorted(set(g.get_flattened_data()))
-    if vals != GREYS:
+    if im.mode == "RGBA":
+        colors = set(im.get_flattened_data())
+        clear = {c for c in colors if c[3] == 0}
+        if len(colors) != 4 or len(clear) != 1 or any(c[3] not in (0, 255) for c in colors):
+            out.append(f"colour sheet must be four values with one transparent, got {sorted(colors)}")
+        store = os.path.join(COLOUR_STORE, os.path.basename(path))
+        if os.path.exists(store) and open(store, "rb").read() != open(path, "rb").read():
+            out.append("colour sheet differs from sprites/canonical_color -- copy the store's bytes")
+    elif vals != GREYS:
         out.append(f"palette is {vals}, expected {GREYS}")
     px = g.load()
     for f in range(6):

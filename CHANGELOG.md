@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.5
+## 0.37.6
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -39,16 +39,18 @@ has been rebuilt since. The short version:
 - **The judging screen was redrawn for Crystal** (0.36.2-0.36.3): cream
   and lavender windows, eight-heart appeal and jam tracks, a clearer
   combo hint, and names that fit.
-- **The audience watches the stage** (0.36.4-0.36.5), gathered around it
+- **The audience watches the stage** (0.36.4-0.36.9), gathered around it
   and facing it, with nobody in front of the steps; each hall draws its
   own kind of crowd (0.36.1) and a bigger one the higher the rank
   (0.36.0).
+- **Fantina and the Dusk Stone** (0.37.0-0.37.4): she enters your first
+  MASTER contest and keeps coming back until you beat her, then finds you
+  in the lobby with a DUSK STONE. It evolves MURKROW into HONCHKROW and
+  MISDREAVUS into MISMAGIUS, both bundled with the mod (each has its own
+  switch in the options). Appeals no longer spend battle PP, and B
+  withdraws from a contest.
 
-(0.36.6 to 0.37.4 were phone builds cut outside this repository -- the
-judging-screen passes and the Dusk challenge -- and their notes arrive
-here with the 0.37.4 integration.)
-
-New in 0.37.5: **colour in the contest hall.** Eighteen of the custom
+New in 0.37.6: **colour in the contest hall.** Eighteen of the custom
 characters -- Agatha, Archer, Ariana, Dawn, Duplica, Eusine, Giovanni, Hugh,
 Ingo, Juliana, Larry, Lorelei, Maxie, N, Proton, the Ruin Maniac, Wally and
 Yellow -- now wear the colours the developer approved for them, instead of
@@ -62,6 +64,80 @@ against you, each with POKeMON that suit them; the Artist, Boarder, Captain,
 Engineer, Exterminator, Slot Maniac, Tamer, Veteran, Walker and DJ Mary
 watch from the crowd. Seven of the nineteen arrive already in their approved
 colours.
+
+The 0.36.6 to 0.37.4 entries below were phone builds written by ChatGPT
+(Astra) against the project's handoff; 0.37.6 is the first build that
+carries them and this repository's own changes together.
+
+## 0.37.4
+
+- Turn the player toward Fantina before her gift conversation begins, whichever side she approaches from.
+- Fix Mismagius and Honchkrow party-icon backgrounds: native shade-zero pixels are now transparent, preventing a colored rectangle in the party menu. Both animation frames and all original RGB pixel values are preserved.
+
+## 0.37.3
+
+- Simplify Fantina's gift dialogue: “You were marvelous. A little gift from home.” Remove the explanation of which Pokémon can use it.
+- Give the Dusk Stone the same bag description as Crystal's Fire Stone and Water Stone: “Evolves certain kinds of POKéMON.”
+
+## 0.37.2
+
+- Remove the FANTINA: speaker prefix from her lobby and Dusk Stone reward dialogue.
+
+## 0.37.1
+
+- Newly drawn lobby coordinators use pre-contest dialogue, including immediately after a win or loss. Result reactions apply only to the completed contest on its own stage.
+- Fantina now uses Blaklyte's commissioned walker copied unchanged from Indigo Conference 1.1.55, with its updated purple and Crystal skin colors. Her guaranteed MASTER participation and Dusk Stone reward are unchanged.
+- Introduction-heart thresholds are unchanged: a preparation score of 71–80 earns seven NORMAL hearts and two HYPER hearts. The appeal-round applause meter is separate.
+
+## 0.37.0
+
+Updating from public 0.8.2? This preview includes all five contest categories, PokeSnacks and scarves, a four-hall Johto rank circuit, rival coordinators and audiences, and five-turn judging with combos, jams and a move information card. Optional ribbon and quest integrations record results on the save. Existing phone fixes for stage spawning, counters, audience facing and higher-rank introduction scoring are included.
+
+- Fantina joins the first MASTER challenge and returns after losses across categories until the player wins. She then approaches in the lobby with one Dusk Stone; a full bag preserves the unclaimed reward.
+- Bundle only Honchkrow, Mismagius and their required support from Polished Crystal and Expanded Species. The stone evolves Murkrow or Misdreavus through the normal item/evolution flow. No species-framework dependency is required.
+- Add independent Dusk Stone reward and Bundled evolutions switches. The latter disables all bundled species registration and evolution patches; existing affected Pokemon are protected until reenabled. A compatible external species may receive the stone evolution.
+- Contest appeals no longer consume battle PP. Empty PP cannot strand the player, and B offers confirmed withdrawal.
+- Reject eggs, fainted entrants and Pokemon without moves at the desk. Restore the selected party slot and mail correctly after contests and serialized reloads; interrupted contests cancel back to the appropriate lobby.
+- Preview snack gains and warn when condition is already capped before spending money or lifetime sheen capacity.
+- Keep existing win-count rank eligibility and correct the entry dialogue to explain it. Repair character/class/generic dialogue fallback.
+- Derive hall source sheets through the engine's supported asset-transform recipe; content lint is clean.
+- Rewrite player documentation, options, troubleshooting and attribution. (0.37.0 stood a Kimono Girl in for Fantina; her commissioned walker arrived in 0.37.1.)
+
+Automated gameplay and save tests pass on the local Crystal and Gold engine data. Live iPhone appearance, animation and input still require the included phone checklist. This is a test candidate, not a claim that the final phone pass is complete.
+
+## 0.36.10
+
+- Ecruteak's lobby desk now has COUNTER collision in Gold and Crystal, so the entry judge can be reached from directly across it.
+- Hide only Crystal's Rock Smash rock at Cianwood (4,19), which overlaps the contest building's upper-left roof. Other rocks, object records and event flags are preserved; cleanup runs on every visit.
+- Recalibrate SUPER, HYPER and MASTER introduction thresholds to the actual 0–100 condition and sheen caps. Maximum primary condition plus maximum sheen now earns seven HYPER hearts instead of zero. Eight MASTER hearts are attainable through ten well-chosen snacks and the matching scarf. NORMAL thresholds are unchanged.
+- Verified Cianwood's lobby counter is already six cells wide, matching Goldenrod and Ecruteak; its width is unchanged.
+
+## 0.36.9
+
+- Correct audience directions in Ecruteak and Blackthorn: upper rows face down toward the stage, lower rows face up, and side seats face inward.
+- Only an actual adjacent duo faces away from the stage, toward its NPC partner. Single audience members keep watching the stage during conversations.
+- Heart-givers return to their stage-facing pose after the reaction in both heart modes. Cancelling a reaction or leaving the stage also restores their pose.
+- Retain the stage spawning and automatic rank fixes from 0.36.8.
+
+## 0.36.8
+
+- Restore the missing stage judge definitions in Ecruteak, Cianwood and Blackthorn. The missing actor lists aborted map entry before coordinators, audience and the automatic contest intro could spawn.
+- Permit rooms with no fixed actors to continue setup, and report map setup failures in MODS ERRS.
+- Hall ranks remain automatic: Goldenrod NORMAL, Ecruteak SUPER, Cianwood HYPER and Blackthorn MASTER. Grand Hall quest integration is retained.
+
+## 0.36.7
+
+- The renovated Goldenrod desk admits beginners at their eligible rank so an early festival invitation cannot remove the NORMAL progression road.
+
+- Preserve the actual category, rank, and entrant in quest results after winning.
+- Add read-only best-rank queries, a separate Goldenrod Grand Hall pair selected by save.kc.grandHall, and scoped exhibition invitations.
+- Existing four halls, sprites, stage layout, crowd, and 0.36.6 judging UI retained.
+
+## 0.36.6
+
+- Matched the COMBO READY badge to the round/category box above it:
+  both are 88 pixels wide with the same left and right edges.
+  All 0.36.5 stage and audience changes are preserved.
 
 ## 0.36.5
 

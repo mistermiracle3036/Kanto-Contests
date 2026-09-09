@@ -481,12 +481,14 @@ end
 
 -- INTRODUCTION ROUND scoring (see the 0.9.0 CHANGELOG for the design):
 -- score = primary + 0.5*each opposed-pair secondary + 0.5*sheen.
--- All four rank rows ship; only NORMAL is reachable until ranks land.
+-- Conditions and sheen cap at 100. Ten snacks can produce a focused
+-- score of 200 (220 with its scarf), so every rank's full range must
+-- fit that attainable budget. NORMAL retains its original thresholds.
 local KC_INTRO_THRESHOLDS = {
   NORMAL = {  11,  21,  31,  41,  51,  61,  71,  81 },
-  SUPER  = {  91, 111, 131, 151, 171, 191, 211, 231 },
-  HYPER  = { 171, 201, 231, 261, 291, 321, 351, 381 },
-  MASTER = { 321, 361, 401, 441, 481, 521, 561, 601 },
+  SUPER  = {  31,  43,  55,  67,  79,  91, 103, 115 },
+  HYPER  = {  51,  66,  81,  96, 111, 126, 141, 156 },
+  MASTER = {  71,  91, 111, 131, 151, 171, 191, 211 },
 }
 local KC_INTRO_METER_FRACTION = 0.35
 
@@ -651,7 +653,7 @@ local KC_HALLS = {
         source = "TILESET_MART",
         variants = {
           gs = {
-            image = "assets/generated/tilesets/mart.png",
+            image = "save/mod-derived/kanto_contests/tilesets/mart.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -688,7 +690,7 @@ local KC_HALLS = {
             },
     },
           crystal = {
-            image = "assets/generated/tilesets/mart.png",
+            image = "save/mod-derived/kanto_contests/tilesets/mart.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -763,7 +765,7 @@ local KC_HALLS = {
         source = "TILESET_MART",
         variants = {
           gs = {
-            image = "assets/generated/tilesets/mart.png",
+            image = "save/mod-derived/kanto_contests/tilesets/mart.png",
             imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -801,7 +803,7 @@ local KC_HALLS = {
             },
           },
           crystal = {
-            image = "assets/generated/tilesets/mart.png",
+            image = "save/mod-derived/kanto_contests/tilesets/mart.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -880,7 +882,7 @@ local KC_HALLS = {
         source = "TILESET_TRADITIONAL_HOUSE",
         variants = {
           gs = {
-            image = "assets/generated/tilesets/traditional_house.png",
+            image = "save/mod-derived/kanto_contests/tilesets/traditional_house.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -906,7 +908,7 @@ local KC_HALLS = {
               { 0x07, 0x07, 0x00, 0x00 },
               { 0x07, 0x07, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0x00 },
-              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0x00 },
@@ -916,7 +918,7 @@ local KC_HALLS = {
             },
           },
           crystal = {
-            image = "assets/generated/tilesets/traditional_house.png",
+            image = "save/mod-derived/kanto_contests/tilesets/traditional_house.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -942,7 +944,7 @@ local KC_HALLS = {
               { 0x07, 0x07, 0x00, 0x00 },
               { 0x07, 0x07, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0x00 },
-              { 0x07, 0x07, 0x00, 0x00 },
+              { 0x90, 0x90, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0x00 },
               { 0x00, 0x00, 0x00, 0x00 },
@@ -1004,7 +1006,7 @@ local KC_HALLS = {
         source = "TILESET_TRADITIONAL_HOUSE",
         variants = {
           gs = {
-            image = "assets/generated/tilesets/traditional_house.png",
+            image = "save/mod-derived/kanto_contests/tilesets/traditional_house.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -1062,7 +1064,7 @@ local KC_HALLS = {
             },
           },
           crystal = {
-            image = "assets/generated/tilesets/traditional_house.png",
+            image = "save/mod-derived/kanto_contests/tilesets/traditional_house.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -1130,7 +1132,10 @@ local KC_HALLS = {
         19, 20, 20, 20, 20,
         21, 21, 22, 21, 21,
       },
-
+      actors = {
+        { name = "KC_STAGE_JUDGE", marker = "kcStageJudge",
+          sprite = "SPRITE_GENTLEMAN", x = 5, y = 6, movement = 8 },
+      },
     },
   },
   CIANWOOD = {
@@ -1151,7 +1156,7 @@ local KC_HALLS = {
         source = "TILESET_LIGHTHOUSE",
         variants = {
           gs = {
-            image = "assets/generated/tilesets/lighthouse.png",
+            image = "save/mod-derived/kanto_contests/tilesets/lighthouse.png",
             imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -1195,7 +1200,7 @@ local KC_HALLS = {
             },
           },
           crystal = {
-            image = "assets/generated/tilesets/lighthouse.png",
+            image = "save/mod-derived/kanto_contests/tilesets/lighthouse.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -1284,7 +1289,7 @@ local KC_HALLS = {
         source = "TILESET_LIGHTHOUSE",
         variants = {
           gs = {
-            image = "assets/generated/tilesets/lighthouse.png",
+            image = "save/mod-derived/kanto_contests/tilesets/lighthouse.png",
             imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -1346,7 +1351,7 @@ local KC_HALLS = {
             },
           },
           crystal = {
-            image = "assets/generated/tilesets/lighthouse.png",
+            image = "save/mod-derived/kanto_contests/tilesets/lighthouse.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -1425,6 +1430,10 @@ local KC_HALLS = {
         8, 8, 8, 8, 8,
         21, 8, 22, 8, 21,
       },
+      actors = {
+        { name = "KC_STAGE_JUDGE", marker = "kcStageJudge",
+          sprite = "SPRITE_GENTLEMAN", x = 5, y = 6, movement = 8 },
+      },
     },
   },
   BLACKTHORN = {
@@ -1445,7 +1454,7 @@ local KC_HALLS = {
         source = "TILESET_FACILITY",
         variants = {
           gs = {
-            image = "assets/generated/tilesets/facility.png",
+            image = "save/mod-derived/kanto_contests/tilesets/facility.png",
             imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -1483,7 +1492,7 @@ local KC_HALLS = {
             },
           },
           crystal = {
-            image = "assets/generated/tilesets/facility.png",
+            image = "save/mod-derived/kanto_contests/tilesets/facility.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -1566,7 +1575,7 @@ local KC_HALLS = {
         source = "TILESET_ELITE_FOUR_ROOM",
         variants = {
           gs = {
-            image = "assets/generated/tilesets/elite_four_room.png",
+            image = "save/mod-derived/kanto_contests/tilesets/elite_four_room.png",
             imageWidth = 128, imageHeight = 48, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -1616,7 +1625,7 @@ local KC_HALLS = {
             },
           },
           crystal = {
-            image = "assets/generated/tilesets/elite_four_room.png",
+            image = "save/mod-derived/kanto_contests/tilesets/elite_four_room.png",
             imageWidth = 128, imageHeight = 128, tilesPerRow = 16,
             border = 0,
             tilePalettes = {
@@ -1683,11 +1692,41 @@ local KC_HALLS = {
         2, 2, 2, 2, 2,
         2, 14, 15, 16, 2,
       },
+      actors = {
+        { name = "KC_STAGE_JUDGE", marker = "kcStageJudge",
+          sprite = "SPRITE_GENTLEMAN", x = 5, y = 6, movement = 8 },
+      },
     },
   },
 }
 
+local function kcCopy(value)
+  if type(value) ~= "table" then return value end
+  local out = {}; for k, v in pairs(value) do out[k] = kcCopy(v) end
+  return out
+end
+
 local function kcGold(mod, VERSION)
+  local goldenrod = KC_HALLS.GOLDENROD
+  goldenrod.grandLobby = kcCopy(goldenrod.lobby)
+  goldenrod.grandStage = kcCopy(goldenrod.stage)
+  local gl, gs = goldenrod.grandLobby, goldenrod.grandStage
+  gl.id, gl.label, gl.tiles.id = "KC_GRAND_HALL", "THE GRAND HALL", "KC_GRAND_LOBBY_TILES"
+  gs.id, gs.label, gs.tiles.id = "KC_GRAND_STAGE", "GRAND FESTIVAL", "KC_GRAND_STAGE_TILES"
+  for _, w in ipairs(gs.warps or {}) do w.destMap = gl.id end
+  -- Velvet palette on the borrowed studio's curtain/trim tiles. Collision
+  -- and the established stage route are identical in both map variants.
+  for _, room in ipairs({gl, gs}) do
+    for _, variant in pairs(room.tiles.variants) do
+      for i, palette in ipairs(variant.tilePalettes) do
+        if palette == 1 then variant.tilePalettes[i] = 0 end
+      end
+    end
+  end
+  local function grandActive()
+    local save = mod.game and mod.game.save
+    return save and save.kc and save.kc.grandHall == true
+  end
   -- The town this build's attendant leads into.
   -- WHICH HALL THE PLAYER IS IN (0.34.41).
   --
@@ -1710,6 +1749,9 @@ local function kcGold(mod, VERSION)
     if not (town and town.lobby) then return false end
     TOWN = key
     HALL_DEF, STAGE_DEF = town.lobby, town.stage
+    if key == "GOLDENROD" and grandActive() then
+      HALL_DEF, STAGE_DEF = town.grandLobby, town.grandStage
+    end
     HALL = HALL_DEF.id
     HALL_ARRIVAL_X, HALL_ARRIVAL_Y = HALL_DEF.arrival.x, HALL_DEF.arrival.y
     return true
@@ -1727,6 +1769,8 @@ local function kcGold(mod, VERSION)
     for key, town in pairs(KC_HALLS) do
       if (town.lobby and town.lobby.id == mapId)
         or (town.stage and town.stage.id == mapId)
+        or (town.grandLobby and town.grandLobby.id == mapId)
+        or (town.grandStage and town.grandStage.id == mapId)
         or CITY_OF[key] == mapId then
         return key
       end
@@ -1737,6 +1781,7 @@ local function kcGold(mod, VERSION)
   -- The rank this hall runs. Named rather than read inline so the two
   -- readers (the desk and the coordinator draw) cannot drift.
   local function hallRank()
+    if TOWN == "GOLDENROD" and grandActive() then return "MASTER" end
     return (KC_HALLS[TOWN] and KC_HALLS[TOWN].rank) or "NORMAL"
   end
 
@@ -1756,6 +1801,8 @@ local function kcGold(mod, VERSION)
   for _, town in pairs(KC_HALLS) do
     if town.lobby then ROOMS[#ROOMS + 1] = town.lobby end
     if town.stage then ROOMS[#ROOMS + 1] = town.stage end
+    if town.grandLobby then ROOMS[#ROOMS + 1] = town.grandLobby end
+    if town.grandStage then ROOMS[#ROOMS + 1] = town.grandStage end
   end
   for _, def in ipairs(ROOMS) do
     -- A room the developer painted carries its OWN blocks, cut a quarter
@@ -2862,7 +2909,7 @@ local function kcGold(mod, VERSION)
   end
 
   local function ensureRoomActors(world, def)
-    for _, row in ipairs(def.actors) do
+    for _, row in ipairs(def.actors or {}) do
       if not markerExists(world, row.marker) then
         spawnMarked(def.id, row, row.marker)
       end
@@ -2960,13 +3007,13 @@ local function kcGold(mod, VERSION)
         { x = 8, y =  7, face = FACE_LEFT   },
         { x = 1, y =  8, face = FACE_RIGHT  },
         { x = 8, y =  8, face = FACE_LEFT   },
-        { x = 1, y =  9, face = FACE_UP     },
-        { x = 8, y =  9, face = FACE_UP     },
+        { x = 1, y =  9, face = FACE_RIGHT     },
+        { x = 8, y =  9, face = FACE_LEFT     },
         { x = 1, y = 10, face = FACE_UP     },
-        { x = 2, y = 10, face = FACE_RIGHT  },
+        { x = 2, y = 10, face = FACE_UP  },
         { x = 4, y = 10, face = FACE_UP     },
         { x = 5, y = 10, face = FACE_UP     },
-        { x = 7, y = 10, face = FACE_LEFT   },
+        { x = 7, y = 10, face = FACE_UP   },
         { x = 8, y = 10, face = FACE_UP     },
         { x = 0, y =  2, face = FACE_DOWN   },
         { x = 1, y =  2, face = FACE_DOWN   },
@@ -2995,20 +3042,20 @@ local function kcGold(mod, VERSION)
     },
     ECRUTEAK = {
       ring = {
-        { x = 1, y =  3, face = FACE_RIGHT  },
-        { x = 2, y =  3, face = FACE_RIGHT  },
-        { x = 3, y =  3, face = FACE_RIGHT  },
-        { x = 4, y =  3, face = FACE_RIGHT  },
-        { x = 5, y =  3, face = FACE_LEFT   },
-        { x = 6, y =  3, face = FACE_LEFT   },
-        { x = 7, y =  3, face = FACE_LEFT   },
-        { x = 8, y =  3, face = FACE_LEFT   },
-        { x = 1, y = 10, face = FACE_RIGHT  },
-        { x = 2, y = 10, face = FACE_RIGHT  },
-        { x = 4, y = 10, face = FACE_RIGHT  },
-        { x = 5, y = 10, face = FACE_LEFT   },
-        { x = 7, y = 10, face = FACE_LEFT   },
-        { x = 8, y = 10, face = FACE_LEFT   },
+        { x = 1, y =  3, face = FACE_DOWN  },
+        { x = 2, y =  3, face = FACE_DOWN  },
+        { x = 3, y =  3, face = FACE_DOWN  },
+        { x = 4, y =  3, face = FACE_DOWN  },
+        { x = 5, y =  3, face = FACE_DOWN   },
+        { x = 6, y =  3, face = FACE_DOWN   },
+        { x = 7, y =  3, face = FACE_DOWN   },
+        { x = 8, y =  3, face = FACE_DOWN   },
+        { x = 1, y = 10, face = FACE_UP  },
+        { x = 2, y = 10, face = FACE_UP  },
+        { x = 4, y = 10, face = FACE_UP  },
+        { x = 5, y = 10, face = FACE_UP   },
+        { x = 7, y = 10, face = FACE_UP   },
+        { x = 8, y = 10, face = FACE_UP   },
         { x = 0, y =  2, face = FACE_DOWN   },
         { x = 1, y =  2, face = FACE_DOWN   },
         { x = 8, y =  2, face = FACE_DOWN   },
@@ -3088,21 +3135,21 @@ local function kcGold(mod, VERSION)
     },
     BLACKTHORN = {
       ring = {
-        { x = 1, y =  3, face = FACE_RIGHT  },
-        { x = 2, y =  3, face = FACE_RIGHT  },
-        { x = 3, y =  3, face = FACE_RIGHT  },
-        { x = 4, y =  3, face = FACE_RIGHT  },
-        { x = 5, y =  3, face = FACE_LEFT   },
-        { x = 6, y =  3, face = FACE_LEFT   },
-        { x = 7, y =  3, face = FACE_LEFT   },
-        { x = 8, y =  3, face = FACE_LEFT   },
-        { x = 1, y =  9, face = FACE_DOWN   },
-        { x = 8, y =  9, face = FACE_DOWN   },
+        { x = 1, y =  3, face = FACE_DOWN  },
+        { x = 2, y =  3, face = FACE_DOWN  },
+        { x = 3, y =  3, face = FACE_DOWN  },
+        { x = 4, y =  3, face = FACE_DOWN  },
+        { x = 5, y =  3, face = FACE_DOWN   },
+        { x = 6, y =  3, face = FACE_DOWN   },
+        { x = 7, y =  3, face = FACE_DOWN   },
+        { x = 8, y =  3, face = FACE_DOWN   },
+        { x = 1, y =  9, face = FACE_RIGHT   },
+        { x = 8, y =  9, face = FACE_LEFT   },
         { x = 1, y = 10, face = FACE_UP     },
-        { x = 2, y = 10, face = FACE_RIGHT  },
-        { x = 4, y = 10, face = FACE_RIGHT  },
-        { x = 5, y = 10, face = FACE_LEFT   },
-        { x = 7, y = 10, face = FACE_LEFT   },
+        { x = 2, y = 10, face = FACE_UP  },
+        { x = 4, y = 10, face = FACE_UP  },
+        { x = 5, y = 10, face = FACE_UP   },
+        { x = 7, y = 10, face = FACE_UP   },
         { x = 8, y = 10, face = FACE_UP     },
         { x = 0, y =  2, face = FACE_DOWN   },
         { x = 1, y =  2, face = FACE_DOWN   },
@@ -3624,7 +3671,19 @@ local function kcGold(mod, VERSION)
   end
   -- what the stage applied, for castName / appealSteps / the result
   local stagePlan, stagePlanIgnored = nil, nil
+  local dusk = mod.exports.duskChallenge
+  local duskSlot
+  local function pinFantina(coordinators, plan)
+    if not (dusk and dusk.needed(hallRank(),plan)) then return nil end
+    local slot=3
+    for i,e in pairs(plan and plan.slots or {}) do
+      if e.name=="FANTINA" then slot=tonumber(i) or slot end
+    end
+    coordinators[slot]=dusk.sprite
+    return slot
+  end
   local function stagePlanSlot(n)
+    if duskSlot==n then return dusk.entry() end
     local slots = stagePlan and stagePlan.slots
     local e = slots and (slots[n] or slots[tostring(n)])
     return type(e) == "table" and e or nil
@@ -3663,6 +3722,7 @@ local function kcGold(mod, VERSION)
     rollSeedSalt()
     local coordinators = drawCoordinators(seededRng(nextContestSeed()), {})
     applyCastPlan(world, coordinators, nil)
+    local fantinaSlot=pinFantina(coordinators, castPlan())
     for i, cell in ipairs(LOBBY_QUEUE_CELLS) do
       local sprite = coordinators[i]
       if sprite then
@@ -3674,10 +3734,15 @@ local function kcGold(mod, VERSION)
           name = ("KC_QUEUE_%d"):format(i), sprite = sprite,
           x = cell.x, y = cell.y,
           movement = (base and STAND_ONLY[base]) and FACE_DOWN or FACE_LEFT,
-          kcCoordinator = true,
+          kcCoordinator = true, kcFantina = i==fantinaSlot,
         }, "kcCast")
       end
     end
+  end
+
+  mod.exports.refreshStageCast = function()
+    local world = mod.world:overworld()
+    if world and world.map and world.map.id == HALL then ensureLobbyQueue(world) end
   end
 
   -- Set when the judge takes an entry in the lobby and cleared when the
@@ -3707,6 +3772,8 @@ local function kcGold(mod, VERSION)
     local used = {}
 
     local coordinators = drawCoordinators(rnd, used)
+    duskSlot=pinFantina(coordinators, castPlan())
+    if duskSlot then used[dusk.sprite:gsub("^SPRITE_", "")]=true end
 
     -- Is a cell somewhere a spectator can stand? The seat table was written
   -- against GOLDENROD's stage, and Ecruteak's has pillars where that one
@@ -3769,7 +3836,7 @@ local function kcGold(mod, VERSION)
 
     -- One pair sometimes sits together, in seats that are actually next
     -- to each other -- worked out from the seats CHOSEN this contest.
-    local seatFor = {}
+    local seatFor, partnerFor = {}, {}
     if rnd(2) == 1 then
       local adj = adjacentPairs(chosen)
       if #adj > 0 then
@@ -3781,6 +3848,7 @@ local function kcGold(mod, VERSION)
         if pair and not used[pair[1]] and not used[pair[2]] then
           seatFor[slot[1]] = "SPRITE_" .. pair[1]
           seatFor[slot[2]] = "SPRITE_" .. pair[2]
+          partnerFor[slot[1]], partnerFor[slot[2]] = slot[2], slot[1]
           used[pair[1]], used[pair[2]] = true, true
         end
       end
@@ -3813,9 +3881,17 @@ local function kcGold(mod, VERSION)
         sprite = pick and ("SPRITE_" .. pick)
       end
       if sprite then
+        local partner = partnerFor[i] and chosen[partnerFor[i]]
+        local facing = seat.face
+        if partner then
+          if partner.x ~= seat.x then facing = partner.x > seat.x and FACE_RIGHT or FACE_LEFT
+          else facing = partner.y > seat.y and FACE_DOWN or FACE_UP end
+        end
         spawnMarked(STAGE_DEF.id, {
           name = ("KC_AUD_%d"):format(i), sprite = sprite,
-          x = seat.x, y = seat.y, movement = seat.face,
+          x = seat.x, y = seat.y, movement = facing,
+          kcAudienceStageFace = seat.face,
+          kcAudiencePartner = partner and ("KC_AUD_%d"):format(partnerFor[i]) or nil,
         }, "kcCast")
       end
     end
@@ -3865,6 +3941,7 @@ local function kcGold(mod, VERSION)
       stagePlanIgnored = applyCastPlan(world, coordinators, kind)
       stagePlan = (castPlan() and not stagePlanIgnored) and castPlan() or nil
     end
+    duskSlot=pinFantina(coordinators, stagePlan)
     for i, cell in ipairs(STAGE_COORD_CELLS) do
       local sprite = coordinators[i]
       if sprite then
@@ -3930,6 +4007,11 @@ local function kcGold(mod, VERSION)
     local full = {}
     for i, m in ipairs(party) do full[i] = m end
     save.kcPartyStash = full
+    save.kcPartySlot = keep
+    if save.mail and save.mail.party then
+      save.kcPartyMail = save.mail.party
+      save.mail.party = { [1] = save.kcPartyMail[keep] }
+    end
     save.party = { party[keep] }
     return true
   end
@@ -3945,13 +4027,41 @@ local function kcGold(mod, VERSION)
     for i = 1, math.min(#KC_RANKS, wins + 1) do out[i] = KC_RANKS[i] end
     return out
   end
-  local function restoreParty(world)
-    local save = world and world.game and world.game.save
+  local function restoreSavedParty(save)
     if not (save and save.kcPartyStash) then return false end
+    -- The serializer duplicates aliases. Put the live entrant back into its
+    -- original slot before restoring, preserving changes made after a load.
+    local slot = tonumber(save.kcPartySlot)
+    if slot and save.kcPartyStash[slot] and save.party and save.party[1] then
+      save.kcPartyStash[slot] = save.party[1]
+    end
     save.party = save.kcPartyStash
-    save.kcPartyStash = nil
+    if save.kcPartyMail then
+      save.mail = save.mail or {}
+      if slot then save.kcPartyMail[slot] = save.mail.party and save.mail.party[1] end
+      save.mail.party = save.kcPartyMail
+    end
+    save.kcPartyStash, save.kcPartySlot, save.kcPartyMail = nil, nil, nil
     return true
   end
+  local function restoreParty(world)
+    return restoreSavedParty(world and world.game and world.game.save)
+  end
+  local recoveryPending = false
+  mod.events:on("save.loading", function(ctx)
+    local save = ctx and ctx.raw
+    if restoreSavedParty(save) then save.kcContestInterrupted = true end
+    clearPendingContest()
+    pendingRank = nil
+    stageReturn = nil
+  end)
+  mod.exports.restoreContestParty = restoreSavedParty
+  mod.events:on("checkpoint.restored", function(ctx)
+    local save = ctx and ctx.game and ctx.game.save
+    if restoreSavedParty(save) then save.kcContestInterrupted = true end
+    clearPendingContest()
+    pendingRank, stageReturn = nil, nil
+  end)
 
   -- ---------------------------------------------------------------
   -- The appeal round, before the battle.
@@ -4340,6 +4450,7 @@ local function kcGold(mod, VERSION)
   -- test-only handles (tests/quest_hooks_test.lua); not a contract
   mod.exports._test = {
     applyCastPlan = applyCastPlan,
+    introHearts = kcIntroHearts,
     contestPayload = contestPayload,
     -- the harness has no live game: give the mod a stub one to read from
     setSave = function(t) mod.game = mod.game or {}; mod.game.save = t end,
@@ -4360,6 +4471,20 @@ local function kcGold(mod, VERSION)
     return 30 + (n - 1) * HEART_GAP + 50 + 20
   end
 
+  local audienceDirections = { [6]="down", [7]="up", [8]="left", [9]="right" }
+  local function faceAudienceStage(npc)
+    local d = npc and npc.def
+    local face = d and d.kcAudienceStageFace
+    if not (face and d.owner == "kanto_contests" and d.kcCast) then return end
+    -- Own runtime objects only. Keep the restored pose after a people
+    -- rebuild too; a duo can stop chatting to watch an appeal.
+    d.movement = face
+    if npc.scriptFace then npc:scriptFace(audienceDirections[face]) end
+  end
+  local function clearHearts()
+    for _,h in ipairs(kcHearts) do faceAudienceStage(h.entity) end
+    kcHearts = {}
+  end
   local function popHearts(world, n)
     local mode = heartMode()
     -- The crowd claps as its hearts go up, in either mode --
@@ -4373,7 +4498,7 @@ local function kcGold(mod, VERSION)
       if okS and Sound and Sound.play then pcall(Sound.play, data, "SFX_KC_APPLAUSE") end
     end
     local crowd = castOnStage(world, false)
-    kcHearts = {}
+    clearHearts()
     if #crowd == 0 or (n or 0) <= 0 then return end
     local order = {}
     for i = 1, #crowd do order[i] = crowd[i] end
@@ -4434,11 +4559,23 @@ local function kcGold(mod, VERSION)
         keep[#keep + 1] = h
       else
         h.left = h.left - 1
-        if h.left > 0 then keep[#keep + 1] = h end
+        if h.left > 0 then keep[#keep + 1] = h
+        else faceAudienceStage(h.entity) end
       end
     end
     kcHearts = keep
+    -- Duos stop chatting to watch the appeal when their heart appears.
+    -- The expiry path above restores the pose again after any reaction turn.
+    for _,h in ipairs(keep) do
+      if h.delay <= 0 and not h.started then
+        h.started = true
+        faceAudienceStage(h.entity)
+      end
+    end
   end
+  mod.exports._test.popHearts = popHearts
+  mod.exports._test.tickHearts = tickHearts
+  mod.exports._test.hearts = function() return kcHearts end
 
   -- Stash-originals, never a sentinel: the World module table lives for
   -- the whole process, so an `if wrapped then return end` guard would
@@ -4961,7 +5098,10 @@ local function kcGold(mod, VERSION)
     street.hall = KC_HALLS[key] and KC_HALLS[key].lobby
     STREET_OF[street.map] = street
     -- only a street with its own door can put the player back outside one
-    if street.hall and street.door then STREET_OF_LOBBY[street.hall.id] = street end
+    if street.hall and street.door then
+      STREET_OF_LOBBY[street.hall.id] = street
+      if key == "GOLDENROD" then STREET_OF_LOBBY.KC_GRAND_HALL = street end
+    end
   end
 
   -- Build one composed block's 16 tiles from the tileset in play.
@@ -5042,6 +5182,19 @@ local function kcGold(mod, VERSION)
     end
   end
 
+  local function clearCianwoodFacadeRock(world)
+    if not (world and world.map and world.map.id == "CIANWOOD_CITY") then return end
+    -- The vanilla Rock Smash object at (4,19) is inside the hall's
+    -- upper-left roof cell. Hide this instance for each visit; do not
+    -- remove the shared rock script or touch other rocks/event flags.
+    for _,d in ipairs(world.map.def.objects or {}) do
+      if d.x == 4 and d.y == 19 and d.sprite == "SPRITE_ROCK"
+          and not d.runtime and d.index and d.eventFlag == 0xFFFF then
+        world:disappearObject(d.index + 1)
+      end
+    end
+  end
+
   mod.events:on("map.entered", function(ev)
     local ok, err = pcall(function()
       local mapId = ev and ev.mapId
@@ -5050,11 +5203,18 @@ local function kcGold(mod, VERSION)
       -- anything below reads HALL / STAGE_DEF. A map that is no hall's
       -- leaves the current one alone.
       useTown(townOfMap(mapId))
+      local save = world and world.game and world.game.save
+      if save and not pendingContest and (save.kcContestInterrupted or save.kcPartyStash) then
+        restoreParty(world)
+        recoveryPending = STAGE_DEF and mapId == STAGE_DEF.id or false
+        save.kcContestInterrupted = nil
+      end
       -- Give the party back the moment the player is anywhere but the
       -- stage. Deliberately not tied to one exit: a contest can end by
       -- winning, losing, walking out over the carpet, or a reload, and
       -- only this catches all four. No-op when nothing is stashed.
       if not (STAGE_DEF and mapId == STAGE_DEF.id) then
+        clearHearts()
         pcall(restoreParty, world)
       end
       if mapId == KCG.map then
@@ -5067,6 +5227,7 @@ local function kcGold(mod, VERSION)
         -- ripping the shared helper out would touch that too.
       elseif STREET_OF[mapId] then
         ensureStreetFacade(STREET_OF[mapId])
+        clearCianwoodFacadeRock(world)
       elseif mapId == HALL then
         ensureRoomActors(world, HALL_DEF)
         ensureLobbyQueue(world)
@@ -5084,7 +5245,10 @@ local function kcGold(mod, VERSION)
         if pendingContest then introArmed = true end
       end
     end)
-    if not ok then mod.log:warn("kc gold spawn: %s", tostring(err)) end
+    if not ok then
+      mod.log:warn("kc gold spawn: %s", tostring(err))
+      Runtime.reportError("kanto_contests", "Hall setup: "..tostring(err))
+    end
   end)
 
   local function nameOf(game, mon)
@@ -5147,6 +5311,20 @@ local function kcGold(mod, VERSION)
     -- later assertion and never wrote the file.
     tickHearts()
     tickWait()
+    if game.save and game.save.kcContestInterrupted then
+      local world=mod.world:overworld()
+      restoreParty(world)
+      recoveryPending=world and world.map and STAGE_DEF and world.map.id==STAGE_DEF.id or false
+      game.save.kcContestInterrupted=nil
+    end
+    if recoveryPending then
+      local world = mod.world:overworld()
+      if world and not world:busy() then
+        recoveryPending = false
+        world:showText("Contest cancelled.\nYour team is back.", function() leaveStage(world) end)
+      end
+      return r
+    end
     if introArmed then
       local world = mod.world:overworld()
       -- Confirm the player is STILL on the stage. introArmed is set on
@@ -5447,10 +5625,18 @@ local function kcGold(mod, VERSION)
             end
           end
         end
-        if won then pendingRank = nil end
         local result = contestPayload(place, final)
+        -- Pending fields may already have cleared during the walk-on.
+        result.kind, result.rank = kind, rank
+        result.entrant = { species = entrant.species,
+          nick = entrant.nickname or entrant.name, stageHearts = stagePlayerHearts }
+        if won then pendingRank = nil end
         result.recorded = won and record
-        if game.save then game.save.kcLastContest = result end
+        result.withdrawn = final and final.withdrawn or nil
+        if game.save then
+          game.save.kcLastContest = result
+          if dusk then dusk.recordWin(game.save,rank,won,record,duskSlot~=nil) end
+        end
         local payload = {}
         for k, v in pairs(result) do payload[k] = v end
         payload.beat = "result"
@@ -5468,6 +5654,10 @@ local function kcGold(mod, VERSION)
         local closing = plan and plan.closing
         if closing == "stage" then return end
         if closing == "lobby" then backToLobby() return end
+        if result.withdrawn then
+          world:showText("You withdrew from\nthe contest.",backToLobby)
+          return
+        end
         if not won then
           world:showText("Not quite this\ntime. Practice!", backToLobby)
           return
@@ -5535,6 +5725,19 @@ local function kcGold(mod, VERSION)
             world:showText("Take your time.\nThe stage waits.")
             return
           end
+          local selected = party[slot]
+          if selected.isEgg then
+            world:showText("An EGG cannot\nenter a contest.")
+            return
+          end
+          if (selected.hp or 0) <= 0 then
+            world:showText("Heal this POKeMON\nbefore entering.")
+            return
+          end
+          if #(selected.moves or {}) == 0 then
+            world:showText("It needs a move\nto perform!")
+            return
+          end
           if not stashParty(world, slot) then
             world:showText("KC error: party\nnot available")
             return
@@ -5564,6 +5767,8 @@ local function kcGold(mod, VERSION)
                 STAGE_DEF.id, STAGE_DEF.arrival.x, STAGE_DEF.arrival.y, "down")
               if not ok then
                 clearPendingContest()
+                restoreParty(world)
+                pendingRank = nil
                 mod.log:warn("contest stage warp failed: %s", tostring(err))
                 world:showText("KC error: stage\nentrance failed")
               end
@@ -5575,18 +5780,36 @@ local function kcGold(mod, VERSION)
           -- in the category -- it is just checked instead of offered.
           local want = hallRank()
           local elig = eligibleRanks(party[slot], kind)
+          -- Keep a beginner's road after the renovation. Otherwise an early
+          -- masquerade invitation removes Johto's only NORMAL hall and makes
+          -- the three-category finale route impossible for a new Pokemon.
+          if TOWN == "GOLDENROD" and grandActive() then
+            want = elig[#elig] or "NORMAL"
+          end
           local allowed = false
           for _, r in ipairs(elig) do if r == want then allowed = true end end
+          -- A quest invitation can admit an under-ranked entrant to one
+          -- explicitly tagged exhibition; ordinary desks retain their gate.
+          local plan = castPlan()
+          if plan and plan.hall == TOWN and plan.exhibition == true
+              and type(plan.tag) == "string" and plan.tag:match("^grand_hall:") then
+            for _, k in ipairs(plan.kinds or {}) do
+              if k == kind then
+                allowed = true
+                if TOWN == "GOLDENROD" and grandActive() then want = "MASTER" end
+              end
+            end
+          end
           if allowed then
             proceed(want)
           else
             -- the party is already parked: give it back before refusing
             restoreParty(world)
-            local need = KC_RANKS[math.max(1, rankIndex(want) - 1)]
+            local need = rankIndex(want) - 1
             -- dialogue-ok: rank names are six glyphs at most
             world:showText(("This hall runs\n%s rank."):format(want),
               function()
-                world:showText(("Win a %s\ncontest first."):format(need))
+                world:showText(("Earn %d wins in\nthis category."):format(need))
               end)
           end
       end)
@@ -5654,14 +5877,22 @@ local function kcGold(mod, VERSION)
           :format(nameOf(game, mon)))
         return
       end
-      player.money = math.max(0, (player.money or 0) - KC_SNACK_PRICE)
       local cond = kcCondition(mon)
       local key = KC_STAT_KEY[snack.category]
-      cond[key] = math.min(100, cond[key] + KC_SNACK_CONDITION)
-      mon.kcSheen = math.min(100, kcSheen(mon) + KC_SNACK_SHEEN)
-      -- dialogue-ok: the last %s is a contest category, six glyphs at most
-      world:showText(("%s ate the\n%s!\fIts %s rose!")
-        :format(nameOf(game, mon), snack.name, snack.category))
+      local gain = math.min(KC_SNACK_CONDITION, 100 - cond[key])
+      local sheenGain = math.min(KC_SNACK_SHEEN, 100 - kcSheen(mon))
+      local preview = ("%s +%d\nSHEEN +%d"):format(snack.category, gain, sheenGain)
+      if gain == 0 then preview = "Condition maxed!\nOnly SHEEN rises.\f" .. preview end
+      world:showText(preview .. "\fUse this snack?\nThis is permanent.", function()
+        world:askYesNo(function(yes)
+          if not yes then return end
+          if (player.money or 0) < KC_SNACK_PRICE or kcSheen(mon) >= 100 then return end
+          player.money = player.money - KC_SNACK_PRICE
+          cond[key] = math.min(100, cond[key] + gain)
+          mon.kcSheen = math.min(100, kcSheen(mon) + sheenGain)
+          world:showText("Snack finished!\nCondition saved.")
+        end)
+      end)
     end)
   end
 
@@ -5677,7 +5908,7 @@ local function kcGold(mod, VERSION)
 
   local function openSnackVendor(world)
     world:showText(
-      "POKeSNACKS!\nFive flavors.\fThey raise contest\ncondition.",
+      "POKeSNACKS!\nFive flavors.\fOne adds 20 to a\ncontest condition.\fIt adds 10 SHEEN,\nyour lifetime cap.\fAt 100 SHEEN, no\nmore snacks fit!",
       function()
         world:openScriptMenu(SNACK_MENU, "vertical", function(choice)
           local snack = KC_SNACKS[tonumber(choice) or 0]
@@ -5749,6 +5980,57 @@ local function kcGold(mod, VERSION)
     pcall(npc.scriptFace, npc, dir)
   end
 
+  local rewardBusy, rewardVisit = false, nil
+  local function rewardTalk(world, done)
+    local save=world.game.save
+    world:showText("You were\nmarvelous.\fA little gift\nfrom home.",function()
+      local ok,why=dusk.give(save,world.game.data)
+      if ok then
+        world:showText("Got a DUSK STONE!",done)
+      elseif why=="bag_full" then
+        world:showText("Your PACK is full.\nI will keep it.\fMake room, then\nvisit this hall.",done)
+      elseif done then done() end
+    end)
+  end
+  mod.events:on("map.entered",function() rewardVisit=nil; rewardBusy=false end)
+  mod.hooks:wrap("core.update",function(next_,game,dt)
+    local r=next_(game,dt)
+    local world=mod.world:overworld()
+    if not (dusk and world and world.map and world.map.id==HALL
+      and dusk.pending(game.save)) or rewardBusy or rewardVisit==HALL or world:busy() then return r end
+    local p=world.player
+    if not p then return r end
+    local function free(x,y)
+      if world:npcAt(x,y) then return false end
+      if world.map.cellCollision then
+        return world.map:cellCollision(x,y)==0
+      end
+      return false
+    end
+    local from,step,face
+    for _,d in ipairs({{0,-1,0x0c,"down"},{1,0,0x0e,"left"},{-1,0,0x0f,"right"},{0,1,0x0d,"up"}}) do
+      local x,y=p.cellX+d[1],p.cellY+d[2]
+      local sx,sy=p.cellX+2*d[1],p.cellY+2*d[2]
+      if free(x,y) and free(sx,sy) then from={sx,sy}; step=d[3]; face=d[4]; break end
+    end
+    if not from then return r end
+    local id=mod.world:spawnNpc(HALL,{name="KC_FANTINA_REWARD",sprite=dusk.sprite,
+      x=from[1],y=from[2],movement=FACE_DOWN,palette=dusk.sprite=="SPRITE_KIMONO_GIRL" and 10 or nil,kcFantinaReward=true})
+    if not id then return r end
+    local npc
+    for _,n in ipairs(world.npcs or {}) do if n.def.kcFantinaReward then npc=n; break end end
+    if not npc then mod.world:removeNpc(id); return r end
+    rewardBusy,rewardVisit=true,HALL
+    world:beginMovement(objectIdOf(npc),{step,0x47},function()
+      if world.turnObject then
+        world:turnObject(objectIdOf(npc),face)
+        world:turnObject(0,({up="down",down="up",left="right",right="left"})[face])
+      end
+      rewardTalk(world,function() mod.world:removeNpc(id); rewardBusy=false end)
+    end)
+    return r
+  end)
+
   -- Lines.
   --
   -- KC_CAST_LINES is keyed by sprite id and is where PER-CHARACTER
@@ -5781,15 +6063,17 @@ local function kcGold(mod, VERSION)
   -- Which context an actor is spoken to in.
   local function lineContext(world, def)
     if not def.kcCoordinator then return "crowd" end
+    local mapId = world and world.map and world.map.id
+    -- The lobby has already drawn the NEXT contest's coordinators.
+    -- The saved result belongs only to the cast still on its stage.
+    if not (STAGE_DEF and mapId == STAGE_DEF.id) then return "queue" end
     local save = mod.game and mod.game.save
     local last = save and save.kcLastContest
     -- a coordinator spoken to after THIS contest's judging
-    if last and last.count == contestCount() and last.place then
+    if last and last.hall == TOWN and last.count == contestCount() and last.place then
       return last.place == 1 and "won" or "lost"
     end
-    local mapId = world and world.map and world.map.id
-    if STAGE_DEF and mapId == STAGE_DEF.id then return "stage" end
-    return "queue"
+    return "stage"
   end
 
   -- Stable per-actor pick: the same person says the same thing all
@@ -5815,7 +6099,7 @@ local function kcGold(mod, VERSION)
     local order = { ctx }
     if ctx == "won" or ctx == "lost" then order[#order + 1] = "stage" end
     if ctx ~= "crowd" then order[#order + 1] = "queue" end
-    for _, source in ipairs({ ch, cl, pools }) do
+    for _, source in ipairs({ ch or {}, cl or {}, pools }) do
       for _, c in ipairs(order) do
         local line = source and pick(source[c])
         if line then return line end
@@ -5825,6 +6109,10 @@ local function kcGold(mod, VERSION)
   end
 
   local function talkCast(world, npc)
+    if npc.def.kcFantina then
+      world:showText("Shall we\nshare the stage?\fAny category!\nShow me your best!")
+      return
+    end
     world:showText(lineFor(world, npc))
   end
 
@@ -5855,7 +6143,9 @@ local function kcGold(mod, VERSION)
     end
     -- Turn BEFORE the box opens, so the sprite is already looking at the
     -- player on the frame the text appears rather than after it closes.
-    faceThePlayer(world, npc)
+    -- Audience keeps watching the stage (or its actual duo partner)
+    -- during conversation rather than staying turned toward the player.
+    if not def.kcAudienceStageFace then faceThePlayer(world, npc) end
     local ok, err = pcall(handler, world, npc)
     if not ok then
       mod.log:warn("kc gold talk: %s", tostring(err))
@@ -5883,7 +6173,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.5"
+  local VERSION = "0.37.6"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -5919,6 +6209,8 @@ return function(mod)
   end
 
   mod.options:define({
+    { key = "dusk_stone_reward", type = "toggle", label = "Dusk Stone reward", default = true },
+    { key = "expanded_species", type = "toggle", label = "Bundled evolutions", default = true },
     { key = "show_banner", type = "toggle",
       label = "Show load banner", default = true },
     -- 0.34.19: how the crowd's hearts pop in the first round. AROUND ROOM
@@ -5940,7 +6232,23 @@ return function(mod)
   -- shared read-only exports, meaningful on both generations
   -- the quest hook's call-style side: the last result, and the hook
   -- version a listener can check (briefs/KANTO_CONTESTS_QUEST_HOOKS.md)
-  mod.exports.questHooks = 1
+  mod.exports.questHooks = 2
+  mod.exports.bestRankFor = function(kind)
+    local save = mod.game and mod.game.save or {}
+    local highest = 1
+    local function readMon(mon)
+      local wins = mon and mon.contestWins or {}
+      for k, n in pairs(wins) do
+        if (not kind or kind == k) and type(n) == "number" then
+          highest = math.max(highest, math.min(4, math.floor(n) + 1))
+        end
+      end
+    end
+    for _, mon in ipairs(save.party or {}) do readMon(mon) end
+    for _, box in pairs(save.boxes or {}) do for _, mon in ipairs(box) do readMon(mon) end end
+    return KC_RANKS[highest], highest
+  end
+  mod.exports.bestRank = function() return mod.exports.bestRankFor() end
   mod.exports.lastContest = function()
     local save = mod.game and mod.game.save
     return save and save.kcLastContest or nil
@@ -5997,6 +6305,9 @@ return function(mod)
   -- the branch must come before the first one runs.
   local GameVersion = require("src.core.GameVersion")
   if GameVersion.generation() >= 2 then
+    local source = assert(mod:read("dusk_challenge.lua"))
+    mod.exports.duskChallenge = assert(load(source, "@kanto_contests/dusk_challenge.lua"))()(mod)
+    mod.exports.owns = mod.exports.duskChallenge.owns
     return kcGold(mod, VERSION)
   end
 
@@ -6914,7 +7225,7 @@ return function(mod)
   -- leave. ShopMenu is the engine's own mart and gives the whole flow for
   -- free: every snack visible at once with its price, the BUY/SELL/QUIT
   -- loop, the 1-99 quantity selector, the money box, the not-enough-money
-  -- line, and the ¥ glyph.
+  -- line, and the Â¥ glyph.
   --
   -- ShopMenu.new(game, stock, onQuit) takes stock as a plain array of item
   -- ids (ShopMenu.lua:152, and buy() reads them with data.items[id]), so
