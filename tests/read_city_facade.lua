@@ -18,8 +18,10 @@
 --
 -- It also reports what the facade COVERS: a vanilla sign or warp under the
 -- new building is unreachable afterwards, and its text has to be moved.
-local PROJECT = "C:/Users/dwitt/ce-new/mods/kc_layout/editor_project.lua"
-local CACHE = "C:/Users/dwitt/AppData/Roaming/pokemon-love2d/crystal/data/generated/"
+-- KC_PROJECT / KC_CACHE override these: the Gold/Silver bridge project
+-- (ce-new/mods/kc_layout_gs) is read against the GOLD cache.
+local PROJECT = os.getenv("KC_PROJECT") or "C:/Users/dwitt/ce-new/mods/kc_layout/editor_project.lua"
+local CACHE = os.getenv("KC_CACHE") or "C:/Users/dwitt/AppData/Roaming/pokemon-love2d/crystal/data/generated/"
 
 local CELL_COLL = {
   solid = 0x07, walk = 0x00, grass = 0x18, water = 0x21, shore = 0x23,

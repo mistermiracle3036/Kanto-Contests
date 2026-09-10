@@ -3,8 +3,8 @@
 -- Emits the composed cells (source block + quadrant) and the collision word
 -- per cell, plus the vanilla warps and signs so a facade that covers one is
 -- visible rather than inferred.
-local PROJECT = "C:/Users/dwitt/ce-new/mods/kc_layout/editor_project.lua"
-local C = "C:/Users/dwitt/AppData/Roaming/pokemon-love2d/crystal/data/generated/"
+local PROJECT = os.getenv("KC_PROJECT") or "C:/Users/dwitt/ce-new/mods/kc_layout/editor_project.lua"
+local C = os.getenv("KC_CACHE") or "C:/Users/dwitt/AppData/Roaming/pokemon-love2d/crystal/data/generated/"
 local P = dofile(PROJECT)
 local M = dofile(C .. "maps.lua")
 local TS = dofile(C .. "tilesets.lua")

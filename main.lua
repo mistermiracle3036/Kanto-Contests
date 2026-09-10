@@ -5040,11 +5040,40 @@ local function kcGold(mod, VERSION)
   -- back on the pavement -- so it is a table now and each reader looks the
   -- town up by map id.
   --
-  -- GOLDENROD IS NOT IN HERE and should not be added: its facade bakes tile
-  -- ids rather than (block, quadrant) references, has its own stamping code
-  -- and its own door at 35,4, and it works. Folding it in would be a rewrite
-  -- of the one street that has never gone wrong.
+  -- GOLDENROD is in here for its SIGN on Crystal, and as a full street on
+  -- Gold/Silver only (KCG.gs, below). On Crystal its facade bakes tile ids
+  -- rather than (block, quadrant) references, has its own stamping code
+  -- and its own door at 35,4, and it works; folding that in would be a
+  -- rewrite of the one street that has never gone wrong.
   --
+  -- GOLD / SILVER ONLY: Goldenrod's hall front, painted by the developer
+  -- in the Content Editor's Gold project (ce-new/mods/kc_layout_gs,
+  -- 2026-09-10) and read back by tests/read_city_facade.lua against the
+  -- GOLD cache. Crystal's Goldenrod differs from Gold's in exactly this
+  -- corner (Crystal has a house at cells 28-33,4-8 that Gold does not), so
+  -- the Crystal build keeps KC_GOLDENROD_FACADE and its door at 35,4, and
+  -- Gold gets this front with its door at 29,3 and its sign post at 30,4.
+  -- (block, quadrant) pairs into Gold's TILESET_JOHTO; no block 0 anywhere,
+  -- so nothing here can draw the border.
+  KCG.gsFacade = {
+    { bx = 13, by = 0, q = { 1, 0, 1, 1, 1, 2, 18, 0 }, coll = { 0x00, 0x00, 0x00, 0x07 } },
+    { bx = 14, by = 0, q = { 1, 3, 1, 3, 18, 1, 19, 0 }, coll = { 0x00, 0x00, 0x07, 0x07 } },
+    { bx = 15, by = 0, q = { 1, 3, 1, 3, 19, 0, 19, 1 }, coll = { 0x00, 0x00, 0x07, 0x07 } },
+    { bx = 13, by = 1, q = { 1, 0, 16, 0, 1, 2, 16, 2 }, coll = { 0x00, 0x07, 0x00, 0x07 } },
+    { bx = 14, by = 1, q = { 16, 1, 23, 0, 16, 3, 23, 2 }, coll = { 0x07, 0x07, 0x07, 0x71 } },
+    { bx = 15, by = 1, q = { 17, 0, 17, 1, 23, 3, 17, 3 }, coll = { 0x07, 0x07, 0x07, 0x07 } },
+    { bx = 15, by = 2, q = { 119, 2, 4, 1, 4, 2, 4, 3 }, coll = { 0x07, 0x00, 0x00, 0x00 } },
+    { bx = 14, by = 3, q = { 1, 0, 1, 0, 65, 2, 65, 3 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+    { bx = 15, by = 3, q = { 1, 0, 1, 0, 65, 2, 65, 3 }, coll = { 0x00, 0x00, 0x00, 0x00 } },
+  }
+  -- Which Goldenrod this build is on. Read once at load: the loader has
+  -- set GameVersion.current by the time a mod's entry runs.
+  -- (fields on KCG, not locals: kcGold is at Lua's 200-local ceiling)
+  KCG.gs = (function()
+    local v = require("src.core.GameVersion").current
+    return v == "gold" or v == "silver"
+  end)()
+
   -- `door` is the cell the developer painted, and the pavement square below
   -- it is where the player lands coming back out.
   local KC_STREETS = {
@@ -5056,10 +5085,17 @@ local function kcGold(mod, VERSION)
     -- by the step trigger and never enters STREET_OF_LOBBY.
     GOLDENROD = {
       map = "GOLDENROD_CITY",
-      signs = {
+      -- On GOLD and SILVER (0.37.24) Goldenrod is an ordinary street after
+      -- all: the developer's Gold paint, its door at 29,3, and the sign to
+      -- the door's right. `door` being set is what puts it in
+      -- STREET_OF_LOBBY and hands its entry, exit and sign to the shared
+      -- code; the Crystal-only paths below check for it and step aside.
+      facade = KCG.gs and KCG.gsFacade or nil,
+      door = KCG.gs and { x = 29, y = 3 } or nil,
+      signs = KCG.gs
         -- dialogue-ok: 14 / 12
-        ["36,5"] = "GOLDENROD CITY\nCONTEST HALL",
-      },
+        and { ["30,4"] = "GOLDENROD CITY\nCONTEST HALL" }
+        or { ["36,5"] = "GOLDENROD CITY\nCONTEST HALL" },
     },
     ECRUTEAK = {
       map = "ECRUTEAK_CITY", door = { x = 14, y = 21 },
@@ -5250,7 +5286,7 @@ local function kcGold(mod, VERSION)
         clearHearts()
         pcall(restoreParty, world)
       end
-      if mapId == KCG.map then
+      if mapId == KCG.map and not (STREET_OF[mapId] and STREET_OF[mapId].door) then
         ensureGoldenrodFacade()
         -- The street attendant is GONE. She existed to walk the player in
         -- when the hall had no building; now it has a door at 35,4 and an
@@ -5397,6 +5433,8 @@ local function kcGold(mod, VERSION)
   local DOOR_X, DOOR_Y = 35, 4
   mod.events:on("world.stepped", function(ev)
     if not (ev and ev.mapId == KCG.map) then return end
+    -- Gold/Silver: the street door at 29,3 is the shared handler's
+    if STREET_OF[KCG.map] and STREET_OF[KCG.map].door then return end
     if ev.x ~= DOOR_X or ev.y ~= DOOR_Y then return end
     local ok, err = pcall(enterHall, mod.world:overworld())
     if not ok then mod.log:warn("kc door: %s", tostring(err)) end
@@ -6254,7 +6292,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.23"
+  local VERSION = "0.37.24"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

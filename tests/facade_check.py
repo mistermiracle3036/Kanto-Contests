@@ -47,7 +47,7 @@ FACADES = {}
 # resolve and is skipped by name rather than by "the rows did not parse" --
 # a silent skip is how a check becomes a no-op.
 SKIP = {"KC_GOLDENROD_FACADE"}
-for name, body in re.findall(r"local (KC_\w+_FACADE) = \{(.*?)\n  \}", src, re.S):
+for name, body in re.findall(r"(?:local )?(KC_\w+_FACADE|KCG\.gsFacade) = \{(.*?)\n  \}", src, re.S):
     if name in SKIP:
         continue
     rows = re.findall(
