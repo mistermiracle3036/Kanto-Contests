@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.37.36
+## 0.37.37
 
-New in 0.37.36: **the mod is called Contests now**, not "Kanto Contests
+New in 0.37.37: **the mod is called Contests now**, not "Kanto Contests
 (Alpha)". Nothing else changes: the same save, the same halls, and the
 same entry in the mod list, under a shorter name.
 
