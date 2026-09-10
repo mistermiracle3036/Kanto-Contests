@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.37.13
+
+Documentation only: a judging screenshot that named the MASTER challenger on its panel is replaced.
+
 ## 0.37.12
 
 Documentation only: the README opens on one full-width judging screenshot.
