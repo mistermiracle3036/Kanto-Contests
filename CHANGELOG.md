@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.6
+## 0.37.8
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -49,6 +49,17 @@ has been rebuilt since. The short version:
   MISDREAVUS into MISMAGIUS, both bundled with the mod (each has its own
   switch in the options). Appeals no longer spend battle PP, and B
   withdraws from a contest.
+- **Desktop** (0.37.8): the contest screen fits and centres the whole
+  240-pixel panel in a Windows / macOS / Linux window instead of clipping
+  the coordinators and the move list. Phones are untouched.
+
+New in 0.37.8 (written as 0.37.7 by ChatGPT; renumbered because that zip
+was already delivered once):
+
+- Fix desktop contest-screen positioning: use Crystal/Gold's widescreen drawing entry point to center and fit the complete contest panel, rather than clipping the right-hand coordinators and moves outside a standard 160-pixel battle frame.
+- Preserve both mobile layouts and their existing rendering path. iOS/Android portrait and landscape renders are pixel-identical to 0.37.6 in introduction and move-menu checks.
+
+## 0.37.6
 
 New in 0.37.6: **colour in the contest hall.** Eighteen of the custom
 characters -- Agatha, Archer, Ariana, Dawn, Duplica, Eusine, Giovanni, Hugh,

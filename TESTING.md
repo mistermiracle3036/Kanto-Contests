@@ -1,6 +1,6 @@
-# Kanto Contests 0.37.6 phone test
+# Kanto Contests 0.37.8 phone test
 
-Import `kanto_contests-0.37.6.zip` through launcher MODS, then fully quit and relaunch. Start with Kanto Contests alone. Existing saves are supported. The two new switches default on; only Honchkrow and Mismagius are bundled.
+Import `kanto_contests-0.37.8.zip` through launcher MODS, then fully quit and relaunch. Start with Kanto Contests alone. Existing saves are supported. The two new switches default on; only Honchkrow and Mismagius are bundled.
 
 Before entering, talk to the waiting coordinators. After a win or loss, the newly drawn lobby coordinators should talk about the next contest, including after leaving and reentering a hall.
 
@@ -16,3 +16,7 @@ Before entering, talk to the waiting coordinators. After a win or loss, the newl
 10. Check audience facing and heart restoration in both HEARTS POP modes, both MOVE MENU layouts and both phone orientations. Finally test the intended optional companion mods and ribbon awards.
 
 Automated checks cover contest arithmetic, five-turn input flow, entry validation, four hall ranks, cross-category Fantina retries, one-time/full-bag rewards, native evolutions, save recovery and the species-off behavior. They do not replace this live iPhone animation/input check. Report the loaded version and MODS ERRS for failures.
+
+## Desktop positioning regression
+
+On Windows, macOS or Linux, open a contest in a wide window. All four coordinators and the complete move list must stay inside the window. Resize to 1280×720 and a narrower window; the whole panel should stay centered and proportionate. Check move animations and results. iOS/Android should keep the previous portrait and landscape layouts.

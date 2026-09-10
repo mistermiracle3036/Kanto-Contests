@@ -9,6 +9,14 @@ for _,version in ipairs({'red','yellow'}) do
   GV.current=version
   local r=T.sdk.loadMod(folder,{root=root,generation=1})
   T.eq(r.mod and r.mod.state,'loaded',version..' loads')
+  if not (r.mod and r.mod.state=='loaded') then
+    -- the harness has failed and passed this same tree seconds apart; when
+    -- it fails, say why, so a flake and a real fault can be told apart
+    for _,e in ipairs(r.errors or {}) do print('  loader: '..tostring(type(e)=='table' and (e.message or e.code) or e)) end
+    print('  mod state: '..tostring(r.mod and r.mod.state))
+    for id,m in pairs(r.loader.mods or {}) do print('  loader.mods: '..tostring(id)..' path='..tostring(m.path)..' state='..tostring(m.state)) end
+    print('  wanted path: '..path..' folder='..folder..' root='..tostring(root))
+  end
   local errors=0
   for _,e in ipairs(r.errors) do
     local s=tostring(type(e)=='table' and (e.message or e.code) or e)

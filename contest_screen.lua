@@ -493,6 +493,34 @@ function S:uiSize()
   return L.w, L.h
 end
 
+-- Game2's standard stack draw centers a 160x144 panel and does not read
+-- uiSize(). Desktop needs its widescreen entry point to fit the whole contest.
+-- Keep the accepted iOS/Android rendering path and both mobile layouts intact.
+function S:drawsWidescreen()
+  local os = love and love.system and love.system.getOS and love.system.getOS()
+  return os == "Windows" or os == "OS X" or os == "Linux"
+end
+
+function S.fitDesktop(w, h, L)
+  local fit = math.min(w / L.w, h / L.h)
+  local scale = fit >= 1 and math.floor(fit) or fit
+  return scale, math.floor((w - L.w * scale) / 2),
+    math.floor((h - L.h * scale) / 2)
+end
+
+function S:drawWidescreen(w, h)
+  local G = love.graphics
+  local L = self:layout()
+  local scale, x, y = S.fitDesktop(w, h, L)
+  local m = self:mods()
+  m.Chrome.letterbox(w, h, 1, 1, 1)
+  G.push("all")
+  G.translate(x, y)
+  G.scale(scale, scale)
+  self:draw()
+  G.pop()
+end
+
 function S:sgbPalettes()
   local L = self.currentLayout or self:layout()
   local okP, PaletteFX = pcall(require, "src.render.PaletteFX")

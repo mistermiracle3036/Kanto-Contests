@@ -250,4 +250,31 @@ do
   T.check(screen.finished and done[1].final.withdrawn,"A confirms withdrawal")
   T.eq(#done,1,"withdrawal completes once")
 end
+-- Desktop uses Game2's custom-size entry point; mobile keeps its old path.
+do
+  local oldLove=love
+  love={system={getOS=function() return 'Windows' end}}
+  local screen=newScreen({'POUND'})
+  T.check(screen:drawsWidescreen(),'Windows opts into Game2 widescreen drawing')
+  for _,os in ipairs({'OS X','Linux'}) do
+    love.system.getOS=function() return os end
+    T.check(screen:drawsWidescreen(),os..' uses desktop drawing')
+  end
+  for _,os in ipairs({'iOS','Android','NX','Unknown'}) do
+    love.system.getOS=function() return os end
+    T.check(not screen:drawsWidescreen(),os..' retains existing drawing path')
+  end
+  for _,size in ipairs({{1920,1006},{1280,720},{800,600},{400,800},{200,120}}) do
+    local w,h=unpack(size)
+    local L=S.layoutFor(w,h)
+    local scale,x,y=S.fitDesktop(w,h,L)
+    T.check(x>=0 and y>=0 and x+L.w*scale<=w and y+L.h*scale<=h,
+      'whole contest fits '..w..'x'..h)
+    T.check(math.abs((w-L.w*scale)/2-x)<1,'horizontal centering uses full contest width')
+  end
+  local scale,x=S.fitDesktop(1920,1006,S.WIDE)
+  T.eq(scale,6,'screenshot-sized window fits full contest at six times scale')
+  T.eq(x,240,'screenshot-sized window centers the full 240-pixel panel')
+  love=oldLove
+end
 T.finish("contest screen")
