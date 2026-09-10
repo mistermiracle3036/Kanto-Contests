@@ -15,12 +15,12 @@ Condition measures preparation for one category. Sheen limits feeding over the P
 In Johto judging, press B at the move menu and confirm with A. The contest ends without a win and your full party returns. Appeals do not spend battle PP. Reloading an unfinished contest cancels it and restores the team instead of restarting the routine halfway through.
 </details>
 
-<details><summary>How do I get the Dusk Stone?</summary>
+<details><summary>Spoilers: how do I get the MASTER challenge's reward?</summary>
 
 Win a MASTER contest with Fantina as an opponent. She is guaranteed until that first victory, across all categories. Afterward she approaches in the lobby with one stone. If your bag is full, clear a slot and revisit a contest lobby. The Dusk Stone reward option must be on when you win; turning it off completes the challenge without that gift.
 </details>
 
-<details><summary>Can I use another dex expansion?</summary>
+<details><summary>Spoilers: can I use another dex expansion for the MASTER challenge's Pokémon?</summary>
 
 Turn Bundled evolutions off, then fully quit and relaunch. No bundled species or evolution patches load. The Dusk Stone recognizes a uniquely named HONCHKROW or MISMAGIUS supplied by another pack; unsupported or ambiguous targets do not consume it. Existing bundled Pokémon are protected separately until you reenable their species. They are not automatically converted into the other pack's IDs.
 </details>

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.37.11
+
+Documentation only; the mod itself is 0.37.10's. The README is rewritten
+with screenshots of every part of the mod (the four halls, entering, the
+introduction round, judging, snacks, ribbons), a credits section naming
+every artist, and the MASTER challenge behind a spoiler block with its full
+account in `docs/MASTER_CHALLENGE.md`. The FAQ's two entries about the
+challenge are behind spoiler blocks too. The screenshots live in the
+repository and are not in the download.
+
 ## 0.37.10
 
 New in 0.37.10: a polish pass on the MASTER challenge's ending, and a fix
