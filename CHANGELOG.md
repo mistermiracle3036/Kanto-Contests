@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.27
+## 0.37.28
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -56,7 +56,7 @@ has been rebuilt since. The short version:
   artist, and the challenge behind a spoiler fold with its full account in
   `docs/MASTER_CHALLENGE.md`.
 
-New in 0.37.27: on Gold and Silver, Cianwood no longer has a second post
+New in 0.37.28: on Gold and Silver, Cianwood no longer has a second post
 repeating the city sign; that post exists only on Crystal, where it
 carries the POKe SEER's sign. The Gold/Silver Goldenrod hall front of
 0.37.24 draws now; it had been built against the wrong tileset.
@@ -151,8 +151,7 @@ time.
 
 ## 0.37.8
 
-New in 0.37.8 (written as 0.37.7 by ChatGPT; renumbered because that zip
-was already delivered once):
+New in 0.37.8:
 
 - Fix desktop contest-screen positioning: use Crystal/Gold's widescreen drawing entry point to center and fit the complete contest panel, rather than clipping the right-hand coordinators and moves outside a standard 160-pixel battle frame.
 - Preserve both mobile layouts and their existing rendering path. iOS/Android portrait and landscape renders are pixel-identical to 0.37.6 in introduction and move-menu checks.
@@ -174,9 +173,8 @@ Engineer, Exterminator, Slot Maniac, Tamer, Veteran, Walker and DJ Mary
 watch from the crowd. Seven of the nineteen arrive already in their approved
 colours.
 
-The 0.36.6 to 0.37.4 entries below were phone builds written by ChatGPT
-(Astra) against the project's handoff; 0.37.6 is the first build that
-carries them and this repository's own changes together.
+0.37.6 is the first build that carries the 0.36.6 to 0.37.4 test builds
+and this repository's own changes together.
 
 ## 0.37.4
 
