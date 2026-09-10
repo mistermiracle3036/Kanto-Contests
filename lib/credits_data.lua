@@ -7,6 +7,10 @@
 -- An artist whose art is only in unreleased mods appears here the day
 -- that mod is released -- re-run the generator after any release.
 return {
+  { artist = "ArtsyAlraune",
+    works = { "Breeder" },
+    mods = { "Kanto Contests" },
+    source = "sprites/REGISTRY.json" },
   { artist = "Bani",
     works = { "Ash", "Chef", "Eusine", "Juliana", "Larry", "Lass (RBY) (as Suzie)", "Lass (as Duplica)", "Leaf", "Lear", "Lillie", "Looker", "Nate", "Ranger", "Santa", "White Haired Girl (as Giselle)", "Yellow" },
     mods = { "Kanto Contests" },
@@ -56,7 +60,11 @@ return {
     mods = { "Kanto Contests" },
     source = "sprites/REGISTRY.json" },
   { artist = "Kuroko Aizawa (Polished Crystal)",
-    works = { "Artist", "Cheryl", "Engineer", "Ivy" },
+    works = { "Artist", "Cheryl", "Engineer" },
+    mods = { "Kanto Contests" },
+    source = "sprites/REGISTRY.json" },
+  { artist = "Kuroko Aizawa and JaceDeane (Polished Crystal)",
+    works = { "Ivy" },
     mods = { "Kanto Contests" },
     source = "sprites/REGISTRY.json" },
   { artist = "mauvesea (Polished Crystal)",

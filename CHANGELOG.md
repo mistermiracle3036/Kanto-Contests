@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.33
+## 0.37.34
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -56,8 +56,8 @@ has been rebuilt since. The short version:
   artist, and the challenge behind a spoiler fold with its full account in
   `docs/MASTER_CHALLENGE.md`.
 
-New in 0.37.33: **the artists are credited in game.** Press START, then
-CREDITS, for the 28 artists whose work appears in this mod, what each of
+New in 0.37.34: **the artists are credited in game.** Press START, then
+CREDITS, for the 30 artists whose work appears in this mod, what each of
 them drew, and which mods it is in. Other mods that carry the same screen
 share the one menu entry rather than adding their own.
 
