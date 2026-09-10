@@ -1,4 +1,4 @@
-# Kanto Contests
+# Contests
 
 By **Mister Miracle** ([@mistermiracle3036](https://github.com/mistermiracle3036)).
 
@@ -83,7 +83,7 @@ The appraiser next to the seller reads a Pokémon's condition in words. Her word
 
 When a condition reaches 100 the appraiser awards the matching scarf: red for COOL, blue BEAUTY, pink CUTE, green SMART, yellow TOUGH. Held or worn through the party ITEM menu, a scarf adds 20 to the introduction score in its category.
 
-[Kanto Ribbons](https://github.com/mistermiracle3036/kanto_ribbons) is optional. Kanto Contests records category wins and rank wins on the Pokémon; Ribbons reads them and shows the ribbons, including for wins made before it was installed.
+[Kanto Ribbons](https://github.com/mistermiracle3036/kanto_ribbons) is optional. This mod records category wins and rank wins on the Pokémon; Ribbons reads them and shows the ribbons, including for wins made before it was installed.
 
 | |
 |---|
@@ -106,7 +106,7 @@ A traveler from a far-off region is eager to see you compete. If you can beat th
 
 ## Options
 
-In the launcher under MODS → Kanto Contests → OPTIONS.
+In the launcher under MODS → Contests → OPTIONS.
 
 | Option | Default | Effect |
 |---|---|---|
