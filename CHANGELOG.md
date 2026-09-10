@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.37.12
+
+Documentation only: the README opens on one full-width judging screenshot.
+
 ## 0.37.11
 
 Documentation only; the mod itself is 0.37.10's. The README is rewritten

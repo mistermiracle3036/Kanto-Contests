@@ -4,9 +4,7 @@ By **Mister Miracle** ([@mistermiracle3036](https://github.com/mistermiracle3036
 
 Pokémon Contests for Crystal, Gold and Silver on [gen1recomp](https://github.com/bryanthaboi/gen1recomp): five categories, a four-hall rank circuit across Johto, rival coordinators drawn from a cast of well over a hundred, a live crowd, snacks and scarves, and a judging round played by the Ruby and Sapphire rules.
 
-| | |
-|---|---|
-| ![The Goldenrod stage, four coordinators lined up and the crowd around them](docs/goldenrod_stage.jpg) | ![The judging screen: the applause meter maxed, "The crowd goes wild! 6 hearts!"](docs/applause_wild.png) |
+![The judging screen: the applause meter maxed, "The crowd goes wild! 6 hearts!"](docs/applause_wild.png)
 
 ## Install and update
 
