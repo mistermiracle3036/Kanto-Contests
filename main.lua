@@ -5078,13 +5078,15 @@ local function kcGold(mod, VERSION)
       map = "CIANWOOD_CITY", door = { x = 7, y = 23 },
       facade = KC_CIANWOOD_FACADE,
       -- The POKe SEER's house sign (vanilla bgEvent at 8,24) stood where
-      -- the hall's door post now is. Developer, 2026-09-10: its event moves
-      -- two right and two up to the post painted at 10,22, and the hall's
-      -- own sign answers the old cell. bgEvents are a list (the same
-      -- wholesale-replace trap as warps), so the move is made on the live
-      -- map def at every entry (movedSigns, applied beside the rock fix),
-      -- never through a maps:patch.
-      movedSigns = { { from = { 8, 24 }, to = { 10, 22 } } },
+      -- the hall's door post now is. Its event moves to the OTHER post the
+      -- facade paints, at 15,30 (KC_CIANWOOD_FACADE block 69 quadrant 0 --
+      -- the only painted post with no event behind it; 0.37.21 sent it to
+      -- 10,22, which is painted floor, so the seer's sign vanished and the
+      -- new post was dead). The hall's own sign answers the old cell.
+      -- bgEvents are a list (the same wholesale-replace trap as warps), so
+      -- the move is made on the live map def at every entry (movedSigns,
+      -- applied beside the rock fix), never through a maps:patch.
+      movedSigns = { { from = { 8, 24 }, to = { 15, 30 } } },
       signs = {
         -- dialogue-ok: 13 / 12
         ["8,24"] = "CIANWOOD CITY\nCONTEST HALL",
@@ -6245,7 +6247,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.21"
+  local VERSION = "0.37.22"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

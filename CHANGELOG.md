@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.21
+## 0.37.22
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -56,10 +56,10 @@ has been rebuilt since. The short version:
   artist, and the challenge behind a spoiler fold with its full account in
   `docs/MASTER_CHALLENGE.md`.
 
-New in 0.37.21: **Cianwood's contest hall has its sign.** The POKe SEER's
-house sign, which the hall's front had covered, moves two squares right
-and two up to its own post, and the post by the hall's door now reads
-CIANWOOD CITY CONTEST HALL like the other three halls.
+New in 0.37.22: **Cianwood's contest hall has its sign.** The post by the
+hall's door reads CIANWOOD CITY CONTEST HALL like the other three halls,
+and the POKe SEER's house sign, which that post used to carry, now stands
+on its own post further into town.
 
 ## 0.37.18
 
