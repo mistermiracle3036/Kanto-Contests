@@ -39,8 +39,7 @@ open problem, THIS block is the truth:
   with no error, usually the first run after a file write; the same tree
   passes seconds later. Rerun before believing a FAIL there.
 - Screenshots live in docs/ and are excluded from the zip (release.yml and
-  .modkitignore); the README embeds them. docs/TESTING.md is the tester's
-  checklist, also out of the zip.
+  .modkitignore); the README embeds them.
 
 # Parked / revisit later
 
