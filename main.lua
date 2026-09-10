@@ -6273,26 +6273,14 @@ local function kcGold(mod, VERSION)
     return true
   end
 
-  -- Gold banner: the Gen 1 say() is a TextBox this boot never loads, so
-  -- the world's own text box is the channel.
-  local bannerShown = false
-  mod.events:on("map.entered", function()
-    if bannerShown then return end
-    if not mod.options:get("show_banner") then return end
-    bannerShown = true
-    pcall(function()
-      local world = mod.world:overworld()
-      if world and world.showText then
-        world:showText(("KANTO CONTESTS\nv%s ALPHA\fJOHTO preview"):format(VERSION))
-      end
-    end)
-  end)
-
+  -- No load banner (developer, 2026-09-10): the version is in the mod
+  -- manager, and a text box on the first map was the one thing every
+  -- player saw before playing.
   mod.log:info("kanto_contests %s loaded (gen 2 arm)", VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.24"
+  local VERSION = "0.37.25"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -6330,8 +6318,6 @@ return function(mod)
   mod.options:define({
     { key = "dusk_stone_reward", type = "toggle", label = "Dusk Stone reward", default = true },
     { key = "expanded_species", type = "toggle", label = "Bundled evolutions", default = true },
-    { key = "show_banner", type = "toggle",
-      label = "Show load banner", default = true },
     -- 0.34.19: how the crowd's hearts pop in the first round. AROUND ROOM
     -- walks them round the seats one at a time with a ding each; ALL AT
     -- ONCE is exactly 0.34.18 (a quick stagger under the applause). The
@@ -7586,19 +7572,6 @@ return function(mod)
   -- TextBox there is discarded (v0.1: no banner ever appeared). First map
   -- entry of the session is the first moment a box survives.
   -- ------------------------------------------------------------------
-  local bannerShown = false
-  mod.events:on("map.entered", function()
-    local ok, err = pcall(function()
-      if bannerShown then return end
-      if not mod.options:get("show_banner") then return end
-      bannerShown = true
-      -- "ALPHA" rather than "ready": this is the one status signal that
-      -- reaches someone who installed from a Discord link and never saw
-      -- the release page. 18 glyphs per line, so it has to be this terse.
-      say("KANTO CONTESTS\nv" .. VERSION .. " ALPHA")
-    end)
-    if not ok then mod.log:warn("banner failed: %s", tostring(err)) end
-  end)
-
+  -- No load banner on Gen 1 either (developer, 2026-09-10).
   mod.log:info("kanto_contests %s loaded", VERSION)
 end

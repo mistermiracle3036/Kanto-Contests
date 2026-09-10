@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.24
+## 0.37.25
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -56,7 +56,11 @@ has been rebuilt since. The short version:
   artist, and the challenge behind a spoiler fold with its full account in
   `docs/MASTER_CHALLENGE.md`.
 
-New in 0.37.24: **Gold and Silver get their own Goldenrod hall front.**
+New in 0.37.25: **no more load banner.** The "KANTO CONTESTS vX ALPHA" box
+that popped up on the first map is gone, and so is its option; the mod
+manager shows the version.
+
+**Gold and Silver get their own Goldenrod hall front.**
 Crystal's Goldenrod has a house in the north-east corner that Gold's does
 not, so the hall front drawn for Crystal left open ground on Gold. Gold
 and Silver now draw their own front there, with the door at a new spot and

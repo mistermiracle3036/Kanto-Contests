@@ -112,7 +112,6 @@ In the launcher under MODS → Kanto Contests → OPTIONS.
 |---|---|---|
 | HEARTS POP | AROUND ROOM | Audience hearts one seat at a time, or ALL AT ONCE. |
 | MOVE MENU | FULL INFO | The move card, or a CLASSIC four-move menu. |
-| Show load banner | On | Show the loaded version on the first map. |
 
 <details>
   <summary>Spoiler warning: the MASTER challenge's switches</summary>
