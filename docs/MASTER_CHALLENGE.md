@@ -40,7 +40,6 @@ Their internal ids are `KC_HONCHKROW` and `KC_MISMAGIUS`; the stone is `KC_DUSK_
 |---|---|---|
 | Dusk Stone reward | On | Award the stone for the first MASTER win against her. Turning it off before that win completes the challenge without a stone. |
 | Bundled evolutions | On | Register the two species and the stone evolutions. Turn it off to use another pack's Honchkrow and Mismagius instead, then fully quit and relaunch. |
-| Fantina replay | Off | A developer switch for testing and screenshots. She enters every MASTER contest and repeats the gift after each win, one more stone each time. After a gift she stays out of the line-up until you leave the building and come back. |
 
 With **Bundled evolutions off**, the mod adds neither species nor the evolution entries. The Dusk Stone will still evolve a Murkrow or Misdreavus into another pack's Honchkrow or Mismagius if that pack names them uniquely; if no such species exists the stone does nothing and is kept. Turn the reward off too if you do not want the item at all.
 

@@ -62,27 +62,16 @@ return function(mod)
     save.kcFantinaChallenge=save.kcFantinaChallenge or {}
     return save.kcFantinaChallenge
   end
-  local function replay() return mod.options:get("fantina_replay")==true end
-  -- Replay (dev switch): after a win she is NOT drawn into the next lobby
-  -- line-up while her gift is still owed, nor after it until the player has
-  -- left the building and come back (developer, 2026-09-10: two Fantinas in
-  -- the lobby otherwise). leftHall() is called from main.lua's map.entered.
-  local function replayReady(s) return not s.pending and s.rearm~=false end
   function api.needed(rank,plan)
-    local s=state(mod.game and mod.game.save)
-    return rank=="MASTER" and (not s.won or (replay() and replayReady(s)))
+    return rank=="MASTER" and not state(mod.game and mod.game.save).won
       and not (plan and plan.record==false)
-  end
-  function api.leftHall(save)
-    local s=state(save)
-    if s.rearm==false then s.rearm=true end
   end
   function api.entry()
     return {sprite=api.sprite,name="FANTINA",species="MISDREAVUS",level=55}
   end
   function api.recordWin(save,rank,won,recorded,participated)
     local s=state(save)
-    if rank=="MASTER" and won and recorded and participated and (replay() or not s.won) then
+    if rank=="MASTER" and won and recorded and participated and not s.won then
       s.won=true
       s.pending=mod.options:get("dusk_stone_reward")~=false
       s.given=false
@@ -97,7 +86,6 @@ return function(mod)
     if not require("src.inventory.Bag").add(save,ID,1,data) then return false,"bag_full" end
     local s=state(save)
     s.given,s.pending=true,false
-    if replay() then s.rearm=false end
     return true
   end
   api.owns={pokemon=bundled and {"KC_HONCHKROW","KC_MISMAGIUS"} or {},items={ID},

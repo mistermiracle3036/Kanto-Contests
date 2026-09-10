@@ -121,7 +121,6 @@ In the launcher under MODS → Kanto Contests → OPTIONS.
 |---|---|---|
 | Dusk Stone reward | On | Award the stone for the first MASTER win against her. Off before that win completes the challenge without it. |
 | Bundled evolutions | On | Register HONCHKROW and MISMAGIUS. Turn off to use another dex expansion's, then fully quit and relaunch. |
-| Fantina replay | Off | Developer switch: she enters every MASTER contest and repeats the gift after each win. |
 
 What each does to a save, and what happens if the mod is removed, is in [docs/MASTER_CHALLENGE.md](docs/MASTER_CHALLENGE.md).
 </details>

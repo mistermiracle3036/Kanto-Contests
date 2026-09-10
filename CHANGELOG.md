@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.37.16
+
+The MASTER challenge's developer replay switch (0.37.9) is removed; it was
+for screenshots and they are taken. Saves that had it on are unaffected.
+
 ## 0.37.15
 
 Documentation only: the README's spoiler folds use the standard GitHub form.

@@ -5992,14 +5992,7 @@ local function kcGold(mod, VERSION)
       elseif done then done() end
     end)
   end
-  mod.events:on("map.entered",function(ev)
-    rewardVisit=nil; rewardBusy=false
-    -- outside any contest lobby: re-arm the Fantina replay (dev switch)
-    local mapId=ev and ev.mapId
-    if dusk and dusk.leftHall and mapId and not STREET_OF_LOBBY[mapId] then
-      dusk.leftHall(mod.game and mod.game.save)
-    end
-  end)
+  mod.events:on("map.entered",function() rewardVisit=nil; rewardBusy=false end)
   -- After the gift she LEAVES: walks to the lobby's exit carpet (the
   -- warps in HALL_DEF) and goes out, rather than vanishing where she stood
   -- (developer, 2026-09-10). A breadth-first walk over free floor, other
@@ -6227,7 +6220,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.15"
+  local VERSION = "0.37.16"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -6265,10 +6258,6 @@ return function(mod)
   mod.options:define({
     { key = "dusk_stone_reward", type = "toggle", label = "Dusk Stone reward", default = true },
     { key = "expanded_species", type = "toggle", label = "Bundled evolutions", default = true },
-    -- DEV: Fantina enters every MASTER contest and repeats the lobby gift
-    -- after each win (another DUSK STONE each time). For screenshots and
-    -- testing; off by default and not a play setting.
-    { key = "fantina_replay", type = "toggle", label = "Fantina replay", default = false },
     { key = "show_banner", type = "toggle",
       label = "Show load banner", default = true },
     -- 0.34.19: how the crowd's hearts pop in the first round. AROUND ROOM
