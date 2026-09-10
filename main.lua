@@ -5992,7 +5992,59 @@ local function kcGold(mod, VERSION)
       elseif done then done() end
     end)
   end
-  mod.events:on("map.entered",function() rewardVisit=nil; rewardBusy=false end)
+  mod.events:on("map.entered",function(ev)
+    rewardVisit=nil; rewardBusy=false
+    -- outside any contest lobby: re-arm the Fantina replay (dev switch)
+    local mapId=ev and ev.mapId
+    if dusk and dusk.leftHall and mapId and not STREET_OF_LOBBY[mapId] then
+      dusk.leftHall(mod.game and mod.game.save)
+    end
+  end)
+  -- After the gift she LEAVES: walks to the lobby's exit carpet (the
+  -- warps in HALL_DEF) and goes out, rather than vanishing where she stood
+  -- (developer, 2026-09-10). A breadth-first walk over free floor, other
+  -- people and the player treated as walls; movement bytes are the
+  -- engine's own (src/script/gen2/Movement.lua: 0x0c + dir, 0x47 ends).
+  -- No path (someone standing in the doorway) falls back to the old exit.
+  local function rewardWalkOut(world,npc,done)
+    local map=world.map
+    local W,Hh=(HALL_DEF.width or 0)*2,(HALL_DEF.height or 0)*2
+    local goal={}
+    for _,w in ipairs(HALL_DEF.warps or {}) do goal[w.y*W+w.x]=true end
+    local function free(x,y)
+      if x<0 or y<0 or x>=W or y>=Hh then return false end
+      local at=world:npcAt(x,y)
+      if at and at~=npc then return false end
+      local p=world.player
+      if p and p.cellX==x and p.cellY==y then return false end
+      local c=map.cellCollision and map:cellCollision(x,y)
+      return c==0 or c==0x70 or goal[y*W+x]
+    end
+    local DIRS={{0,1,0x0c},{0,-1,0x0d},{-1,0,0x0e},{1,0,0x0f}}
+    local sx,sy=npc.cellX,npc.cellY
+    local prev,q,seen={},{{sx,sy}},{[sy*W+sx]=true}
+    local found
+    local i=1
+    while i<=#q and not found do
+      local cx,cy=q[i][1],q[i][2]; i=i+1
+      for _,d in ipairs(DIRS) do
+        local nx,ny=cx+d[1],cy+d[2]
+        local k=ny*W+nx
+        if not seen[k] and free(nx,ny) then
+          seen[k]=true; prev[k]={cx,cy,d[3]}; q[#q+1]={nx,ny}
+          if goal[k] then found=k; break end
+        end
+      end
+    end
+    if not found then return done() end
+    local bytes={}
+    local k=found
+    while prev[k] do
+      local p=prev[k]; table.insert(bytes,1,p[3]); k=p[2]*W+p[1]
+    end
+    bytes[#bytes+1]=0x47
+    world:beginMovement(objectIdOf(npc),bytes,done)
+  end
   mod.hooks:wrap("core.update",function(next_,game,dt)
     local r=next_(game,dt)
     local world=mod.world:overworld()
@@ -6026,7 +6078,9 @@ local function kcGold(mod, VERSION)
         world:turnObject(objectIdOf(npc),face)
         world:turnObject(0,({up="down",down="up",left="right",right="left"})[face])
       end
-      rewardTalk(world,function() mod.world:removeNpc(id); rewardBusy=false end)
+      rewardTalk(world,function()
+        rewardWalkOut(world,npc,function() mod.world:removeNpc(id); rewardBusy=false end)
+      end)
     end)
     return r
   end)
@@ -6173,7 +6227,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.9"
+  local VERSION = "0.37.10"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

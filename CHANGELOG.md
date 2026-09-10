@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.37.10
+
+New in 0.37.10: **Fantina leaves the way she came.** After handing over
+the DUSK STONE she walks to the lobby's exit carpet and goes out, instead
+of disappearing where she stood.
+
+The **Fantina replay** developer switch no longer puts a second Fantina in
+the lobby line-up while she is handing over the gift. After a win she stays
+out of the queue until you leave the building and come back.
+
 ## 0.37.9
 
 New in 0.37.9: **the scarves and snacks describe themselves in the PACK.**
