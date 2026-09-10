@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.37.17
+
+Documentation only: the README's MASTER challenge teaser, in the developer's words.
+
 ## 0.37.16
 
 The MASTER challenge's developer replay switch (0.37.9) is removed; it was

@@ -93,7 +93,7 @@ Grand Hall, Trainer Journey and Trophy Case are also optional companions.
 
 ## The MASTER challenge
 
-Something is waiting at Blackthorn. Someone new enters your first MASTER contest, whichever category, keeps coming back until you beat her, and there is a reward.
+A traveler from a far-off region is eager to see you compete. Beat them and place first in a MASTER contest, and you will be rewarded.
 
 <details>
   <summary>Spoiler warning</summary>
