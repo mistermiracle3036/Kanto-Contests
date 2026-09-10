@@ -1,14 +1,14 @@
 # Changelog
 
-## 0.37.38
+## 0.37.39
 
-New in 0.37.38: **the mod is called Contests now**, not "Kanto Contests
+New in 0.37.39: **the mod is called Contests now**, not "Kanto Contests
 (Alpha)". Nothing else changes: the same save, the same halls, and the
 same entry in the mod list, under a shorter name.
 
 **The artists are credited in game.** Press START, then
-CREDITS, for the 30 artists whose work appears in this mod, what each of
-them drew, and which mods it is in. Other mods that carry the same screen
+CREDITS, for the 31 people whose work appears in this mod, what each of
+them made, and which mods it is in. Other mods that carry the same screen
 share the one menu entry rather than adding their own.
 
 ## 0.37.31
