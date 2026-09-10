@@ -1,7 +1,7 @@
 return {
-  summary = "Development preview: five contest categories, four Johto ranks, rival coordinators, snacks and scarves. Challenge Fantina at MASTER and earn a Dusk Stone.",
+  summary = "Five contest categories, four Johto ranks, rival coordinators, snacks and scarves. Challenge Fantina at MASTER and earn a Dusk Stone.",
   author = "Mister Miracle",
-  tags = { "contests", "quest", "celadon", "goldenrod", "alpha" },
+  tags = { "contests", "quest", "celadon", "goldenrod", "johto" },
   differences = {
     "Adds a Contest Hall map reachable from Celadon City (ask the little girl).",
     "Adds a contest judge who runs all five contests; you pick one and appeal in a battle-style round.",

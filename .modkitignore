@@ -27,6 +27,7 @@ tests/engine_parity_check.py
 tests/dump_city_paint.lua
 tests/crowd_reach_test.lua
 tests/coordinator_table.py
+tests/credits_test.lua
 tests/contest_screen_test.lua
 tests/check_dialogue.py
 tests/audio/make_ding.py
@@ -73,3 +74,4 @@ docs/ribbons.png
 docs/snacks_1.png
 docs/snacks_2.png
 docs/applause_wild.png
+docs/credits.png

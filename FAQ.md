@@ -1,4 +1,4 @@
-# Kanto Contests FAQ
+# Contests FAQ
 
 <details><summary>Why is there no rank-selection menu?</summary>
 

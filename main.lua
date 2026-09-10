@@ -6296,7 +6296,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.31"
+  local VERSION = "0.37.40"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -6349,6 +6349,27 @@ return function(mod)
       default = "full",
       choices = { { "FULL INFO", "full" }, { "CLASSIC", "classic" } } },
   })
+
+
+  -- IN-GAME ARTIST CREDITS (0.37.33). Several artists cleared their art on
+  -- condition of credit and one asked for it in game, so the portfolio
+  -- applies that to everyone; THIRD_PARTY_NOTICES.md stays as it is, this
+  -- is in addition to it. lib/credits.lua is SHARED code and
+  -- lib/credits_data.lua is GENERATED from sprites/REGISTRY.json -- both
+  -- are copied byte-for-byte from exchange/outbox/credits-adoption and
+  -- neither may be edited here (a local edit forks the screen and loses
+  -- the single-row election). Above the generation branch on purpose:
+  -- ui.start_menu.items is a hook on both arms, and attach touches nothing
+  -- generation-specific -- no save key, no option, no dependency.
+  do
+    local function module(path)
+      return assert(load(assert(mod:read(path)), "@" .. mod.id .. "/" .. path))()
+    end
+    local ok, err = pcall(function()
+      module("lib/credits.lua").attach(mod, module("lib/credits_data.lua"))
+    end)
+    if not ok then mod.log:warn("credits screen: %s", tostring(err)) end
+  end
 
   -- shared read-only exports, meaningful on both generations
   -- the quest hook's call-style side: the last result, and the hook

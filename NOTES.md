@@ -45,7 +45,15 @@ open problem, THIS block is the truth:
   the same moment the suite failed, and 6/6 passes from a fresh copy of the
   tree. Run the suites against a COPY when this bites (scratchpad/solo), or
   make sure nothing sits in Kanto-Contests. Upstream fix is in the engine's
-  harness, not here.
+  harness, not here. Two more harness facts, learned 2026-09-10 writing
+  tests/credits_test.lua: an ABSOLUTE mod path handed to T.sdk.loadMod is
+  never discovered at all (tests/fs_io.lua's abs() always prefixes the
+  harness root, so it looks for "./C:/..."), which is why the newer tests
+  take a mod dir and split it into root + folder the way
+  tests/release_behavior_test.lua does; and the older suites that hardcode
+  "../Kanto-Contests" can still be run against a copy through a junction
+  rig -- a scratch folder holding `engine` and `Kanto-Contests` junctions
+  (mklink /J), then luajit from the rig's engine.
 - Screenshots live in docs/ and are excluded from the zip (release.yml and
   .modkitignore); the README embeds them.
 
