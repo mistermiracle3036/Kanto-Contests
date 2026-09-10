@@ -35,9 +35,17 @@ open problem, THIS block is the truth:
   the rooms and three facades) and ce-new/mods/kc_layout_gs (Gold; the Gold
   Goldenrod front). tests/read_city_facade.lua and tests/dump_city_paint.lua
   take KC_PROJECT / KC_CACHE for the Gold one.
-- The test harness (engine tests/modkit) sometimes reports the mod as absent
-  with no error, usually the first run after a file write; the same tree
-  passes seconds later. Rerun before believing a FAIL there.
+- THE HARNESS "MOD ABSENT" FLAKE, EXPLAINED (2026-09-10): engine
+  tests/fs_io.lua decides "is this a directory" on Windows by renaming the
+  folder to itself (FsIo.isDir), and Windows denies that rename while ANY
+  process holds a handle in the folder -- a shell whose cwd is inside it,
+  an editor, another session. Then the loader lists no mod, reports no
+  error, and every loader-backed suite fails "best-rank export" / "loads
+  (got nil)". Proven with os.rename(dir, dir) returning Access is denied at
+  the same moment the suite failed, and 6/6 passes from a fresh copy of the
+  tree. Run the suites against a COPY when this bites (scratchpad/solo), or
+  make sure nothing sits in Kanto-Contests. Upstream fix is in the engine's
+  harness, not here.
 - Screenshots live in docs/ and are excluded from the zip (release.yml and
   .modkitignore); the README embeds them.
 

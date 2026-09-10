@@ -510,10 +510,18 @@ end
 
 function S:drawWidescreen(w, h)
   local G = love.graphics
-  local L = self:layout()
-  local scale, x, y = S.fitDesktop(w, h, L)
   local m = self:mods()
   m.Chrome.letterbox(w, h, 1, 1, 1)
+  -- Game2's opaque-screen safety net (src/core/Game2.lua, "CLEARTILEMAP
+  -- SAFETY NET") calls this whenever the METHOD EXISTS, without asking
+  -- drawsWidescreen(), and then blits the panel itself on top. On a phone,
+  -- where the opt-in says no, that drew the whole contest twice (0.37.8 to
+  -- 0.37.30: the HUD and the judge doubled up the screen). So unless this
+  -- screen IS the widescreen layer, it paints the surround only and lets
+  -- the engine's own blit draw the contest once.
+  if not self:drawsWidescreen() then return end
+  local L = self:layout()
+  local scale, x, y = S.fitDesktop(w, h, L)
   G.push("all")
   G.translate(x, y)
   G.scale(scale, scale)

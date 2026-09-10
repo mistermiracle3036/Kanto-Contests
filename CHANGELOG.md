@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.30
+## 0.37.31
 
 **Updating from 0.8.2?** That was the last public release, and the mod
 has been rebuilt since. The short version:
@@ -56,8 +56,10 @@ has been rebuilt since. The short version:
   artist, and the challenge behind a spoiler fold with its full account in
   `docs/MASTER_CHALLENGE.md`.
 
-New in 0.37.30: the tester's checklist is gone from the download and the
-repository. On Gold and Silver, Cianwood no longer has a second post
+New in 0.37.31: **fixes the doubled judging screen on phones.** Since
+0.37.8 the top of the judging screen (the category box, the applause
+meter, the judge) was drawn twice on iOS and Android, one copy a row
+lower than the other. Desktop was unaffected. On Gold and Silver, Cianwood no longer has a second post
 repeating the city sign; that post exists only on Crystal, where it
 carries the POKe SEER's sign. The Gold/Silver Goldenrod hall front of
 0.37.24 draws now; it had been built against the wrong tileset.
