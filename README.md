@@ -2,7 +2,7 @@
 
 By **Mister Miracle** ([@mistermiracle3036](https://github.com/mistermiracle3036)).
 
-Five contest categories, rival coordinators, snacks and scarves, with a four-rank circuit in Johto. **0.37.8 is a development preview awaiting the final phone checks in TESTING.md.**
+Five contest categories, rival coordinators, snacks and scarves, with a four-rank circuit in Johto. **0.37.8 passed its phone and desktop checks (TESTING.md) on 2026-09-09: the full rank circuit, Fantina, the Dusk Stone on both MURKROW and MISDREAVUS, and the coloured cast.**
 
 ## Install and update
 
