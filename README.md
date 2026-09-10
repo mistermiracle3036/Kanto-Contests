@@ -93,7 +93,7 @@ Grand Hall, Trainer Journey and Trophy Case are also optional companions.
 
 ## The MASTER challenge
 
-A traveler from a far-off region is eager to see you compete. Beat them and place first in a MASTER contest, and you will be rewarded.
+A traveler from a far-off region is eager to see you compete. If you can beat them and place first in a MASTER contest, you will be rewarded.
 
 <details>
   <summary>Spoiler warning</summary>

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.37.18
+
+Documentation only: one sentence of the README teaser.
+
 ## 0.37.17
 
 Documentation only: the README's MASTER challenge teaser, in the developer's words.
