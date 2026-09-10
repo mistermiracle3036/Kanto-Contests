@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.37.15
+
+Documentation only: the README's spoiler folds use the standard GitHub form.
+
 ## 0.37.14
 
 Documentation only: the README opens on a new applause screenshot.

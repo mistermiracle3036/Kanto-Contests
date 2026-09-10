@@ -95,13 +95,13 @@ Grand Hall, Trainer Journey and Trophy Case are also optional companions.
 
 Something is waiting at Blackthorn. Someone new enters your first MASTER contest, whichever category, keeps coming back until you beat her, and there is a reward.
 
-<details><summary>Spoilers: who, and what</summary>
+<details>
+  <summary>Spoiler warning</summary>
 
-| |
-|---|
-| !["A little gift from home."](docs/master_gift_2.png) |
+  !["A little gift from home."](docs/master_gift_2.png)
 
-The full account, including what the reward does and the two Pokémon involved, is in **[docs/MASTER_CHALLENGE.md](docs/MASTER_CHALLENGE.md)**.
+  The full account, including what the reward does and the two Pokémon involved, is in **[docs/MASTER_CHALLENGE.md](docs/MASTER_CHALLENGE.md)**.
+
 </details>
 
 ## Options
@@ -114,7 +114,8 @@ In the launcher under MODS → Kanto Contests → OPTIONS.
 | MOVE MENU | FULL INFO | The move card, or a CLASSIC four-move menu. |
 | Show load banner | On | Show the loaded version on the first map. |
 
-<details><summary>Spoilers: the MASTER challenge's switches</summary>
+<details>
+  <summary>Spoiler warning: the MASTER challenge's switches</summary>
 
 | Option | Default | Effect |
 |---|---|---|
