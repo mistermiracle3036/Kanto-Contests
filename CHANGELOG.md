@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.37.14
+
+Documentation only: the README opens on a new applause screenshot.
+
 ## 0.37.13
 
 Documentation only: a judging screenshot that named the MASTER challenger on its panel is replaced.

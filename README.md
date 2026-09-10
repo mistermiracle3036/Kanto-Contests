@@ -4,7 +4,7 @@ By **Mister Miracle** ([@mistermiracle3036](https://github.com/mistermiracle3036
 
 Pokémon Contests for Crystal, Gold and Silver on [gen1recomp](https://github.com/bryanthaboi/gen1recomp): five categories, a four-hall rank circuit across Johto, rival coordinators drawn from a cast of well over a hundred, a live crowd, snacks and scarves, and a judging round played by the Ruby and Sapphire rules.
 
-![The judging screen: Magnemite's act lands and the hearts fill in](docs/appeal.png)
+![The judging screen: the applause meter maxed, "The crowd goes wild! 6 hearts!"](docs/applause_wild.png)
 
 ## Install and update
 
@@ -59,7 +59,8 @@ Five turns. Each turn every coordinator picks a move, and the move's contest dat
 | | |
 |---|---|
 | ![The judge opens the NORMAL COOL contest](docs/judging_start.png) | ![The move card: appeal and jam hearts and the effect line](docs/move_card.png) |
-| ![COMBO READY! after a starter](docs/combo_ready.png) | !["You place 1st of 4!"](docs/results.png) |
+| ![COMBO READY! after a starter](docs/combo_ready.png) | ![An appeal lands and the panel fills with hearts](docs/appeal.png) |
+| ![The applause meter maxed: WILD!!](docs/applause_wild.png) | !["You place 1st of 4!"](docs/results.png) |
 
 The rivals get sharper the higher you go: at NORMAL they pick at random, at SUPER they favour their category, at HYPER they finish their combos, at MASTER they play the best move they have. Go back down a rank and they ease off again.
 
