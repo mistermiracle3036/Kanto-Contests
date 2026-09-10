@@ -5077,10 +5077,18 @@ local function kcGold(mod, VERSION)
     CIANWOOD = {
       map = "CIANWOOD_CITY", door = { x = 7, y = 23 },
       facade = KC_CIANWOOD_FACADE,
-      -- No painted post here, so no sign to answer. The city's own sign
-      -- beside the door keeps its vanilla text, which is still readable
-      -- from the pavement below it.
-      signs = {},
+      -- The POKe SEER's house sign (vanilla bgEvent at 8,24) stood where
+      -- the hall's door post now is. Developer, 2026-09-10: its event moves
+      -- two right and two up to the post painted at 10,22, and the hall's
+      -- own sign answers the old cell. bgEvents are a list (the same
+      -- wholesale-replace trap as warps), so the move is made on the live
+      -- map def at every entry (movedSigns, applied beside the rock fix),
+      -- never through a maps:patch.
+      movedSigns = { { from = { 8, 24 }, to = { 10, 22 } } },
+      signs = {
+        -- dialogue-ok: 13 / 12
+        ["8,24"] = "CIANWOOD CITY\nCONTEST HALL",
+      },
     },
     BLACKTHORN = {
       map = "BLACKTHORN_CITY", door = { x = 6, y = 19 },
@@ -5182,6 +5190,22 @@ local function kcGold(mod, VERSION)
     end
   end
 
+  -- A vanilla sign event the hall's front covers is moved to the post the
+  -- developer painted for it. The engine reads map.def.bgEvents live on
+  -- every A press (gen2/World.lua, the bgEvents loop in the interact
+  -- path), so editing the record in place is enough; idempotent, because
+  -- the def persists across visits.
+  local function applyMovedSigns(world, street)
+    if not (world and world.map and world.map.def and street and street.movedSigns) then return end
+    for _, mv in ipairs(street.movedSigns) do
+      for _, ev in ipairs(world.map.def.bgEvents or {}) do
+        if ev.x == mv.from[1] and ev.y == mv.from[2] and not ev.kcMoved then
+          ev.x, ev.y, ev.kcMoved = mv.to[1], mv.to[2], true
+        end
+      end
+    end
+  end
+
   local function clearCianwoodFacadeRock(world)
     if not (world and world.map and world.map.id == "CIANWOOD_CITY") then return end
     -- The vanilla Rock Smash object at (4,19) is inside the hall's
@@ -5228,6 +5252,7 @@ local function kcGold(mod, VERSION)
       elseif STREET_OF[mapId] then
         ensureStreetFacade(STREET_OF[mapId])
         clearCianwoodFacadeRock(world)
+        applyMovedSigns(world, STREET_OF[mapId])
       elseif mapId == HALL then
         ensureRoomActors(world, HALL_DEF)
         ensureLobbyQueue(world)
@@ -6220,7 +6245,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.19"
+  local VERSION = "0.37.21"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

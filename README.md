@@ -133,6 +133,8 @@ On Red, Blue and Yellow this mod is the original Celadon contest, reached throug
 
 This mod adds its own rooms, places a building on four town maps, and wraps contest-specific engine behaviour. It carries hooks for optional companion mods and does not add wild encounters. Because it can add species to a save, it is marked as affecting link compatibility.
 
+**A note on other mods:** Goldenrod, Ecruteak, Cianwood and Blackthorn are edited to fit the contest halls, so this mod may conflict with another mod that edits those overworld maps. If you hit one, open an issue naming the other mod; I will always work on a compatibility patch if asked.
+
 See the [FAQ](FAQ.md), the [Changelog](CHANGELOG.md), the [phone test checklist](TESTING.md) and the [third-party notices](THIRD_PARTY_NOTICES.md). Report problems through [GitHub Issues](../../issues) with the loaded mod version, game edition, engine version, other enabled mods and the MODS ERRS output.
 
 ## Credits
