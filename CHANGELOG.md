@@ -1,5 +1,64 @@
 # Changelog
 
+## 0.37.19
+
+**Updating from 0.8.2?** That was the last public release, and the mod
+has been rebuilt since. The short version:
+
+- **Contests follow the Ruby/Sapphire rules now** (0.31-0.34): four
+  coordinators, five appeal turns, real move effects and combos, jams,
+  the applause meter, and a judging screen laid out like the Gen 3
+  one -- hearts and a score bar per contestant, your POKeMON on stage
+  with its move animation, and a move card that shows each move's
+  appeal, jam, combo role and effect while you choose.
+- **Every move carries its contest data** (0.32) and a **CONTEST MOVES
+  page** sits in the summary after MOVES (0.33).
+- **Four ranks in four towns** (0.34.41, 0.35.0): Goldenrod runs NORMAL,
+  Ecruteak SUPER, Cianwood HYPER and Blackthorn MASTER. You climb by
+  travelling, and a hall only takes your entry once you have won at the
+  rank below. The higher the rank, the fuller the room and the sharper
+  your rivals (0.36.0).
+- **The halls are real places**: buildings on the street with their own
+  doors (0.20, 0.34.40, 0.35.0), hand-built lobby and stage rooms
+  (0.16-0.18), a live crowd with famous faces and named ordinary
+  trainers (0.21, 0.34.27), a queue you stand in behind the people you
+  will compete against (0.22), a walk-on and an introduction round on
+  stage where the crowd's hearts pop one seat at a time and applause
+  plays (0.24-0.26, 0.34.9-0.34.24).
+- **You enter one POKeMON**, picked from the party screen (0.27-0.28);
+  its condition, sheen and scarf decide its introduction hearts
+  (0.34.25).
+- **Coordinators are cast with care**: each brings POKeMON that suit
+  them (0.29), gym leaders wear their real colours (0.34.22), the
+  worksheet's type limits and signature POKeMON apply (0.34.28), and a
+  NORMAL contest mostly features one famous face (0.34.29). The cast
+  talks, too -- nearly 600 lines of it (0.34.42).
+- Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
+  scarves (0.10.9), wins recorded per category and per rank for Kanto
+  Ribbons, and a long list of text-box and sprite fixes.
+- **The judging screen was redrawn for Crystal** (0.36.2-0.36.3): cream
+  and lavender windows, eight-heart appeal and jam tracks, a clearer
+  combo hint, and names that fit.
+- **The audience watches the stage** (0.36.4-0.36.9), gathered around it
+  and facing it, with nobody in front of the steps; each hall draws its
+  own kind of crowd (0.36.1) and a bigger one the higher the rank
+  (0.36.0).
+- **A MASTER challenge** (0.37.0-0.37.4): someone new enters your first
+  MASTER contest and keeps coming back until you beat her, and there is a
+  reward. Who, and what, is in `docs/MASTER_CHALLENGE.md` (spoilers).
+  Appeals no longer spend battle PP, and B withdraws from a contest.
+- **Desktop** (0.37.8): the contest screen fits and centres the whole
+  240-pixel panel in a Windows / macOS / Linux window instead of clipping
+  the coordinators and the move list. Phones are untouched.
+- **Since then** (0.37.9-0.37.18): scarves and snacks describe themselves
+  in the PACK; the MASTER challenge's ending is finished properly; and the
+  README is rewritten with screenshots of everything, credits for every
+  artist, and the challenge behind a spoiler fold with its full account in
+  `docs/MASTER_CHALLENGE.md`.
+
+New in 0.37.19: the release itself. Nothing in the mod changed since
+0.37.16; this entry carries the notes.
+
 ## 0.37.18
 
 Documentation only: one sentence of the README teaser.
@@ -74,55 +133,6 @@ time.
 </details>
 
 ## 0.37.8
-
-**Updating from 0.8.2?** That was the last public release, and the mod
-has been rebuilt since. The short version:
-
-- **Contests follow the Ruby/Sapphire rules now** (0.31-0.34): four
-  coordinators, five appeal turns, real move effects and combos, jams,
-  the applause meter, and a judging screen laid out like the Gen 3
-  one -- hearts and a score bar per contestant, your POKeMON on stage
-  with its move animation, and a move card that shows each move's
-  appeal, jam, combo role and effect while you choose.
-- **Every move carries its contest data** (0.32) and a **CONTEST MOVES
-  page** sits in the summary after MOVES (0.33).
-- **Four ranks in four towns** (0.34.41, 0.35.0): Goldenrod runs NORMAL,
-  Ecruteak SUPER, Cianwood HYPER and Blackthorn MASTER. You climb by
-  travelling, and a hall only takes your entry once you have won at the
-  rank below. The higher the rank, the fuller the room and the sharper
-  your rivals (0.36.0).
-- **The halls are real places**: buildings on the street with their own
-  doors (0.20, 0.34.40, 0.35.0), hand-built lobby and stage rooms
-  (0.16-0.18), a live crowd with famous faces and named ordinary
-  trainers (0.21, 0.34.27), a queue you stand in behind the people you
-  will compete against (0.22), a walk-on and an introduction round on
-  stage where the crowd's hearts pop one seat at a time and applause
-  plays (0.24-0.26, 0.34.9-0.34.24).
-- **You enter one POKeMON**, picked from the party screen (0.27-0.28);
-  its condition, sheen and scarf decide its introduction hearts
-  (0.34.25).
-- **Coordinators are cast with care**: each brings POKeMON that suit
-  them (0.29), gym leaders wear their real colours (0.34.22), the
-  worksheet's type limits and signature POKeMON apply (0.34.28), and a
-  NORMAL contest mostly features one famous face (0.34.29). The cast
-  talks, too -- nearly 600 lines of it (0.34.42).
-- Plus the Introduction Round (0.9), PokeSnacks (0.8), earned contest
-  scarves (0.10.9), wins recorded per category and per rank for Kanto
-  Ribbons, and a long list of text-box and sprite fixes.
-- **The judging screen was redrawn for Crystal** (0.36.2-0.36.3): cream
-  and lavender windows, eight-heart appeal and jam tracks, a clearer
-  combo hint, and names that fit.
-- **The audience watches the stage** (0.36.4-0.36.9), gathered around it
-  and facing it, with nobody in front of the steps; each hall draws its
-  own kind of crowd (0.36.1) and a bigger one the higher the rank
-  (0.36.0).
-- **A MASTER challenge** (0.37.0-0.37.4): someone new enters your first
-  MASTER contest and keeps coming back until you beat her, and there is a
-  reward. Who, and what, is in `docs/MASTER_CHALLENGE.md` (spoilers).
-  Appeals no longer spend battle PP, and B withdraws from a contest.
-- **Desktop** (0.37.8): the contest screen fits and centres the whole
-  240-pixel panel in a Windows / macOS / Linux window instead of clipping
-  the coordinators and the move list. Phones are untouched.
 
 New in 0.37.8 (written as 0.37.7 by ChatGPT; renumbered because that zip
 was already delivered once):
