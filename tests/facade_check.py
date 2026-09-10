@@ -39,6 +39,8 @@ import sys
 here = os.path.dirname(os.path.abspath(__file__))
 main_lua = os.path.join(here, "..", "main.lua")
 TILESET = "TILESET_JOHTO"
+# Goldenrod is on TILESET_JOHTO_MODERN; every other street is on TILESET_JOHTO
+TILESET_OF = {"KCG.gsFacade": "TILESET_JOHTO_MODERN"}
 
 src = open(main_lua, encoding="utf-8").read()
 FACADES = {}
@@ -63,8 +65,8 @@ if not FACADES:
 ROW = re.compile(r"\{([\s\d,]+?)\}")
 
 
-def blocks_of(game):
-    """{block id -> 16 tile ids} for TILESET_JOHTO in one game's cache.
+def blocks_of(game, tileset=TILESET):
+    """{block id -> 16 tile ids} for one tileset in one game's cache.
 
     The generated tilesets.lua wraps a block's 16 numbers across several
     lines, so the row pattern has to tolerate newlines -- matching only
@@ -75,7 +77,7 @@ def blocks_of(game):
     if not os.path.exists(path):
         return None
     text = open(path, encoding="utf-8", errors="ignore").read()
-    i = text.find(TILESET + " = {")
+    i = text.find(tileset + " = {")
     if i < 0:
         return None
     j = text.find("blocks = {", i)
@@ -93,6 +95,9 @@ def blocks_of(game):
 
 
 games = {g: b for g, b in ((g, blocks_of(g)) for g in ("crystal", "gold")) if b}
+# every facade's blocks per game, resolved against ITS tileset
+per_facade = {(g, n): blocks_of(g, TILESET_OF.get(n, TILESET))
+              for g in games for n in FACADES}
 if not games:
     print("no imported game cache on this machine; skipping")
     sys.exit(0)
@@ -105,6 +110,13 @@ for game, blocks in sorted(games.items()):
         bad += 1
         continue
     for name, entries in sorted(FACADES.items()):
+        tileset = TILESET_OF.get(name, TILESET)
+        blocks = per_facade.get((game, name)) or {}
+        base = len(blocks)
+        if base < 1:
+            print(f"FAIL {game}/{name}: {tileset} has no blocks; the facade would append at id 0")
+            bad += 1
+            continue
         first, last = base, base + len(entries) - 1
         if first < 1:
             print(f"FAIL {game}/{name}: would occupy id {first}, and 0 is the border block")
@@ -114,7 +126,7 @@ for game, blocks in sorted(games.items()):
             for i in range(0, 8, 2):
                 src_block, quad = nums[i], nums[i + 1]
                 if src_block not in blocks:
-                    print(f"FAIL {game}/{name}: block ({bx},{by}) references {TILESET} "
+                    print(f"FAIL {game}/{name}: block ({bx},{by}) references {tileset} "
                           f"block {src_block}, which this game does not have")
                     bad += 1
                 if not 0 <= quad <= 3:

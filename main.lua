@@ -5085,6 +5085,11 @@ local function kcGold(mod, VERSION)
     -- by the step trigger and never enters STREET_OF_LOBBY.
     GOLDENROD = {
       map = "GOLDENROD_CITY",
+      -- Goldenrod is the one town on TILESET_JOHTO_MODERN; the other three
+      -- are on TILESET_JOHTO. 0.37.24 composed and appended into
+      -- TILESET_JOHTO for it, so on Gold the new front's block ids pointed
+      -- into a tileset the map does not use and nothing drew.
+      tileset = "TILESET_JOHTO_MODERN",
       -- On GOLD and SILVER (0.37.24) Goldenrod is an ordinary street after
       -- all: the developer's Gold paint, its door at 29,3, and the sign to
       -- the door's right. `door` being set is what puts it in
@@ -5179,11 +5184,14 @@ local function kcGold(mod, VERSION)
     if not (street and street.facade) then return end
     local data = mod.game and mod.game.data
     local tsets = data and (data.gen2Tilesets or data.tilesets)
-    local ts = tsets and tsets.TILESET_JOHTO
+    -- the STREET's tileset: the town's map tileset, which the (block,
+    -- quadrant) pairs index and the composed blocks are appended to
+    local tsId = street.tileset or "TILESET_JOHTO"
+    local ts = tsets and tsets[tsId]
     -- as with Goldenrod: gen2Tilesets exists only after the Game is
     -- built, which is why this runs on map.entered and not at load
     if not (ts and ts.blocks) then
-      mod.log:warn("kc facade: johto tileset unavailable")
+      mod.log:warn("kc facade: %s unavailable", tsId)
       return
     end
     -- THE BORDER RULE. Block id 0 in a map grid does not mean "tileset
@@ -6280,7 +6288,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.25"
+  local VERSION = "0.37.26"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
