@@ -275,6 +275,23 @@ do
   local scale,x=S.fitDesktop(1920,1006,S.WIDE)
   T.eq(scale,6,'screenshot-sized window fits full contest at six times scale')
   T.eq(x,240,'screenshot-sized window centers the full 240-pixel panel')
+  -- The engine calls drawWidescreen on any opaque screen that HAS it and
+  -- then blits the panel itself. On a phone the method must therefore draw
+  -- nothing but the surround, or the contest appears twice (0.37.30 bug).
+  local calls={}
+  local stubG={push=function() end,pop=function() end,translate=function() end,
+    scale=function() end,setColor=function() end,rectangle=function() end}
+  love={system={getOS=function() return 'iOS' end},graphics=stubG}
+  local phone=newScreen({'POUND'})
+  phone.draw=function() calls[#calls+1]='draw' end
+  phone.mods=function() return {Chrome={letterbox=function() calls[#calls+1]='letterbox' end}} end
+  phone:drawWidescreen(390,844)
+  T.eq(#calls,1,'on a phone drawWidescreen paints the surround and nothing else')
+  T.eq(calls[1],'letterbox','...and that one call is the surround')
+  love.system.getOS=function() return 'Windows' end
+  calls={}
+  phone:drawWidescreen(1920,1006)
+  T.check(calls[1]=='letterbox' and calls[2]=='draw','on desktop it paints the surround and then the contest')
   love=oldLove
 end
 T.finish("contest screen")
