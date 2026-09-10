@@ -62,8 +62,9 @@ return function(mod)
     save.kcFantinaChallenge=save.kcFantinaChallenge or {}
     return save.kcFantinaChallenge
   end
+  local function replay() return mod.options:get("fantina_replay")==true end
   function api.needed(rank,plan)
-    return rank=="MASTER" and not state(mod.game and mod.game.save).won
+    return rank=="MASTER" and (replay() or not state(mod.game and mod.game.save).won)
       and not (plan and plan.record==false)
   end
   function api.entry()
@@ -71,7 +72,7 @@ return function(mod)
   end
   function api.recordWin(save,rank,won,recorded,participated)
     local s=state(save)
-    if rank=="MASTER" and won and recorded and participated and not s.won then
+    if rank=="MASTER" and won and recorded and participated and (replay() or not s.won) then
       s.won=true
       s.pending=mod.options:get("dusk_stone_reward")~=false
       s.given=false

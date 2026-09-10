@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.37.9
+
+New in 0.37.9: **the scarves and snacks describe themselves in the PACK.**
+They had no description line at all. A scarf now reads "Hold for extra
+COOL hearts." and a snack "Raises COOL and adds sheen." (each in its own
+category).
+
+Also a developer switch, off by default: **Fantina replay** in the mod's
+options makes Fantina enter every MASTER contest and repeat her lobby gift
+after each win, another DUSK STONE each time. For testing and screenshots.
+
 ## 0.37.8
 
 **Updating from 0.8.2?** That was the last public release, and the mod

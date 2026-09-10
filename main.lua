@@ -6173,7 +6173,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.8"
+  local VERSION = "0.37.9"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -6211,6 +6211,10 @@ return function(mod)
   mod.options:define({
     { key = "dusk_stone_reward", type = "toggle", label = "Dusk Stone reward", default = true },
     { key = "expanded_species", type = "toggle", label = "Bundled evolutions", default = true },
+    -- DEV: Fantina enters every MASTER contest and repeats the lobby gift
+    -- after each win (another DUSK STONE each time). For screenshots and
+    -- testing; off by default and not a play setting.
+    { key = "fantina_replay", type = "toggle", label = "Fantina replay", default = false },
     { key = "show_banner", type = "toggle",
       label = "Show load banner", default = true },
     -- 0.34.19: how the crowd's hearts pop in the first round. AROUND ROOM
@@ -6279,10 +6283,15 @@ return function(mod)
 
   -- Shared item records: Crystal treats them as ordinary holdable ITEM-pocket
   -- accessories; Gen 1's field-use wrapper below supplies its equip action.
+  -- The PACK shows `description` under the list (PackMenu:description,
+  -- src/ui/gen2/PackMenu.lua) and a record without one shows nothing --
+  -- which is how the scarves shipped until 0.37.9. Two lines of 18, joined
+  -- by <NEXT>, like every vanilla entry (FIRE_STONE, PINK_BOW).
   for _, row in ipairs(KC_SCARVES) do
     mod.content.items:register(row.id, {
       id = row.id, name = row.name, price = 0, tossable = true,
       needsTarget = true,
+      description = ("Hold for extra<NEXT>%s hearts."):format(row.category),
     })
   end
 
@@ -6430,6 +6439,7 @@ return function(mod)
       id = s.id, name = s.name, price = KC_SNACK_PRICE, tossable = true,
       -- no `effect`: it would point at the dead registry. no `index`:
       -- optional in the schema, and SNAG_BALL ships without one.
+      description = ("Raises %s and<NEXT>adds sheen."):format(s.category),
     })
   end
 
