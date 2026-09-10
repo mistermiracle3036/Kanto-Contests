@@ -83,11 +83,13 @@ The appraiser next to the seller reads a Pokémon's condition in words. Her word
 
 When a condition reaches 100 the appraiser awards the matching scarf: red for COOL, blue BEAUTY, pink CUTE, green SMART, yellow TOUGH. Held or worn through the party ITEM menu, a scarf adds 20 to the introduction score in its category.
 
+Every artist whose work appears in this mod is credited in game: press START, then CREDITS. The screen is shared, so other mods that carry it add their artists to the same list rather than a second menu entry.
+
 [Kanto Ribbons](https://github.com/mistermiracle3036/kanto_ribbons) is optional. This mod records category wins and rank wins on the Pokémon; Ribbons reads them and shows the ribbons, including for wins made before it was installed.
 
-| |
-|---|
-| ![Kanto Ribbons' page: Cool Ribbon, Cool Super, Cool Hyper, Cool Master](docs/ribbons.png) |
+| | |
+|---|---|
+| ![Kanto Ribbons' page: Cool Ribbon, Cool Super, Cool Hyper, Cool Master](docs/ribbons.png) | ![The in-game credits screen listing the artists](docs/credits.png) |
 
 Grand Hall, Trainer Journey and Trophy Case are also optional companions.
 
