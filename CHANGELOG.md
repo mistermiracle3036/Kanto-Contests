@@ -2,13 +2,20 @@
 
 ## 0.37.10
 
-New in 0.37.10: **Fantina leaves the way she came.** After handing over
-the DUSK STONE she walks to the lobby's exit carpet and goes out, instead
-of disappearing where she stood.
+New in 0.37.10: a polish pass on the MASTER challenge's ending, and a fix
+to its developer switch.
+
+<details><summary>Spoilers: the MASTER challenge</summary>
+
+**Fantina leaves the way she came.** After handing over the DUSK STONE she
+walks to the lobby's exit carpet and goes out, instead of disappearing
+where she stood.
 
 The **Fantina replay** developer switch no longer puts a second Fantina in
 the lobby line-up while she is handing over the gift. After a win she stays
 out of the queue until you leave the building and come back.
+
+</details>
 
 ## 0.37.9
 
@@ -17,9 +24,15 @@ They had no description line at all. A scarf now reads "Hold for extra
 COOL hearts." and a snack "Raises COOL and adds sheen." (each in its own
 category).
 
-Also a developer switch, off by default: **Fantina replay** in the mod's
-options makes Fantina enter every MASTER contest and repeat her lobby gift
-after each win, another DUSK STONE each time. For testing and screenshots.
+Also a developer switch, off by default, for testing and screenshots.
+
+<details><summary>Spoilers: the MASTER challenge</summary>
+
+**Fantina replay** in the mod's options makes Fantina enter every MASTER
+contest and repeat her lobby gift after each win, another DUSK STONE each
+time.
+
+</details>
 
 ## 0.37.8
 
@@ -64,12 +77,10 @@ has been rebuilt since. The short version:
   and facing it, with nobody in front of the steps; each hall draws its
   own kind of crowd (0.36.1) and a bigger one the higher the rank
   (0.36.0).
-- **Fantina and the Dusk Stone** (0.37.0-0.37.4): she enters your first
-  MASTER contest and keeps coming back until you beat her, then finds you
-  in the lobby with a DUSK STONE. It evolves MURKROW into HONCHKROW and
-  MISDREAVUS into MISMAGIUS, both bundled with the mod (each has its own
-  switch in the options). Appeals no longer spend battle PP, and B
-  withdraws from a contest.
+- **A MASTER challenge** (0.37.0-0.37.4): someone new enters your first
+  MASTER contest and keeps coming back until you beat her, and there is a
+  reward. Who, and what, is in `docs/MASTER_CHALLENGE.md` (spoilers).
+  Appeals no longer spend battle PP, and B withdraws from a contest.
 - **Desktop** (0.37.8): the contest screen fits and centres the whole
   240-pixel panel in a Windows / macOS / Linux window instead of clipping
   the coordinators and the move list. Phones are untouched.
@@ -103,37 +114,59 @@ carries them and this repository's own changes together.
 
 ## 0.37.4
 
+<details><summary>Spoilers: the MASTER challenge</summary>
+
 - Turn the player toward Fantina before her gift conversation begins, whichever side she approaches from.
 - Fix Mismagius and Honchkrow party-icon backgrounds: native shade-zero pixels are now transparent, preventing a colored rectangle in the party menu. Both animation frames and all original RGB pixel values are preserved.
 
+</details>
+
 ## 0.37.3
+
+<details><summary>Spoilers: the MASTER challenge</summary>
 
 - Simplify Fantina's gift dialogue: “You were marvelous. A little gift from home.” Remove the explanation of which Pokémon can use it.
 - Give the Dusk Stone the same bag description as Crystal's Fire Stone and Water Stone: “Evolves certain kinds of POKéMON.”
 
+</details>
+
 ## 0.37.2
 
+<details><summary>Spoilers: the MASTER challenge</summary>
+
 - Remove the FANTINA: speaker prefix from her lobby and Dusk Stone reward dialogue.
+
+</details>
 
 ## 0.37.1
 
 - Newly drawn lobby coordinators use pre-contest dialogue, including immediately after a win or loss. Result reactions apply only to the completed contest on its own stage.
+<details><summary>Spoilers: the MASTER challenge</summary>
+
 - Fantina now uses Blaklyte's commissioned walker copied unchanged from Indigo Conference 1.1.55, with its updated purple and Crystal skin colors. Her guaranteed MASTER participation and Dusk Stone reward are unchanged.
+
+</details>
+
 - Introduction-heart thresholds are unchanged: a preparation score of 71–80 earns seven NORMAL hearts and two HYPER hearts. The appeal-round applause meter is separate.
 
 ## 0.37.0
 
 Updating from public 0.8.2? This preview includes all five contest categories, PokeSnacks and scarves, a four-hall Johto rank circuit, rival coordinators and audiences, and five-turn judging with combos, jams and a move information card. Optional ribbon and quest integrations record results on the save. Existing phone fixes for stage spawning, counters, audience facing and higher-rank introduction scoring are included.
 
+<details><summary>Spoilers: the MASTER challenge</summary>
+
 - Fantina joins the first MASTER challenge and returns after losses across categories until the player wins. She then approaches in the lobby with one Dusk Stone; a full bag preserves the unclaimed reward.
 - Bundle only Honchkrow, Mismagius and their required support from Polished Crystal and Expanded Species. The stone evolves Murkrow or Misdreavus through the normal item/evolution flow. No species-framework dependency is required.
 - Add independent Dusk Stone reward and Bundled evolutions switches. The latter disables all bundled species registration and evolution patches; existing affected Pokemon are protected until reenabled. A compatible external species may receive the stone evolution.
+
+</details>
+
 - Contest appeals no longer consume battle PP. Empty PP cannot strand the player, and B offers confirmed withdrawal.
 - Reject eggs, fainted entrants and Pokemon without moves at the desk. Restore the selected party slot and mail correctly after contests and serialized reloads; interrupted contests cancel back to the appropriate lobby.
 - Preview snack gains and warn when condition is already capped before spending money or lifetime sheen capacity.
 - Keep existing win-count rank eligibility and correct the entry dialogue to explain it. Repair character/class/generic dialogue fallback.
 - Derive hall source sheets through the engine's supported asset-transform recipe; content lint is clean.
-- Rewrite player documentation, options, troubleshooting and attribution. (0.37.0 stood a Kimono Girl in for Fantina; her commissioned walker arrived in 0.37.1.)
+- Rewrite player documentation, options, troubleshooting and attribution. (0.37.0 used a stand-in sprite for the new challenger; her commissioned walker arrived in 0.37.1.)
 
 Automated gameplay and save tests pass on the local Crystal and Gold engine data. Live iPhone appearance, animation and input still require the included phone checklist. This is a test candidate, not a claim that the final phone pass is complete.
 
