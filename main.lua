@@ -5073,6 +5073,18 @@ local function kcGold(mod, VERSION)
     local v = require("src.core.GameVersion").current
     return v == "gold" or v == "silver"
   end)()
+  if KCG.gs then
+    -- Cianwood on Gold/Silver (developer, 2026-09-10): there is no POKe
+    -- SEER sign to move to the painted post at 15,30, and a post reading
+    -- the city's own words a few steps from the city's own sign was a
+    -- duplicate. So the post is not painted there at all: block (7,15)
+    -- quadrant 1 becomes the same ground as its neighbours, walkable.
+    for _, e in ipairs(KC_CIANWOOD_FACADE) do
+      if e.bx == 7 and e.by == 15 and e.q[3] == 69 then
+        e.q[3], e.q[4], e.coll[2] = 1, 1, 0x00
+      end
+    end
+  end
 
   -- `door` is the cell the developer painted, and the pavement square below
   -- it is where the player lands coming back out.
@@ -5131,13 +5143,9 @@ local function kcGold(mod, VERSION)
       signs = {
         -- dialogue-ok: 13 / 12
         ["8,24"] = "CIANWOOD CITY\nCONTEST HALL",
-        -- The POKe SEER is Crystal-only: Gold and Silver have no sign
-        -- event at 8,24 to move, so on those games the post at 15,30 had
-        -- nothing behind it (developer, 2026-09-10). This answers it with
-        -- the city's own words. On Crystal the moved seer event claims the
-        -- cell first and this line never shows.
-        -- dialogue-ok: 13 / 17 then 13
-        ["15,30"] = "CIANWOOD CITY\nA Port Surrounded\fby Rough Seas",
+        -- On Gold/Silver the post at 15,30 is not painted (see KCG.gs
+        -- above), so nothing to answer there; on Crystal the moved seer
+        -- event claims that cell and needs no text from us.
       },
     },
     BLACKTHORN = {
@@ -6288,7 +6296,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.26"
+  local VERSION = "0.37.27"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
