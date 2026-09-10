@@ -83,13 +83,11 @@ The appraiser next to the seller reads a Pokémon's condition in words. Her word
 
 When a condition reaches 100 the appraiser awards the matching scarf: red for COOL, blue BEAUTY, pink CUTE, green SMART, yellow TOUGH. Held or worn through the party ITEM menu, a scarf adds 20 to the introduction score in its category.
 
-Every artist whose work appears in this mod is credited in game: press START, then CREDITS. The screen is shared, so other mods that carry it add their artists to the same list rather than a second menu entry.
-
 [Kanto Ribbons](https://github.com/mistermiracle3036/kanto_ribbons) is optional. This mod records category wins and rank wins on the Pokémon; Ribbons reads them and shows the ribbons, including for wins made before it was installed.
 
-| | |
-|---|---|
-| ![Kanto Ribbons' page: Cool Ribbon, Cool Super, Cool Hyper, Cool Master](docs/ribbons.png) | ![The in-game credits screen listing the artists](docs/credits.png) |
+| |
+|---|
+| ![Kanto Ribbons' page: Cool Ribbon, Cool Super, Cool Hyper, Cool Master](docs/ribbons.png) |
 
 Grand Hall, Trainer Journey and Trophy Case are also optional companions.
 
@@ -139,6 +137,12 @@ This mod adds its own rooms, places a building on four town maps, and wraps cont
 See the [FAQ](FAQ.md), the [Changelog](CHANGELOG.md) and the [third-party notices](THIRD_PARTY_NOTICES.md). Report problems through [GitHub Issues](../../issues) with the loaded mod version, game edition, engine version, other enabled mods and the MODS ERRS output.
 
 ## Credits
+
+**Every artist below is credited in the game itself: press START, then CREDITS.** The screen lists each artist, what they drew, and which mods it appears in. It is shared code, so another mod carrying it adds its artists to the same list rather than a second menu entry.
+
+| |
+|---|
+| ![The in-game credits screen: ArtsyAlraune, Breeder, IN: Contests](docs/credits.png) |
 
 The contest hall's custom cast is drawn by a lot of people, and every sheet is used with permission or under its licence, copied unchanged from the project's shared sprite store. Overworld walkers by **Bani** (Ash, Chef, Eusine, Larry, Leaf, Lear, Looker, Nate, Ranger, Yellow, Juliana, Lillie, Santa; and the Duplica, Giselle and Suzie sheets, which stand in for those characters), **Blaklyte** (N, Nurse Joy, Ingo), **SirWhibbles** (Agatha, Archer, Ariana, Giovanni, Petrel, Proton, the Rocket executive), **RoyalGuard** (Bill, Colress, Hugh, Lorelei, Maxie, Wally), **MOLLY** (Brendan, Dawn, Hilbert, Hilda, Lyra, Michael, Rosa, the stadium players, Wes), **Molly** (Green), **TeamHistoryWaffles** (Gloria, Officer Jenny, the Ruin Maniac), **NolanKrawczak** (Barry, May), **ArtsyAlraune** (the Breeder), **CyUzi** (Ball Guy), **KiravelSoul** (Volkner), **KIRB/YOSHI** (Bea), **Santiago Speedpaints** (Mina), **TheBrawlUnit** (AJ), **tharkka** (Roxie, commissioned) and **Yogurcomics** (Piers, commissioned).
 
