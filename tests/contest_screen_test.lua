@@ -1,0 +1,280 @@
+-- Run from the engine checkout:
+--   luajit ../Kanto-Contests/tests/contest_screen_test.lua
+--
+-- Drives contest_screen.lua's MODEL through a whole five-turn contest
+-- headless: no love.graphics, no mod load, no animation data (so the
+-- animation beat is skipped exactly as it would be on a cache without
+-- battle_anims). What it proves: the phase machine reaches the tally and
+-- calls back exactly once; the panel rows follow the turn order; hearts
+-- land on the right rows; and every text-box line fits Gold's 18 x 2.
+package.path = "./?.lua;./?/init.lua;" .. package.path
+local T = require("tests.harness")
+
+local E = dofile(assert(arg[1], "pass mod directory") .. "/contest_engine.lua")
+local S = dofile(assert(arg[1], "pass mod directory") .. "/contest_screen.lua")
+
+-- ---------------------------------------------------------------- fixtures
+
+local FX = {
+  HIGHLY_APPEALING     = { appeal = 40, jam = 0 },
+  BADLY_STARTLE_FRONT_MON = { appeal = 10, jam = 40 },
+  BETTER_IF_FIRST      = { appeal = 20, jam = 0 },
+}
+local MV = {
+  POUND        = { cat = "TOUGH", effect = "HIGHLY_APPEALING", starter = "POUND" },
+  THUNDERPUNCH = { cat = "COOL",  effect = "HIGHLY_APPEALING" },
+  STOMP        = { cat = "TOUGH", effect = "BADLY_STARTLE_FRONT_MON" },
+  SWIFT        = { cat = "COOL",  effect = "BETTER_IF_FIRST" },
+}
+local NAMES = {}
+for id in pairs(MV) do NAMES[id] = { name = id } end
+
+local function lowRng(lo, hi) return hi and lo or 1 end
+
+local function mon(nick, species, ...)
+  local m = { nickname = nick, species = species, moves = {} }
+  for _, id in ipairs({ ... }) do m.moves[#m.moves + 1] = { id = id, pp = 10 } end
+  return m
+end
+
+local pressed = {}
+local input = { wasPressed = function(_, k) return pressed[k] == true end }
+local game = { data = { moves = NAMES }, input = input }
+
+local function newScreen(playerMoves)
+  local state = E.new({
+    contest = "COOL", moves = MV, effects = FX, rng = lowRng,
+    contestants = {
+      { name = "GOLD",    mon = mon("PIKA", "PIKACHU", unpack(playerMoves)), round1 = 80, ai = "player" },
+      { name = "WHITNEY", mon = mon("MILTANK", "MILTANK", "POUND"), round1 = 60, ai = "NORMAL" },
+      { name = "MORTY",   mon = mon("GASTLY", "GASTLY", "STOMP"),   round1 = 40, ai = "NORMAL" },
+      { name = "LYRA",    mon = mon("MARILL", "MARILL", "POUND"),   round1 = 20, ai = "NORMAL" },
+    },
+  })
+  local done = {}
+  local scr = S.new({
+    engine = E, state = state, game = game, kind = "COOL", rank = "SUPER",
+    onDone = function(place, final) done[#done + 1] = { place = place, final = final } end,
+  })
+  return scr, state, done
+end
+
+local function press(scr, key)
+  pressed = { [key] = true }
+  scr:update(0)
+  pressed = {}
+end
+local function tick(scr, n) for _ = 1, (n or 1) do scr:update(0) end end
+-- press A until the queue is empty (bounded), collecting what was shown
+local function readAll(scr, seen)
+  for _ = 1, 60 do
+    if #scr.msgs == 0 then break end
+    if seen then seen[#seen + 1] = scr.msgs[1].text end
+    press(scr, "a")
+  end
+end
+
+local shown = {}
+
+-- ----------------------------------------------------------- 1. the intro
+
+local scr, state, done = newScreen({ "THUNDERPUNCH", "SWIFT" })
+T.eq(scr.phase, "intro", "opens on the intro")
+T.check(scr.msgs[1].text:find("SUPER", 1, true) and scr.msgs[1].text:find("COOL", 1, true),
+  "the first line names rank and category")
+readAll(scr, shown)
+tick(scr)                                  -- empty queue + intro phase -> turn 1
+T.eq(state.turn, 1, "turn 1 began")
+T.eq(scr.phase, "menu", "and the menu is open")
+T.eq(scr.performer, 1, "your own POKeMON is on stage while you choose (0.34.3)")
+T.check(scr.msgs[1] and scr.msgs[1].text:find("Appeal no. 1", 1, true), "'Appeal no. 1!' is announced")
+T.same({ scr.rows[1], scr.rows[2], scr.rows[3], scr.rows[4] }, { 1, 2, 3, 4 },
+  "panel rows follow turn-1 order (round-1 points: player first)")
+
+-- ------------------------------------------------------------- 2. a turn
+
+readAll(scr, shown)
+press(scr, "down")
+T.eq(scr.menuCursor, 2, "down moves the menu cursor")
+press(scr, "up")
+T.eq(scr.menuCursor, 1, "up moves it back")
+press(scr, "a")                            -- choose THUNDERPUNCH
+T.eq(scr.chosen, "THUNDERPUNCH", "A picks the cursor move")
+T.eq(scr.performer, 1, "the player appeals first and is on stage")
+T.check(scr.msgs[1] and scr.msgs[1].text:find("PIKA appeals", 1, true), "the appeal is announced by nickname")
+-- read the announcement; with no animation data the narration follows at once
+readAll(scr, shown)
+tick(scr)                                  -- resolve -> (no anim) -> narrated
+do  -- the narration is queued but unread: the crowd line carries the meter
+  local tagged = false
+  for _, m in ipairs(scr.msgs) do if m.applause then tagged = true end end
+  T.check(tagged, "a matching appeal's narration is tagged to show the APPLAUSE meter")
+  T.check(scr:applauseVisible(), "...and the meter is visible while those lines are read")
+  local lvl
+  for _, m in ipairs(scr.msgs) do if m.applause then lvl = m.applauseLevel end end
+  T.eq(lvl, 1, "the lines carry the meter level as it stood for this appeal (1 after one COOL move)")
+  for _, m in ipairs(scr.msgs) do T.check(not m.wild, "a plain +1 is not wild") break end
+end
+
+-- the meter about to overflow: the crowd goes wild, and the lines carry
+-- level 5 + the wild flag even though the engine has already reset it to 0
+do
+  local w, ws = newScreen({ "THUNDERPUNCH", "SWIFT" })
+  readAll(w); tick(w); readAll(w)          -- into the turn-1 menu
+  ws.applause = 4
+  press(w, "a")                            -- THUNDERPUNCH, COOL in COOL: passes 4
+  readAll(w)                               -- the announcement
+  tick(w)                                  -- resolve -> narrated
+  local wildMsg
+  for _, m in ipairs(w.msgs) do if m.wild then wildMsg = m end end
+  T.check(wildMsg ~= nil, "a wild appeal's lines are tagged wild")
+  T.eq(wildMsg and wildMsg.applauseLevel, 5, "...and show the meter FULL, not the reset 0")
+  T.eq(ws.applause, 0, "(the engine itself did reset the meter)")
+  T.eq(ws.c[1].appeal, 100, "40 + 60: the wild bonus landed")
+end
+readAll(scr, shown)
+T.check(not scr:applauseVisible(), "the meter goes when the narration has been read")
+T.eq(scr.turnHearts[1], 5, "player's hearts on the panel: 4 + 1 crowd (COOL move in COOL)")
+-- the appeal moved the crowd, so every line of its narration carried the
+-- APPLAUSE meter (0.34.3: it used to vanish on a frame countdown)
+do
+  local tagged = 0
+  for _, t in ipairs(shown) do if t:find("went over great", 1, true) then tagged = tagged + 1 end end
+  T.check(tagged >= 1, "the crowd line was shown for the matching appeal")
+end
+-- let the three rivals go
+for _ = 1, 3 do
+  tick(scr)                                -- narrated -> resolveNext (next rival)
+  readAll(scr, shown)
+  tick(scr)                                -- resolve -> narrated
+  readAll(scr, shown)
+end
+T.eq(scr.slot, 4, "all four appealed")
+tick(scr)                                  -- narrated -> resolveNext -> endTurn
+T.check(scr.msgs[1] and scr.msgs[1].text:find("You stand", 1, true), "standing announced between turns")
+T.eq(scr.phase, "between", "between turns")
+T.check(state.c[1].total == 50, "player banked 50 this turn")
+-- MORTY's STOMP (slot 3) badly startles the one in front (WHITNEY, slot 2)
+T.check(scr.turnHearts[2] < 4, ("WHITNEY's row shows the jam (%d)"):format(scr.turnHearts[2]))
+readAll(scr, shown)
+tick(scr)
+T.eq(state.turn, 2, "turn 2 began")
+T.eq(scr.phase, "menu", "menu again")
+
+-- ------------------------------------------------ 3. run it to the tally
+
+local guard = 0
+while not scr.finished and guard < 400 do
+  guard = guard + 1
+  if #scr.msgs > 0 then
+    shown[#shown + 1] = scr.msgs[1].text
+    press(scr, "a")
+  elseif scr.phase == "menu" then
+    press(scr, "a")
+  else
+    tick(scr)
+  end
+end
+T.check(scr.finished, ("the contest reaches the end (steps: %d)"):format(guard))
+T.eq(state.turn, 5, "five turns were played")
+T.eq(#done, 1, "onDone called exactly once")
+T.check(done[1] and done[1].place >= 1 and done[1].place <= 4, "with a placing 1..4")
+T.check(done[1] and #done[1].final == 4, "and the four-row final")
+local sawTally, sawPlace = false, false
+for _, t in ipairs(shown) do
+  if t:find("tallies", 1, true) then sawTally = true end
+  if t:find("You place", 1, true) then sawPlace = true end
+end
+T.check(sawTally and sawPlace, "the tally and the placing were announced")
+
+-- --------------------------------------------- 4. every line fits the box
+
+local bad = {}
+for _, t in ipairs(shown) do
+  local lines = 0
+  for seg in (t .. "\n"):gmatch("(.-)\n") do
+    lines = lines + 1
+    if #seg > 18 then bad[#bad + 1] = seg end
+  end
+  if lines > 2 then bad[#bad + 1] = t end
+end
+T.eq(#bad, 0, ("every text-box line is <= 18 cols and <= 2 rows (%s)"):format(table.concat(bad, " | ")))
+T.check(#shown > 30, ("a full contest showed %d lines"):format(#shown))
+
+-- ------------------------------------------ 4b. layout follows orientation
+
+do
+  -- 0.34.0 shipped the wide canvas alone and the phone had to be turned on
+  -- its side (reported from device). Upright screens get the tall layout.
+  T.eq(S.layoutFor(1170, 2532).name, "tall", "a portrait window gets the tall layout")
+  T.same({ S.layoutFor(1170, 2532).w, S.layoutFor(1170, 2532).h }, { 160, 216 },
+    "tall is 160 x 216: the arena with the panel below, short enough to clear the touch controls")
+  T.eq(S.layoutFor(2532, 1170).name, "wide", "a landscape window gets the wide layout")
+  T.same({ S.layoutFor(2532, 1170).w, S.layoutFor(2532, 1170).h }, { 240, 144 },
+    "wide is 240 x 144: the arena with the panel beside")
+  T.eq(S.layoutFor(nil, nil).name, "tall", "unknown window size defaults to upright")
+  T.eq(S.layoutFor(800, 800).name, "tall", "a square window is treated as upright")
+  -- the arena is the same 160x144 battle frame in both, so animations need
+  -- no translation either way
+  T.eq(S.ARENA_W, 160, "the arena stays Gold's battle width")
+end
+
+-- ------------------------------------------ 5. repeat / no-PP guards
+
+do
+  local scr2 = newScreen({ "POUND" })
+  readAll(scr2); tick(scr2); readAll(scr2)
+  scr2.s.c[1].mon.moves[1].pp = 0
+  press(scr2, "a")
+  T.eq(scr2.s.c[1].mon.moves[1].pp,0,"appeals preserve battle PP")
+  T.eq(scr2.phase, "resolve", "zero-PP moves can appeal")
+end
+
+do
+  for _,startingPP in ipairs({0,1}) do
+    local screen,state,done=newScreen({"POUND"})
+    state.c[1].mon.moves[1].pp=startingPP
+    for _=1,450 do
+      if screen.finished then break end
+      if #screen.msgs>0 or screen.phase=="menu" then press(screen,"a") else tick(screen) end
+    end
+    T.check(screen.finished,"low-PP entrant finishes all five appeals")
+    T.eq(state.c[1].mon.moves[1].pp,startingPP,"battle PP unchanged after complete contest")
+    T.eq(#done,1,"result completes once")
+  end
+  local screen,state,done=newScreen({"POUND"})
+  readAll(screen);tick(screen);readAll(screen)
+  press(screen,"b"); T.eq(screen.phase,"withdraw","B requests withdrawal")
+  press(screen,"b"); T.eq(screen.phase,"menu","B cancels withdrawal")
+  press(screen,"b");press(screen,"a")
+  T.check(screen.finished and done[1].final.withdrawn,"A confirms withdrawal")
+  T.eq(#done,1,"withdrawal completes once")
+end
+-- Desktop uses Game2's custom-size entry point; mobile keeps its old path.
+do
+  local oldLove=love
+  love={system={getOS=function() return 'Windows' end}}
+  local screen=newScreen({'POUND'})
+  T.check(screen:drawsWidescreen(),'Windows opts into Game2 widescreen drawing')
+  for _,os in ipairs({'OS X','Linux'}) do
+    love.system.getOS=function() return os end
+    T.check(screen:drawsWidescreen(),os..' uses desktop drawing')
+  end
+  for _,os in ipairs({'iOS','Android','NX','Unknown'}) do
+    love.system.getOS=function() return os end
+    T.check(not screen:drawsWidescreen(),os..' retains existing drawing path')
+  end
+  for _,size in ipairs({{1920,1006},{1280,720},{800,600},{400,800},{200,120}}) do
+    local w,h=unpack(size)
+    local L=S.layoutFor(w,h)
+    local scale,x,y=S.fitDesktop(w,h,L)
+    T.check(x>=0 and y>=0 and x+L.w*scale<=w and y+L.h*scale<=h,
+      'whole contest fits '..w..'x'..h)
+    T.check(math.abs((w-L.w*scale)/2-x)<1,'horizontal centering uses full contest width')
+  end
+  local scale,x=S.fitDesktop(1920,1006,S.WIDE)
+  T.eq(scale,6,'screenshot-sized window fits full contest at six times scale')
+  T.eq(x,240,'screenshot-sized window centers the full 240-pixel panel')
+  love=oldLove
+end
+T.finish("contest screen")

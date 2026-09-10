@@ -1,20 +1,25 @@
 {
   "id": "kanto_contests",
   "name": "Kanto Contests (Alpha)",
-  "version": "0.8.2",
+  "version": "0.37.30",
   "api": 2,
+  "games": [
+    "gen1",
+    "gen2"
+  ],
   "entry": "main.lua",
   "github": "mistermiracle3036/Kanto-Contests",
   "profile": "content",
   "category": "QUEST",
   "game_version": ">=0.1.75 <2.0.0",
   "priority": 100,
-  "affects_link": false,
+  "affects_link": true,
   "permissions": [
     "engine_internals"
   ],
   "dependencies": [],
   "optional_dependencies": [],
   "conflicts": [],
-  "description": "ALPHA / proof of concept -- playable but unfinished. Ruby/Sapphire-style Pokemon Contests in Kanto: enter the Celadon Contest Hall and appeal to the judge with your POKeMON's moves, scored by each move's contest category. One COOL contest so far; PokeSnacks, the other four types and ranks are still to come. Wins are recorded on the POKeMON, so Kanto Ribbons awards a Cool Ribbon."
+  "description": "Five contest categories, four Johto ranks, PokeSnacks, scarves and rival coordinators. Challenge Fantina at MASTER rank and earn a Dusk Stone. Includes optional Honchkrow and Mismagius support; no species-framework dependency.",
+  "assets_transforms": "transforms.lua"
 }
