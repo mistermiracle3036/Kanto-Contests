@@ -5090,6 +5090,13 @@ local function kcGold(mod, VERSION)
       signs = {
         -- dialogue-ok: 13 / 12
         ["8,24"] = "CIANWOOD CITY\nCONTEST HALL",
+        -- The POKe SEER is Crystal-only: Gold and Silver have no sign
+        -- event at 8,24 to move, so on those games the post at 15,30 had
+        -- nothing behind it (developer, 2026-09-10). This answers it with
+        -- the city's own words. On Crystal the moved seer event claims the
+        -- cell first and this line never shows.
+        -- dialogue-ok: 13 / 17 then 13
+        ["15,30"] = "CIANWOOD CITY\nA Port Surrounded\fby Rough Seas",
       },
     },
     BLACKTHORN = {
@@ -6247,7 +6254,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.22"
+  local VERSION = "0.37.23"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
