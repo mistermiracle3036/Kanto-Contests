@@ -142,7 +142,7 @@ See the [FAQ](FAQ.md), the [Changelog](CHANGELOG.md) and the [third-party notice
 
 | |
 |---|
-| ![The in-game credits screen: ArtsyAlraune, Breeder, IN: Contests](docs/credits.png) |
+| ![The in-game credits screen: ArtsyAlraune drew the Breeder, in Contests](docs/credits.png) |
 
 The contest hall's custom cast is drawn by a lot of people, and every sheet is used with permission or under its licence, copied unchanged from the project's shared sprite store. Overworld walkers by **Bani** (Ash, Chef, Eusine, Larry, Leaf, Lear, Looker, Nate, Ranger, Yellow, Juliana, Lillie, Santa; and the Duplica, Giselle and Suzie sheets, which stand in for those characters), **Blaklyte** (N, Nurse Joy, Ingo), **SirWhibbles** (Agatha, Archer, Ariana, Giovanni, Petrel, Proton, the Rocket executive), **RoyalGuard** (Bill, Colress, Hugh, Lorelei, Maxie, Wally), **MOLLY** (Brendan, Dawn, Hilbert, Hilda, Lyra, Michael, Rosa, the stadium players, Wes), **Molly** (Green), **TeamHistoryWaffles** (Gloria, Officer Jenny, the Ruin Maniac), **NolanKrawczak** (Barry, May), **ArtsyAlraune** (the Breeder), **CyUzi** (Ball Guy), **KiravelSoul** (Volkner), **KIRB/YOSHI** (Bea), **Santiago Speedpaints** (Mina), **TheBrawlUnit** (AJ), **tharkka** (Roxie, commissioned) and **Yogurcomics** (Piers, commissioned).
 
