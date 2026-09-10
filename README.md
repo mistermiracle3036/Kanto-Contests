@@ -134,7 +134,7 @@ This mod adds its own rooms, places a building on four town maps, and wraps cont
 
 **A note on other mods:** Goldenrod, Ecruteak, Cianwood and Blackthorn are edited to fit the contest halls, so this mod may conflict with another mod that edits those overworld maps. If you hit one, open an issue naming the other mod; I will always work on a compatibility patch if asked.
 
-See the [FAQ](FAQ.md), the [Changelog](CHANGELOG.md), the [phone test checklist](TESTING.md) and the [third-party notices](THIRD_PARTY_NOTICES.md). Report problems through [GitHub Issues](../../issues) with the loaded mod version, game edition, engine version, other enabled mods and the MODS ERRS output.
+See the [FAQ](FAQ.md), the [Changelog](CHANGELOG.md), the [test checklist](docs/TESTING.md) (spoilers) and the [third-party notices](THIRD_PARTY_NOTICES.md). Report problems through [GitHub Issues](../../issues) with the loaded mod version, game edition, engine version, other enabled mods and the MODS ERRS output.
 
 ## Credits
 

@@ -1,3 +1,47 @@
+# Status, 2026-09-10 (0.37.29)
+
+The sections below this one are a working log from 0.8 to 0.35 and are kept
+as the record of how things were found out. Where they state a plan or an
+open problem, THIS block is the truth:
+
+- Every slice in "Roadmap after slice 1" shipped: scarves (0.10.9), rivals
+  and jams (0.31-0.34, by the Ruby/Sapphire rules), per-rank ribbons through
+  Kanto Ribbons (contestRanks, 0.34.44). "Contest HUD is classic-layout only"
+  is obsolete: the judging screen is the mod's own since 0.36.2, and fits a
+  desktop window since 0.37.8.
+- The 2026-09-01 backlog is done: crowd size by rank (0.36.0), venue
+  weighting (0.36.1), coordinator type limits and signature POKeMON (0.34.28,
+  from briefs/CONTEST_COORDINATORS.md), the audience around the stage
+  (0.36.4-0.36.5), AI by rank.
+- The MASTER challenge (0.37.0-0.37.10): Fantina enters every MASTER contest
+  until beaten once, then gives one DUSK STONE in the lobby and walks out.
+  HONCHKROW and MISMAGIUS are bundled (species_support.lua, dusk_challenge.lua,
+  dusk_species.lua, transforms.lua), with a save guardian for the species-off
+  case. docs/MASTER_CHALLENGE.md is the player-facing account.
+- Goldenrod IS in KC_STREETS now, in two ways: for its sign on Crystal, and as
+  a full street on Gold/Silver only (KCG.gs / KCG.gsFacade, door 29,3, sign
+  30,4, tileset TILESET_JOHTO_MODERN), because Crystal's Goldenrod has a
+  house in the north-east corner that Gold's does not. Crystal keeps the baked
+  facade and its door at 35,4. Streets carry their own `tileset` field since
+  0.37.26; the shared composer had assumed TILESET_JOHTO and Goldenrod is
+  the one town that is not on it.
+- Cianwood HAS a KC sign since 0.37.21: the post by the door (8,24) reads the
+  hall's name, and on Crystal the POKe SEER's sign event moves to the painted
+  post at 15,30 (movedSigns). Gold/Silver have no seer sign; that post is not
+  painted there (0.37.27).
+- kcGold is at LuaJIT's 200-local limit. New values go on an existing table
+  (KCG.gs, KCG.gsFacade did), not into new locals.
+- The Content Editor has two bridge projects: ce-new/mods/kc_layout (Crystal,
+  the rooms and three facades) and ce-new/mods/kc_layout_gs (Gold; the Gold
+  Goldenrod front). tests/read_city_facade.lua and tests/dump_city_paint.lua
+  take KC_PROJECT / KC_CACHE for the Gold one.
+- The test harness (engine tests/modkit) sometimes reports the mod as absent
+  with no error, usually the first run after a file write; the same tree
+  passes seconds later. Rerun before believing a FAIL there.
+- Screenshots live in docs/ and are excluded from the zip (release.yml and
+  .modkitignore); the README embeds them. docs/TESTING.md is the tester's
+  checklist, also out of the zip.
+
 # Parked / revisit later
 
 Things deliberately left open, so they don't get quietly settled by
