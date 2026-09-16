@@ -54,6 +54,16 @@ open problem, THIS block is the truth:
   "../Kanto-Contests" can still be run against a copy through a junction
   rig -- a scratch folder holding `engine` and `Kanto-Contests` junctions
   (mklink /J), then luajit from the rig's engine.
+- 0.37.41 (2026-09-15) REMOVED chef, officer_jenny, petrel and rocket_executive:
+  1Jamie/mod-scanner (tools/mod-scanner, run by portfolio_check.py) matched them
+  to pret sprites -- vanilla pixels, no grant covers them. Backlog: Petrel and
+  the Executive could come back as vanilla SPRITE_ROCKET with a hair palette, but
+  the cast lists are sprite ids and castName() derives the name from the id, so
+  that needs a small alias table ({ sprite, palette, name }) threaded through
+  drawFrom/spawnMarked/castName, sprite_check.lua and tests/seat_replay.py. The
+  scanner still FLAGs ivy.png against vanilla whitney (42% of pixels differ; same
+  walk template, redrawn head and outfit) -- the checker reviewed it and the gate
+  reports PASSED; render the pair before believing that flag, do not act on it.
 - Screenshots live in docs/ and are excluded from the zip (release.yml and
   .modkitignore); the README embeds them.
 

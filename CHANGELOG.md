@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.37.42
+
+New in 0.37.42: **four crowd sprites are removed** -- the Chef, Officer
+Jenny, Petrel and the Rocket Executive. A scan of the art found those four
+sheets to be vanilla game sprites with small edits rather than original
+work, and the mod only ships original or properly licensed art, so out they
+go. The crowd is four faces smaller and nothing else changes. If you have a
+save, nothing in it referenced them.
+
 ## 0.37.40
 
 New in 0.37.40: **the mod is called Contests now**, not "Kanto Contests

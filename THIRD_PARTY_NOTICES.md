@@ -8,7 +8,7 @@
   them. Sheets that are visual SUBSTITUTES are credited as the sheet,
   never as bespoke art of the character they stand in for. Art by:
   - **ArtsyAlraune** — breeder
-  - **Bani** — Ash, Chef, Eusine, Larry, Leaf, Lear, Looker, Nate, Ranger, Yellow, juliana, lillie, santa
+  - **Bani** — Ash, Eusine, Larry, Leaf, Lear, Looker, Nate, Ranger, Yellow, juliana, lillie, santa
   - **Bani (visual substitute)** — duplica, giselle, suzie
   - **Blaklyte** — N, Nurse_Joy, ingo; **fantina** (commissioned, the same
     sheet Indigo Plateau Conference 1.1.55 ships, in her approved colour)
@@ -20,8 +20,8 @@
   - **NolanKrawczak** — Barry, May
   - **RoyalGuard** — Bill, Colress, Hugh, Lorelei, Maxie, Wally
   - **Santiago Speedpaints (Rojimenez)** — mina
-  - **SirWhibbles** — agatha, archer, ariana, giovanni, petrel, proton, rocket_executive
-  - **TeamHistoryWaffles** — Gloria, Officer_Jenny, Ruin Maniac
+  - **SirWhibbles** — agatha, archer, ariana, giovanni, proton
+  - **TeamHistoryWaffles** — Gloria, Ruin Maniac
   - **tharkka (commissioned)** — roxie
   - **TheBrawlUnit** — aj
   - **Yogurcomics (commissioned)** — piers
