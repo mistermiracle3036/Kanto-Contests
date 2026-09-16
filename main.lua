@@ -1976,7 +1976,6 @@ local function kcGold(mod, VERSION)
     { id = "SPRITE_KC_BILL", image = "assets/bill.png", palette = "PAL_OW_BROWN", paletteId = 3 },
     { id = "SPRITE_KC_BREEDER", image = "assets/breeder.png", palette = "PAL_OW_GREEN", paletteId = 2 },
     { id = "SPRITE_KC_BRENDAN", image = "assets/brendan.png", palette = "PAL_OW_RED", paletteId = 0 },
-    { id = "SPRITE_KC_CHEF", image = "assets/chef.png", palette = "PAL_OW_BLUE", paletteId = 1 },
     { id = "SPRITE_KC_COLRESS", image = "assets/colress.png", palette = "PAL_OW_BLUE", paletteId = 1 },
     { id = "SPRITE_KC_DAWN", image = "assets/dawn.png", palette = "PAL_OW_PINK", paletteId = 4, trueColor = true },
     { id = "SPRITE_KC_DUPLICA", image = "assets/duplica.png", palette = "PAL_OW_PINK", paletteId = 4, trueColor = true },
@@ -2004,12 +2003,9 @@ local function kcGold(mod, VERSION)
     { id = "SPRITE_KC_N", image = "assets/n.png", palette = "PAL_OW_GREEN", paletteId = 2, trueColor = true },
     { id = "SPRITE_KC_NATE", image = "assets/nate.png", palette = "PAL_OW_BLUE", paletteId = 1 },
     { id = "SPRITE_KC_NURSE_JOY", image = "assets/nurse_joy.png", palette = "PAL_OW_PINK", paletteId = 4 },
-    { id = "SPRITE_KC_OFFICER_JENNY", image = "assets/officer_jenny.png", palette = "PAL_OW_BLUE", paletteId = 1 },
-    { id = "SPRITE_KC_PETREL", image = "assets/petrel.png", palette = "PAL_OW_GREEN", paletteId = 2 },
     { id = "SPRITE_KC_PIERS", image = "assets/piers.png", palette = "PAL_OW_BROWN", paletteId = 3 },
     { id = "SPRITE_KC_PROTON", image = "assets/proton.png", palette = "PAL_OW_PINK", paletteId = 4, trueColor = true },
     { id = "SPRITE_KC_RANGER", image = "assets/ranger.png", palette = "PAL_OW_RED", paletteId = 0 },
-    { id = "SPRITE_KC_ROCKET_EXECUTIVE", image = "assets/rocket_executive.png", palette = "PAL_OW_RED", paletteId = 0 },
     { id = "SPRITE_KC_ROSA", image = "assets/rosa.png", palette = "PAL_OW_RED", paletteId = 0 },
     { id = "SPRITE_KC_ROXIE", image = "assets/roxie.png", palette = "PAL_OW_PINK", paletteId = 4 },
     { id = "SPRITE_KC_RUIN_MANIAC", image = "assets/ruin_maniac.png", palette = "PAL_OW_BROWN", paletteId = 3, trueColor = true },
@@ -3297,10 +3293,19 @@ local function kcGold(mod, VERSION)
     -- repaired by the checker (REQUESTS row 10, 2026-09-02) and this copy
     -- is byte-identical to it again; he is back as of 0.34.21.
     -- tests/asset_png_check.py fails on that chunk from now on.
-    "KC_BREEDER", "KC_ROCKET_EXECUTIVE", "KC_CHEF", "KC_EUSINE", "KC_LOOKER",
+    -- KC_CHEF, KC_OFFICER_JENNY, KC_PETREL and KC_ROCKET_EXECUTIVE were
+    -- REMOVED in 0.37.41 (REQUESTS row 34, 2026-09-15): 1Jamie/mod-scanner
+    -- matched the sheets to the vanilla games' own sprites (chef = RBY cook with 2%
+    -- of pixels changed, Jenny = Yellow's officer, the two Rockets = the RBY
+    -- gentleman body), and no artist grant covers vanilla pixels. They
+    -- are quarantined in the shared store and the registry blocks them.
+    -- Vanilla Crystal has no cook; Petrel and the Executive could return as
+    -- vanilla SPRITE_ROCKET with a hair palette once the cast lists can
+    -- alias a name onto a vanilla sprite (NOTES.md backlog).
+    "KC_BREEDER", "KC_EUSINE", "KC_LOOKER",
     "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BALLGUY", "KC_BILL",
     "KC_INGO", "KC_AGATHA", "KC_ARCHER", "KC_ARIANA", "KC_GIOVANNI",
-    "KC_PETREL", "KC_PROTON", "KC_OFFICER_JENNY", "KC_RUIN_MANIAC",
+    "KC_PROTON", "KC_RUIN_MANIAC",
     -- the trainer classes and DJ Mary from the Polished Crystal set
     -- (0.37.5); they watch and never compete
     "KC_ARTIST", "KC_BOARDER", "KC_CAPTAIN", "KC_ENGINEER", "KC_EXTERMINATOR",
@@ -3320,7 +3325,7 @@ local function kcGold(mod, VERSION)
     { "POKEFAN_M", "POKEFAN_F" }, { "COOLTRAINER_M", "COOLTRAINER_F" },
     { "GRAMPS", "GRANNY" },
     { "RED", "BLUE" }, { "OAK", "ELM" }, { "KURT", "DAISY" },
-    { "MISTY", "BROCK" }, { "KC_OFFICER_JENNY", "KC_NURSE_JOY" },
+    { "MISTY", "BROCK" },
     { "KC_ASH", "KC_MAY" }, { "KC_BILL", "KC_LOOKER" },
   }
 
@@ -6296,7 +6301,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.40"
+  local VERSION = "0.37.42"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
