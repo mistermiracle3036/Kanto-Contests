@@ -557,11 +557,38 @@ return function(mod, ownedIds)
     end
 
 
+  -- 0.37.43 (REQUESTS 140): engine 722c2fc4 (v0.3.61+) made the Gen 2
+  -- dexEntry strict and metric -- kind/text/text2/heightM/weightKg/height/
+  -- weight only (src/mods/Schemas.lua, R.pokemon gen2) -- and one unknown key
+  -- fails the whole mod. Hand the engine that shape; the imperial original
+  -- stays on the expandedSpecies marker, where customDexEntry reads it, so
+  -- the rebuilt dex page is unchanged. Rounding is Expanded Species 0.8.2's,
+  -- so a shared record compares equal across mods.
+  local function engineDexEntry(entry)
+    if type(entry) ~= "table" then return entry end
+    local out = { kind=entry.kind, text=entry.text, text2=entry.text2,
+      heightM=entry.heightM, weightKg=entry.weightKg,
+      height=entry.height, weight=entry.weight }
+    local feet, inches = tonumber(entry.heightFt), tonumber(entry.heightIn)
+    if feet or inches then
+      feet, inches = math.floor(feet or 0), math.floor(inches or 0)
+      out.heightM = out.heightM or math.floor((feet*12+inches)*0.254+0.5)/10
+      out.height = out.height or feet*100+inches
+    end
+    local pounds = tonumber(entry.weightLbs)
+    if pounds then
+      out.weightKg = out.weightKg or math.floor(pounds*4.5359237+0.5)/10
+      out.weight = out.weight or math.floor(pounds*10+0.5)
+    end
+    return out
+  end
+
   local api = {}
   function api.register(row)
     row.expandedSpecies = { api=1, provider=mod.id, requestedDex=row.dex,
       dexEntry=copy(row.dexEntry), icon=copy(row.icon), palette=copy(row.palette),
       sourceName=row.name }
+    row.dexEntry = engineDexEntry(row.dexEntry)
     row.index = nil
     mod.content.pokemon:register(row.id, row)
   end

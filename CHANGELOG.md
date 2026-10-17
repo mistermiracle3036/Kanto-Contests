@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.37.43
+
+**Updating from 0.37.42?** Kanto Contests **loads again** on the current
+game update. A recent game update tightened how added Pokemon describe
+their Pokedex height and weight. Honchkrow and Mismagius still used the
+old format, so the game refused the whole mod and none of it ran. They
+now hand the game the new format. Their Pokedex pages, the contests and
+everything else are exactly as they were in 0.37.42.
+
 ## 0.37.42
 
 New in 0.37.42: **four crowd sprites are removed** -- the Chef, Officer
