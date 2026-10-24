@@ -5714,6 +5714,7 @@ local function kcGold(mod, VERSION)
             game.save.trophyUnlocks = game.save.trophyUnlocks or {}
             game.save.trophyUnlocks["kanto_contests:debut"] = true
             if rank == "MASTER" then
+              -- @trophy-keys: kanto_contests:master_cool kanto_contests:master_beauty kanto_contests:master_cute kanto_contests:master_smart kanto_contests:master_tough
               game.save.trophyUnlocks["kanto_contests:master_" .. tostring(kind):lower()] = true
             end
           end
@@ -6301,7 +6302,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.44"
+  local VERSION = "0.37.45"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

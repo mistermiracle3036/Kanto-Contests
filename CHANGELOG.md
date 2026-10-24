@@ -1,13 +1,20 @@
 # Changelog
 
-## 0.37.44
+## 0.37.45
 
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current
 game update. A recent game update tightened how added Pokemon describe
 their Pokedex height and weight. Honchkrow and Mismagius still used the
 old format, so the game refused the whole mod and none of it ran. They
 now hand the game the new format. Their Pokedex pages, the contests and
-everything else are exactly as they were in 0.37.42.
+everything else are exactly as they were in 0.37.42. The download also no
+longer carries a developer-only sprite checking script.
+
+New in 0.37.45: nothing you will notice. A code note now lists the five
+Master-rank Trophy Case keys, so the project's trophy checker can see
+them. The game behaves exactly as in 0.37.44.
+
+## 0.37.44
 
 New in 0.37.44: the download no longer carries a developer-only sprite
 checking script. Nothing in the game changes.
