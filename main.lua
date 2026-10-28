@@ -2886,24 +2886,6 @@ local function kcGold(mod, VERSION)
     return true
   end
 
-  local function ensureGoldenrodAttendant(world)
-    if markerExists(world, "kcAttendant") then return end
-    local x, y, how = pickCell(world)
-    if not x then
-      mod.log:warn("contest attendant NOT placed: %s", how)
-      return
-    end
-    entranceCell.x, entranceCell.y = x, y
-    local def = {
-      name = "KC_GOLDENROD_ATTENDANT",
-      sprite = KCG.sprite, x = x, y = y,
-      movement = KCG.movement,
-    }
-    local ok = spawnMarked(KCG.map, def, "kcAttendant")
-    mod.log:info("contest attendant at %s %d,%d (%s) placed=%s",
-                 KCG.map, x, y, how, tostring(ok))
-  end
-
   local function ensureRoomActors(world, def)
     for _, row in ipairs(def.actors or {}) do
       if not markerExists(world, row.marker) then
@@ -5312,9 +5294,9 @@ local function kcGold(mod, VERSION)
         -- The street attendant is GONE. She existed to walk the player in
         -- when the hall had no building; now it has a door at 35,4 and an
         -- NPC standing outside offering the same thing is just clutter.
-        -- ensureGoldenrodAttendant is left defined but unused rather than
-        -- deleted, because the Gen 1 arm still has its own attendant and
-        -- ripping the shared helper out would touch that too.
+        -- Its spawn helper, ensureGoldenrodAttendant, was removed in
+        -- 0.37.46 (REQUESTS 273): it was local to this Gold arm and had no
+        -- caller; the Gen 1 arm's attendant is its own code.
       elseif STREET_OF[mapId] then
         ensureStreetFacade(STREET_OF[mapId])
         clearCianwoodFacadeRock(world)
@@ -6302,7 +6284,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.45"
+  local VERSION = "0.37.46"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

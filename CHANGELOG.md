@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.45
+## 0.37.46
 
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current
 game update. A recent game update tightened how added Pokemon describe
@@ -9,6 +9,13 @@ old format, so the game refused the whole mod and none of it ran. They
 now hand the game the new format. Their Pokedex pages, the contests and
 everything else are exactly as they were in 0.37.42. The download also no
 longer carries a developer-only sprite checking script.
+
+New in 0.37.46: nothing you will notice. A piece of leftover code for the
+old Goldenrod street attendant, who was retired when the Contest Hall got
+its own door, has been removed. Nothing ever ran it, so the game behaves
+exactly as in 0.37.45.
+
+## 0.37.45
 
 New in 0.37.45: nothing you will notice. A code note now lists the five
 Master-rank Trophy Case keys, so the project's trophy checker can see
