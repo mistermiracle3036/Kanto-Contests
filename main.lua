@@ -1971,7 +1971,7 @@ local function kcGold(mod, VERSION)
     { id = "SPRITE_KC_ARIANA", image = "assets/ariana.png", palette = "PAL_OW_RED", paletteId = 0, trueColor = true },
     { id = "SPRITE_KC_ASH", image = "assets/ash.png", palette = "PAL_OW_BLUE", paletteId = 1 },
     { id = "SPRITE_KC_BALLGUY", image = "assets/ballguy.png", palette = "PAL_OW_RED", paletteId = 0 },
-    { id = "SPRITE_KC_BARRY", image = "assets/barry.png", palette = "PAL_OW_BROWN", paletteId = 3 },
+    { id = "SPRITE_KC_BARRY", image = "assets/barry.png", palette = "PAL_OW_GREEN", paletteId = 2 },
     { id = "SPRITE_KC_BEA", image = "assets/bea.png", palette = "PAL_OW_PINK", paletteId = 4 },
     { id = "SPRITE_KC_BILL", image = "assets/bill.png", palette = "PAL_OW_BROWN", paletteId = 3 },
     { id = "SPRITE_KC_BREEDER", image = "assets/breeder.png", palette = "PAL_OW_GREEN", paletteId = 2 },
@@ -6284,7 +6284,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.46"
+  local VERSION = "0.37.47"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

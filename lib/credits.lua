@@ -1,6 +1,14 @@
 -- Embeddable credits screen. Copy this file unchanged into each mod.
 -- Increment on every library change, including drawing/layout changes.
-local LIB_VERSION = 2
+-- v3 (2026-10-12): sections (PEOPLE / POKEMON / OTHER, LEFT/RIGHT) list one
+-- name per row; A opens that artist's page (made, commissioned, in). Entry
+-- fields `sections` and `commissions` are additive: v2 copies ignore them.
+local LIB_VERSION = 3
+local SECTIONS = {
+  { id = "people", label = "PEOPLE" },
+  { id = "pokemon", label = "POKEMON" },
+  { id = "other", label = "OTHER" },
+}
 local ROW_ID = "credits:book"
 local Credits = {}
 
@@ -28,10 +36,12 @@ function Credits.attach(mod, initialEntries)
   local function copyEntry(entry)
     if type(entry) ~= "table" or not optionalString(entry.artist)
       or not entry.artist:find("%S") then return nil end
-    local result = { artist = entry.artist, works = {}, mods = {},
-      source = optionalString(entry.source), note = optionalString(entry.note) }
+    local result = { artist = entry.artist, works = {}, mods = {}, commissions = {},
+      sections = {}, source = optionalString(entry.source), note = optionalString(entry.note) }
     union(result.works, entry.works)
     union(result.mods, entry.mods)
+    union(result.commissions, entry.commissions)
+    union(result.sections, entry.sections)
     return result
   end
 
@@ -71,6 +81,8 @@ function Credits.attach(mod, initialEntries)
         if existing then
           union(existing.works, entry.works)
           union(existing.mods, entry.mods)
+          union(existing.commissions, entry.commissions)
+          union(existing.sections, entry.sections)
           existing.source = existing.source or entry.source
           existing.note = existing.note or entry.note
         else
@@ -114,28 +126,76 @@ function Credits.attach(mod, initialEntries)
       text = text:sub(cut + 1):gsub("^%s+", "")
     end
   end
-  local function buildRows(entries)
+  -- One artist's page: their name, what they made, what was commissioned
+  -- from them, which installed mods ship it, and any required credit line.
+  local function buildPage(entry)
     local rows = {}
-    for i, entry in ipairs(entries) do
-      if i > 1 then rows[#rows + 1] = { rule = true, artist = i } end
-      wrap(rows, entry.artist, i)
-      if #entry.works > 0 then wrap(rows, table.concat(entry.works, ", "), i) end
-      if #entry.mods > 0 then wrap(rows, "IN: " .. table.concat(entry.mods, ", "), i) end
-      if entry.note then wrap(rows, entry.note, i) end
+    local function block(label, values)
+      if #values == 0 then return end
+      if #rows > 0 then rows[#rows + 1] = { blank = true } end
+      if label then rows[#rows + 1] = { text = label } end
+      wrap(rows, table.concat(values, ", "))
     end
+    wrap(rows, entry.artist)
+    block("MADE:", entry.works)
+    block("COMMISSIONED:", entry.commissions)
+    block("IN:", entry.mods)
+    if entry.note then block(nil, { entry.note }) end
     return rows
+  end
+  -- Entries by section, in SECTIONS order; empty sections are not shown. An
+  -- entry with no (or no known) section is PEOPLE, so v2-era data still lists.
+  local function tabsFor(entries)
+    local tabs = {}
+    for _, section in ipairs(SECTIONS) do
+      local list = {}
+      for _, entry in ipairs(entries) do
+        local known, wanted = false, false
+        for _, id in ipairs(entry.sections) do
+          for _, s in ipairs(SECTIONS) do if s.id == id then known = true end end
+          if id == section.id then wanted = true end
+        end
+        if wanted or (not known and section.id == "people") then list[#list + 1] = entry end
+      end
+      if #list > 0 then
+        tabs[#tabs + 1] = { label = section.label, entries = list, cursor = 1, top = 1 }
+      end
+    end
+    return tabs
+  end
+  local function fit(text)
+    text = display(text)
+    return text:sub(1, prefix(text))
   end
   local function open(game, rawEntries)
     local entries = mergedEntries(rawEntries)
-    local rows = buildRows(entries)
-    local pages = math.max(1, math.ceil(#rows / VISIBLE))
-    local state = { isOpaque = true, offset = 0 }
+    local tabs = tabsFor(entries)
+    local state = { isOpaque = true, tab = 1, page = nil, offset = 0 }
     function state:update(_dt)
       local input = game.input
+      if self.page then
+        if input:wasPressed("b") then self.page, self.offset = nil, 0
+        elseif input:wasPressed("up") then self.offset = math.max(0, self.offset - 1)
+        elseif input:wasPressed("down") then
+          self.offset = math.min(math.max(0, #self.page - VISIBLE), self.offset + 1)
+        end
+        return
+      end
+      local tab = tabs[self.tab]
       if input:wasPressed("b") then game.stack:pop()
-      elseif input:wasPressed("up") then self.offset = math.max(0, self.offset - 1)
+      elseif not tab then return
+      elseif input:wasPressed("left") and #tabs > 1 then
+        self.tab = (self.tab - 2) % #tabs + 1
+      elseif input:wasPressed("right") and #tabs > 1 then
+        self.tab = self.tab % #tabs + 1
+      elseif input:wasPressed("up") then
+        tab.cursor = math.max(1, tab.cursor - 1)
+        if tab.cursor < tab.top then tab.top = tab.cursor end
       elseif input:wasPressed("down") then
-        self.offset = math.min((pages - 1) * VISIBLE, self.offset + 1)
+        tab.cursor = math.min(#tab.entries, tab.cursor + 1)
+        if tab.cursor >= tab.top + VISIBLE then tab.top = tab.cursor - VISIBLE + 1 end
+      elseif input:wasPressed("a") then
+        self.page, self.offset = buildPage(tab.entries[tab.cursor]), 0
       end
     end
     -- Trainer Journey's rule/rightText/header idiom, using public surfaces:
@@ -147,25 +207,54 @@ function Credits.attach(mod, initialEntries)
     local function rightText(text, y)
       Font.draw(text, 156 - Font.width(text), y)
     end
+    -- the arrows are charmap codes, not text: ← $DF, → $EB (charmap.asm)
+    local LEFT_ARROW, RIGHT_ARROW = 0xDF, 0xEB
+    local function drawPage(rows)
+      Font.draw("CREDITS", 4, 4)
+      local pages = math.max(1, math.ceil(#rows / VISIBLE))
+      rightText(tostring(math.floor(state.offset / VISIBLE) + 1) .. "/" .. pages, 4)
+      rule(17)
+      for i = 1, VISIBLE do
+        local row = rows[state.offset + i]
+        if row and row.text then Font.draw(row.text, 4, TOP + (i - 1) * STEP) end
+      end
+      rule(127)
+      Font.draw("B:BACK", 4, 136)
+    end
+    local function drawIndex()
+      local tab = tabs[state.tab]
+      if not tab then
+        Font.draw("CREDITS", 4, 4)
+        rule(17); rule(127)
+        Font.draw("B:CLOSE", 4, 136)
+        return
+      end
+      if #tabs > 1 then
+        Font.drawCode(LEFT_ARROW, 4, 4)
+        Font.draw(tab.label, 12, 4)
+        Font.drawCode(RIGHT_ARROW, 12 + Font.width(tab.label), 4)
+        rightText(tostring(state.tab) .. "/" .. #tabs, 4)
+      else
+        Font.draw(tab.label, 4, 4)
+      end
+      rule(17)
+      for i = 1, VISIBLE do
+        local entry = tab.entries[tab.top + i - 1]
+        if entry then
+          local y = TOP + (i - 1) * STEP
+          Font.draw(fit(entry.artist), 12, y)
+          if tab.top + i - 1 == tab.cursor then Font.drawCode(mod.ui.Theme.cursor, 4, y) end
+        end
+      end
+      rule(127)
+      Font.draw("A:OPEN", 4, 136)
+      rightText(tostring(tab.cursor) .. "/" .. #tab.entries, 136)
+    end
     function state:draw()
       love.graphics.setColor(1, 1, 1, 1)
       love.graphics.rectangle("fill", 0, 0, 160, 144)
       love.graphics.setColor(0, 0, 0, 1)
-      Font.draw("CREDITS", 4, 4)
-      rightText(tostring(math.floor(self.offset / VISIBLE) + 1) .. "/" .. pages, 4)
-      rule(17)
-      for i = 1, VISIBLE do
-        local row = rows[self.offset + i]
-        if row then
-          local y = TOP + (i - 1) * STEP
-          if row.rule then rule(y + 4) else Font.draw(row.text, 12, y) end
-        end
-      end
-      Font.drawCode(mod.ui.Theme.cursor, 4, TOP)
-      rule(127)
-      Font.draw("B:CLOSE", 4, 136)
-      local current = rows[self.offset + 1]
-      rightText(tostring(current and current.artist or 0) .. "/" .. #entries, 136)
+      if self.page then drawPage(self.page) else drawIndex() end
       love.graphics.setColor(1, 1, 1, 1)
     end
     game.stack:push(state)

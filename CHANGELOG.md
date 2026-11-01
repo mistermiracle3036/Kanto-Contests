@@ -1,14 +1,25 @@
 # Changelog
 
-## 0.37.46
+## 0.37.47
 
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current
 game update. A recent game update tightened how added Pokemon describe
 their Pokedex height and weight. Honchkrow and Mismagius still used the
 old format, so the game refused the whole mod and none of it ran. They
-now hand the game the new format. Their Pokedex pages, the contests and
-everything else are exactly as they were in 0.37.42. The download also no
-longer carries a developer-only sprite checking script.
+now hand the game the new format. Their Pokedex pages and the contests
+are as they were in 0.37.42. Barry, Cynthia and Steven have new looks,
+and the credits screen has its new layout (both below).
+
+New in 0.37.47:
+
+- **Barry, Cynthia and Steven have new art** by Bani. Barry now wears
+  green, Cynthia a black coat, and Steven has his silver hair.
+- **The credits screen has a new layout**: People, Pokemon and Other
+  sections, one name per row. Press A on a name to see what that artist
+  made and which mods use it, and B to go back. Bani is now credited for
+  Barry, Cynthia and Steven.
+
+## 0.37.46
 
 New in 0.37.46: nothing you will notice. A piece of leftover code for the
 old Goldenrod street attendant, who was retired when the Contest Hall got
