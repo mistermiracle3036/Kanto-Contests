@@ -4879,7 +4879,13 @@ local function kcGold(mod, VERSION)
   local function ensureGoldenrodFacade()
     local data = mod.game and mod.game.data
     local tsets = data and (data.gen2Tilesets or data.tilesets)
-    local ts = tsets and tsets.TILESET_JOHTO_MODERN
+    -- 0.37.48 (REQUESTS 401): append to the tileset the LIVE map uses, not
+    -- TILESET_JOHTO_MODERN by name. Johto Expanded 0.3.3+ retiles Goldenrod
+    -- to JOHTO_EXPANDED_GOLDENROD_TILES (blocks 0-127 the same, its hotel
+    -- and TV station at 128+), so our stamped ids landed on its blocks and
+    -- past its end: the HOTEL sign and grey roof on the developer's phone.
+    local gdef = data and data.gen2Maps and data.gen2Maps.GOLDENROD_CITY
+    local ts = tsets and tsets[(gdef and gdef.tileset) or "TILESET_JOHTO_MODERN"]
     -- gen2Tilesets is populated at GAME construction (Game2.lua:949),
     -- which happens AFTER mods load. 0.16.0 read tileset data at load
     -- time, got nothing, and shipped grey rooms; map.entered is late
@@ -5181,7 +5187,11 @@ local function kcGold(mod, VERSION)
     local tsets = data and (data.gen2Tilesets or data.tilesets)
     -- the STREET's tileset: the town's map tileset, which the (block,
     -- quadrant) pairs index and the composed blocks are appended to
-    local tsId = street.tileset or "TILESET_JOHTO"
+    -- 0.37.48 (REQUESTS 401): the live map def's tileset first, so a mod
+    -- that retiles the town (Johto Expanded on Goldenrod) gets our blocks
+    -- in the set it actually draws with. street.tileset is the fallback.
+    local mdef = data and data.gen2Maps and data.gen2Maps[street.map]
+    local tsId = (mdef and mdef.tileset) or street.tileset or "TILESET_JOHTO"
     local ts = tsets and tsets[tsId]
     -- as with Goldenrod: gen2Tilesets exists only after the Game is
     -- built, which is why this runs on map.entered and not at load
@@ -6284,7 +6294,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.47"
+  local VERSION = "0.37.48"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
