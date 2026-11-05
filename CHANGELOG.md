@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.48
+## 0.37.49
 
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current
 game update. A recent game update tightened how added Pokemon describe
@@ -8,8 +8,16 @@ their Pokedex height and weight. Honchkrow and Mismagius still used the
 old format, so the game refused the whole mod and none of it ran. They
 now hand the game the new format. Their Pokedex pages and the contests
 are as they were in 0.37.42. Barry, Cynthia and Steven have new looks
-(Bani's art), the credits screen has a new layout, and the Contest Hall
-draws properly next to Johto Expanded (below).
+(Bani's art), the credits screen has a new layout, the Contest Hall
+draws properly next to Johto Expanded, and the contest audience now turns
+to talk to you (below).
+
+New in 0.37.49: **the contest audience turns to face you when you talk to
+them**, then turns back to watch the stage (or the friend they came with)
+once you are done. Before, they kept their eyes on the stage the whole
+time.
+
+## 0.37.48
 
 New in 0.37.48: **the Contest Hall in Goldenrod draws correctly when Johto
 Expanded is also installed.** With both mods, the top-right corner of

@@ -6241,12 +6241,12 @@ local function kcGold(mod, VERSION)
     return FALLBACK_LINE
   end
 
-  local function talkCast(world, npc)
+  local function talkCast(world, npc, onDone)
     if npc.def.kcFantina then
-      world:showText("Shall we\nshare the stage?\fAny category!\nShow me your best!")
+      world:showText("Shall we\nshare the stage?\fAny category!\nShow me your best!", onDone)
       return
     end
-    world:showText(lineFor(world, npc))
+    world:showText(lineFor(world, npc), onDone)
   end
 
   -- World:interactBody asks this facade's talkTo after resolving an NPC.
@@ -6276,10 +6276,20 @@ local function kcGold(mod, VERSION)
     end
     -- Turn BEFORE the box opens, so the sprite is already looking at the
     -- player on the frame the text appears rather than after it closes.
-    -- Audience keeps watching the stage (or its actual duo partner)
-    -- during conversation rather than staying turned toward the player.
-    if not def.kcAudienceStageFace then faceThePlayer(world, npc) end
-    local ok, err = pcall(handler, world, npc)
+    -- 0.37.49 (REQUESTS 484, developer's pick 2026-11-05: "Turn, then turn
+    -- back"): the stage audience turns to you too, and when the text
+    -- closes it turns back to its resting pose -- the stage, or its duo
+    -- partner -- so the crowd still watches the show. This replaces
+    -- 0.36.9's "keeps watching the stage during conversation".
+    local onDone
+    if def.kcAudienceStageFace then
+      local rest = audienceDirections[def.movement]
+      onDone = function()
+        if rest and npc.scriptFace then pcall(npc.scriptFace, npc, rest) end
+      end
+    end
+    faceThePlayer(world, npc)
+    local ok, err = pcall(handler, world, npc, onDone)
     if not ok then
       mod.log:warn("kc gold talk: %s", tostring(err))
       pcall(function() world:showText("KC error: hall\ninteraction failed") end)
@@ -6294,7 +6304,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.48"
+  local VERSION = "0.37.49"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
