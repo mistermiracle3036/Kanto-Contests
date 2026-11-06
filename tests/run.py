@@ -11,14 +11,11 @@ a=p.parse_args()
 mod=Path(__file__).resolve().parents[1]
 engine=a.engine.resolve()
 
-# PartyMenu loads icon PNGs directly: native OBJ shade zero must be transparent.
+# 0.37.50 (REQUESTS 96): the two species use their pre-evolution's vanilla
+# party icon (ICON_BIRD / ICON_GHOST); the unattributed icon PNGs must not ship.
 for species in ('mismagius','honchkrow'):
-    icon=Image.open(mod/'assets'/f'{species}_icon.png').convert('RGBA')
-    assert icon.size==(16,32),f'{species}: preserve both native icon frames'
-    for red,green,blue,alpha in icon.getdata():
-        assert red==green==blue and red in (0,85,170,255),f'{species}: invalid icon shade'
-        assert alpha==(0 if red==255 else 255),f'{species}: incorrect icon transparency'
-print('Both species icons use native transparent shade zero.')
+    assert not (mod/'assets'/f'{species}_icon.png').exists(),f'{species}: icon PNG must stay removed'
+print('Both species use vanilla party icons; no icon PNGs ship.')
 def run(args,cwd=engine,retry=False):
     try:
         subprocess.run([str(x) for x in args],cwd=cwd,check=True)

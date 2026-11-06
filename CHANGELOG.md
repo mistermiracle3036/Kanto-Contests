@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.49
+## 0.37.50
 
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current
 game update. A recent game update tightened how added Pokemon describe
@@ -9,8 +9,15 @@ old format, so the game refused the whole mod and none of it ran. They
 now hand the game the new format. Their Pokedex pages and the contests
 are as they were in 0.37.42. Barry, Cynthia and Steven have new looks
 (Bani's art), the credits screen has a new layout, the Contest Hall
-draws properly next to Johto Expanded, and the contest audience now turns
-to talk to you (below).
+draws properly next to Johto Expanded, the contest audience now turns
+to talk to you, and Honchkrow and Mismagius have new party icons (below).
+
+New in 0.37.50: **Honchkrow and Mismagius use the game's own party
+icons**: Honchkrow the bird icon Murkrow uses, Mismagius the ghost icon
+Misdreavus uses. Their old icons came without a named artist, so they
+are gone from the download.
+
+## 0.37.49
 
 New in 0.37.49: **the contest audience turns to face you when you talk to
 them**, then turns back to watch the stage (or the friend they came with)

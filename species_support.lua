@@ -587,7 +587,11 @@ return function(mod, ownedIds)
   function api.register(row)
     row.expandedSpecies = { api=1, provider=mod.id, requestedDex=row.dex,
       dexEntry=copy(row.dexEntry), icon=copy(row.icon), palette=copy(row.palette),
-      sourceName=row.name }
+      iconFallback=row.iconFallback, sourceName=row.name }
+    -- iconFallback lives on the marker only: the strict Gen 2 pokemon
+    -- schema has no such field and would refuse the whole mod (as with
+    -- dexEntry, REQUESTS 140).
+    row.iconFallback = nil
     row.dexEntry = engineDexEntry(row.dexEntry)
     row.index = nil
     mod.content.pokemon:register(row.id, row)

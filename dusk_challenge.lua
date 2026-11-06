@@ -21,7 +21,12 @@ return function(mod)
       row.cry,row.picSize=row.id,7
       row.spriteFront=mod.assets:path("assets/"..slug.."_front.png")
       row.spriteBack=mod.assets:path("assets/"..slug.."_back.png")
-      row.icon={image=mod.assets:path("assets/"..slug.."_icon.png"),width=16,height=32,frames=2}
+      -- 0.37.50 (REQUESTS 96, developer 2026-10-11): the pre-evolution's
+      -- vanilla party icon, not Polished Crystal's per-species icon art,
+      -- which has no named artist. MURKROW -> ICON_BIRD, MISDREAVUS ->
+      -- ICON_GHOST (crystal icons.lua); species_support's installVisuals
+      -- maps the species to that species' icon.
+      row.iconFallback=base
       support.register(row)
     end
   end

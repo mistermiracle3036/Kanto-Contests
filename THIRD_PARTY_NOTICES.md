@@ -93,7 +93,7 @@ Honchkrow and Mismagius artwork and data are adapted from Polished Crystal by Ra
 
 Upstream CREDITS.md credits **bloodless (BloodlessNS)** for Honchkrow and **bloodless with SoupPotato** for Mismagius. General sprite/icon contributors include Blue Emerald, solo993, Chamber, Lake, Neslug and Pikachu25; individual icon artists are not identified by that source. Original artwork remains the work of its credited creators and is not relicensed as this mod's original art.
 
-Files used for each species: `gfx/pokemon/<species>/{front.png,back.png,normal.pal,shiny.pal}`, `gfx/icons/<species>.png`, `data/pokemon/base_stats/<species>.asm`, `data/pokemon/evos_attacks.asm`, and `data/pokemon/dex_entries.asm`. The first front frame is compiled at native 56x56; back sprites remain 48x48 and icons 16x32. Indexed grayscale compilation does not redraw or resize the sprites. Palette channels are converted from RGB5 to RGB8. Faithful base stats are used; later-generation moves absent from the engine and abilities are omitted. Native Murkrow/Misdreavus cries are referenced at runtime, not bundled as audio.
+Files used for each species: `gfx/pokemon/<species>/{front.png,back.png,normal.pal,shiny.pal}`, `data/pokemon/base_stats/<species>.asm`, `data/pokemon/evos_attacks.asm`, and `data/pokemon/dex_entries.asm`. The first front frame is compiled at native 56x56; back sprites remain 48x48 and icons 16x32. Indexed grayscale compilation does not redraw or resize the sprites. Palette channels are converted from RGB5 to RGB8. Faithful base stats are used; later-generation moves absent from the engine and abilities are omitted. Native Murkrow/Misdreavus cries are referenced at runtime, not bundled as audio.
 
 ## Expanded Species support
 
