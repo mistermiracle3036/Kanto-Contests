@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.50
+## 0.37.51
 
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current
 game update. A recent game update tightened how added Pokemon describe
@@ -10,7 +10,15 @@ now hand the game the new format. Their Pokedex pages and the contests
 are as they were in 0.37.42. Barry, Cynthia and Steven have new looks
 (Bani's art), the credits screen has a new layout, the Contest Hall
 draws properly next to Johto Expanded, the contest audience now turns
-to talk to you, and Honchkrow and Mismagius have new party icons (below).
+to talk to you, Honchkrow and Mismagius have new party icons, and you can
+meet May at the Ruins of Alph (below).
+
+New in 0.37.51: **May is at the Ruins of Alph.** She is on her way to
+the Goldenrod contest and has taken a wrong turn. Help her read her map,
+and she will tell you how contests work. With Trainer Journey installed,
+helping her is the start of your bond with her.
+
+## 0.37.50
 
 New in 0.37.50: **Honchkrow and Mismagius use the game's own party
 icons**: Honchkrow the bird icon Murkrow uses, Mismagius the ghost icon

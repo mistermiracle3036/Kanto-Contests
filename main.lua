@@ -6249,6 +6249,137 @@ local function kcGold(mod, VERSION)
     world:showText(lineFor(world, npc), onDone)
   end
 
+  -- ---------------------------------------------------------------
+  -- MAY AT THE RUINS OF ALPH (0.37.51, REQUESTS 593; developer's work
+  -- order 2026-11-08: "loose we can update designs and definitely
+  -- dialogue"). After meeting May in Elm's lab (Crystal Cutscene's starter
+  -- lab), the player finds her outside the RUINS, lost on her way to
+  -- GOLDENROD's contest. Helping her read her OWN map (the player is never
+  -- assumed to know the route) leads into her explaining contests as this
+  -- mod runs them: five categories, five turns, a judge and a crowd, NORMAL
+  -- rank first, any POKeMON that knows a move. Her first bond is a Trainer
+  -- Journey fact (mod.exports.getAffinityEvents below): TJ asks every
+  -- active mod for it (REQUESTS 282), so TJ owns the star and its notice.
+  -- Built inside its own function: kcGold is at Lua's 200-local ceiling,
+  -- so this adds ONE local (the talk handler) and keeps the rest inside.
+  local talkMayRuins = (function()
+  local MAY_MAP = "RUINS_OF_ALPH_OUTSIDE"
+  local MAY_CELL = { x = 11, y = 19 }   -- TODO/CONFIRM on device: by the ROUTE 32 gate path
+  local MAY_FACT = "kanto_contests:may:ruins"
+  local mayHelpedThisVisit = false
+  local function mayState() return mod.save and mod.save:get("kcMayRuins") or nil end
+  -- Has the player met May in Elm's lab? REQUESTS 594 asks Crystal
+  -- Cutscene for starterLabMet(key). Until it lands, "crystal_cutscene is
+  -- loaded" counts as met: its lab scene opens every game it is installed
+  -- for. TODO/CONFIRM when 594 answers.
+  local function mayMetInLab()
+    local h = mod.find and mod.find("crystal_cutscene")
+    local cc = h and h.exports and (h.exports.crystal_cutscene or h.exports)
+    if type(cc) == "table" and cc.starter_lab_met_version == 1
+        and type(cc.starterLabMet) == "function" then
+      local ok, met = pcall(cc.starterLabMet, "may")
+      return ok and met == true
+    end
+    return h ~= nil
+  end
+  -- Trainer Journey's bond-tier tag (AUTHOR_API "Introductions follow the
+  -- bond"; names PROPOSED, REQUESTS 584). Read ungated; our own stranger
+  -- line is the fallback, so without Trainer Journey she still speaks.
+  local function introLine(key, own)
+    local h = mod.find and mod.find("trainer_journey")
+    local tj = h and h.exports and (h.exports.trainer_journey or h.exports)
+    if tj and tj.bond_tier_version == 1 and type(tj.intro) == "function" then
+      local ok, line = pcall(tj.intro, key, own)
+      if ok and line then return line end
+    end
+    return own and own.stranger
+  end
+  local function showPages(world, pages, onDone)
+    world:showText(table.concat(pages, "\f"), onDone)
+  end
+  local function talk(world)
+    if mayState() == "helped" then
+      -- dialogue-ok: 15 / 17
+      world:showText("South, through\nthe cave! Got it!")
+      return
+    end
+    -- In the lab she already met the player: a stranger tier still greets,
+    -- because the lab scene records no bond (REQUESTS 594).
+    local hello = introLine("may", { stranger = mayMetInLab()
+      and "Oh! You were at\nPROF.ELM's lab!"
+      or "Hi! I'm MAY. I\nlove CONTESTS!" })
+    showPages(world, {
+      hello,
+      "I'm trying to get\nto GOLDENROD.",
+      "There's a CONTEST\nthere! But...",
+      "I think I took a\nwrong turn.",
+      "Can you help me\nread my map?",
+    }, function()
+      world:askYesNo(function(yes)
+        if not yes then
+          world:showText("Oh, OK! I'll\nfigure it out.")
+          return
+        end
+        showPages(world, {
+          "Here. We're at\nthe RUINS, right?",
+          "The map shows a\nroad south...",
+          "ROUTE 32, then a\ncave. UNION CAVE!",
+          "Past the cave is\nAZALEA TOWN.",
+          "And GOLDENROD is\nthrough the woods.",
+          "Thanks! Two sets\nof eyes did it.",
+          "Have you seen a\nPOKeMON CONTEST?",
+          "You pick COOL,\nBEAUTY, CUTE,",
+          "SMART or TOUGH,\nthen you perform!",
+          "Five turns of\nappeals. A JUDGE",
+          "and the crowd\ngive you hearts.",
+          "Any POKeMON with\na move can enter.",
+          "Everyone starts\nat NORMAL rank.",
+          "Win, and higher\nranks open up!",
+          "Come watch, or\nenter yourself!",
+          "See you in\nGOLDENROD!",
+        }, function()
+          if mod.save then mod.save:set("kcMayRuins", "helped") end
+          mayHelpedThisVisit = true
+        end)
+      end)
+    end)
+  end
+  -- She stays put for the rest of this visit (her repeat line above), and
+  -- is gone the next time the player comes to the RUINS. Runtime objects
+  -- stay in the map's list for the session, so removal is explicit.
+  local function ensureMayRuins(world, mapId)
+    if mapId ~= MAY_MAP then mayHelpedThisVisit = false; return end
+    local npcs = (world and world.npcs) or {}
+    if mayState() == "helped" and not mayHelpedThisVisit then
+      local ids = {}
+      for _, npc in ipairs(npcs) do
+        local d = npc.def
+        if d and d.kcMayRuins and d.runtime and d.index then
+          ids[#ids + 1] = mapId .. "_obj_" .. d.index
+        end
+      end
+      for _, id in ipairs(ids) do pcall(mod.world.removeNpc, mod.world, id) end
+      return
+    end
+    if mayState() ~= "helped" and not markerExists(world, "kcMayRuins") then
+      spawnMarked(MAY_MAP, { name = "KC_MAY_RUINS", sprite = "SPRITE_KC_MAY",
+        x = MAY_CELL.x, y = MAY_CELL.y, movement = FACE_DOWN }, "kcMayRuins")
+    end
+  end
+  mod.events:on("map.entered", function(ev)
+    local ok, err = pcall(ensureMayRuins, mod.world:overworld(), ev and ev.mapId)
+    if not ok then mod.log:warn("kc may ruins: %s", tostring(err)) end
+  end)
+  -- Trainer Journey's affinity facts (contract affinity-facts-kanto-contests,
+  -- exchange/CONTRACTS.md): one `chapter` = one half star, the id unique
+  -- forever, written only once she has been helped.
+  mod.exports.getAffinityEvents = function()
+    if mayState() ~= "helped" then return {} end
+    return { { id = MAY_FACT, schema = 1, character = "may", kind = "chapter" } }
+  end
+  return talk
+  end)()
+
   -- World:interactBody asks this facade's talkTo after resolving an NPC.
   -- Own only the four marker fields above and chain every other actor.
   local OW = require("src.world.OverworldController")
@@ -6267,6 +6398,7 @@ local function kcGold(mod, VERSION)
       or (def.kcRivalPiper and talkPiper)
       or (def.kcRivalRex and talkRex)
       or (def.kcRivalFiona and talkFiona)
+      or (def.kcMayRuins and talkMayRuins)
       or (def.kcAudience and talkAudience)
       or (def.kcCast and talkCast)
     )
@@ -6304,7 +6436,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.50"
+  local VERSION = "0.37.51"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
