@@ -6268,10 +6268,10 @@ local function kcGold(mod, VERSION)
   local MAY_FACT = "kanto_contests:may:ruins"
   local mayHelpedThisVisit = false
   local function mayState() return mod.save and mod.save:get("kcMayRuins") or nil end
-  -- Has the player met May in Elm's lab? REQUESTS 594 asks Crystal
-  -- Cutscene for starterLabMet(key). Until it lands, "crystal_cutscene is
-  -- loaded" counts as met: its lab scene opens every game it is installed
-  -- for. TODO/CONFIRM when 594 answers.
+  -- Has the player met May in Elm's lab? Crystal Cutscene's
+  -- starterLabMet(key) (contract starter-lab-met, REQUESTS 594, name
+  -- approved by the developer; shipped in crystal_cutscene 0.110.79).
+  -- Read ungated: no export means not met, and she introduces herself.
   local function mayMetInLab()
     local h = mod.find and mod.find("crystal_cutscene")
     local cc = h and h.exports and (h.exports.crystal_cutscene or h.exports)
@@ -6280,7 +6280,7 @@ local function kcGold(mod, VERSION)
       local ok, met = pcall(cc.starterLabMet, "may")
       return ok and met == true
     end
-    return h ~= nil
+    return false
   end
   -- Trainer Journey's bond-tier tag (AUTHOR_API "Introductions follow the
   -- bond"; names PROPOSED, REQUESTS 584). Read ungated; our own stranger
@@ -6436,7 +6436,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.51"
+  local VERSION = "0.37.52"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

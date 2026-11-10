@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.51
+## 0.37.52
 
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current
 game update. A recent game update tightened how added Pokemon describe
@@ -8,10 +8,17 @@ their Pokedex height and weight. Honchkrow and Mismagius still used the
 old format, so the game refused the whole mod and none of it ran. They
 now hand the game the new format. Their Pokedex pages and the contests
 are as they were in 0.37.42. Barry, Cynthia and Steven have new looks
-(Bani's art), the credits screen has a new layout, the Contest Hall
-draws properly next to Johto Expanded, the contest audience now turns
-to talk to you, Honchkrow and Mismagius have new party icons, and you can
-meet May at the Ruins of Alph (below).
+(Bani's art), the credits screen is redesigned, the Contest Hall draws
+properly next to Johto Expanded, the contest audience now turns to talk
+to you, Honchkrow and Mismagius have new party icons, and you can meet
+May at the Ruins of Alph (below).
+
+New in 0.37.52: **the credits screen is redesigned.** Each artist gets a
+page with the characters they drew, shown walking. Press A on a
+character to see their portrait and which mods use them. May now greets
+you at the Ruins only if you met her in Elm's lab.
+
+## 0.37.51
 
 New in 0.37.51: **May is at the Ruins of Alph.** She is on her way to
 the Goldenrod contest and has taken a wrong turn. Help her read her map,
