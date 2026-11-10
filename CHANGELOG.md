@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.37.53
+
+Text that runs over several boxes now shows the blinking arrow while it waits for A, as Crystal does (REQUESTS 769). No other change. Made by the Checker on the developer's word, 2026-11-10: "just fix it".
+
 ## 0.37.52
 
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current

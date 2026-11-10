@@ -4767,7 +4767,7 @@ local function kcGold(mod, VERSION)
             world:showText(("%s scores\n%d hearts!"):format(name, myHearts), next_)
           end)
         end)
-      end)
+      end, nil, nil, nil, true)
     end
     -- ...then back to the line. The judging is not something the player
     -- walks over and asks for -- everyone has presented, so everyone
@@ -5858,7 +5858,7 @@ local function kcGold(mod, VERSION)
                 mod.log:warn("contest stage warp failed: %s", tostring(err))
                 world:showText("KC error: stage\nentrance failed")
               end
-        end)
+        end, nil, nil, nil, true)
           end -- proceed
           -- NO RANK MENU any more (0.34.41): this hall runs one rank, so
           -- the only question is whether this POKeMON has earned it. The
@@ -5896,7 +5896,7 @@ local function kcGold(mod, VERSION)
             world:showText(("This hall runs\n%s rank."):format(want),
               function()
                 world:showText(("Earn %d wins in\nthis category."):format(need))
-              end)
+              end, nil, nil, nil, true)
           end
       end)
           end)
@@ -6076,7 +6076,7 @@ local function kcGold(mod, VERSION)
       elseif why=="bag_full" then
         world:showText("Your PACK is full.\nI will keep it.\fMake room, then\nvisit this hall.",done)
       elseif done then done() end
-    end)
+    end, nil, nil, nil, true)
   end
   mod.events:on("map.entered",function() rewardVisit=nil; rewardBusy=false end)
   -- After the gift she LEAVES: walks to the lobby's exit carpet (the
@@ -6436,7 +6436,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.52"
+  local VERSION = "0.37.53"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
