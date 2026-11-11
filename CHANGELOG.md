@@ -11,12 +11,16 @@ are as they were in 0.37.42. Barry, Cynthia and Steven have new looks
 (Bani's art), the credits screen is redesigned, the Contest Hall draws
 properly next to Johto Expanded, the contest audience now turns to talk
 to you, Honchkrow and Mismagius have new party icons, you can meet May
-at the Ruins of Alph, longer text shows the "more" arrow, and earning a
-scarf plays the game's item jingle (below).
+at the Ruins of Alph, longer text shows the "more" arrow, earning a
+scarf plays the game's item jingle, and Bill in the crowd is the game's
+own Bill (below).
 
-New in 0.37.54: **earning a scarf from the appraiser plays the game's
-item jingle**, the way Crystal does when it hands you an item. The
-words are the same.
+New in 0.37.54:
+
+- **Earning a scarf from the appraiser plays the game's item jingle**,
+  the way Crystal does when it hands you an item. The words are the same.
+- **Bill in the contest crowd is Crystal's own Bill** again, not the
+  custom drawing the mod used to carry.
 
 ## 0.37.53
 

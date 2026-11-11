@@ -1973,7 +1973,6 @@ local function kcGold(mod, VERSION)
     { id = "SPRITE_KC_BALLGUY", image = "assets/ballguy.png", palette = "PAL_OW_RED", paletteId = 0 },
     { id = "SPRITE_KC_BARRY", image = "assets/barry.png", palette = "PAL_OW_GREEN", paletteId = 2 },
     { id = "SPRITE_KC_BEA", image = "assets/bea.png", palette = "PAL_OW_PINK", paletteId = 4 },
-    { id = "SPRITE_KC_BILL", image = "assets/bill.png", palette = "PAL_OW_BROWN", paletteId = 3 },
     { id = "SPRITE_KC_BREEDER", image = "assets/breeder.png", palette = "PAL_OW_GREEN", paletteId = 2 },
     { id = "SPRITE_KC_BRENDAN", image = "assets/brendan.png", palette = "PAL_OW_RED", paletteId = 0 },
     { id = "SPRITE_KC_COLRESS", image = "assets/colress.png", palette = "PAL_OW_BLUE", paletteId = 1 },
@@ -3285,7 +3284,11 @@ local function kcGold(mod, VERSION)
     -- vanilla SPRITE_ROCKET with a hair palette once the cast lists can
     -- alias a name onto a vanilla sprite (NOTES.md backlog).
     "KC_BREEDER", "KC_EUSINE", "KC_LOOKER",
-    "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BALLGUY", "KC_BILL",
+    -- BILL is Crystal's own four-way walker since 0.37.54 (REQUESTS 689,
+    -- developer's Desk pick 2026-11-10 "Use Crystal's for both"); the
+    -- custom KC_BILL sheet is gone. Its sheet default (RED) is the colour
+    -- vanilla places him in, so spawnMarked needs no palette entry.
+    "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BALLGUY", "BILL",
     "KC_INGO", "KC_AGATHA", "KC_ARCHER", "KC_ARIANA", "KC_GIOVANNI",
     "KC_PROTON", "KC_RUIN_MANIAC",
     -- the trainer classes and DJ Mary from the Polished Crystal set
@@ -3308,7 +3311,7 @@ local function kcGold(mod, VERSION)
     { "GRAMPS", "GRANNY" },
     { "RED", "BLUE" }, { "OAK", "ELM" }, { "KURT", "DAISY" },
     { "MISTY", "BROCK" },
-    { "KC_ASH", "KC_MAY" }, { "KC_BILL", "KC_LOOKER" },
+    { "KC_ASH", "KC_MAY" }, { "BILL", "KC_LOOKER" },
   }
 
   -- Larry. The ONLY non-vanilla sprite in the cast, and the developer
@@ -3404,7 +3407,7 @@ local function kcGold(mod, VERSION)
       KC_ROSA = 3,
       KC_STADIUM_GIRL = 2,
       KC_BALLGUY = 4,
-      KC_BILL = 3,
+      BILL = 3,
     },
     ECRUTEAK = {
       MORTY = 4,

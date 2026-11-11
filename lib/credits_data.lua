@@ -188,12 +188,11 @@ return {
     used = { "CONTESTS" },
     source = "sprites/REGISTRY.json" },
   { artist = "RoyalGuard",
-    works = { "Bill", "Colress", "Hugh", "Lorelei", "Maxie", "Wally" },
+    works = { "Colress", "Hugh", "Lorelei", "Maxie", "Wally" },
     sections = { "people" },
     mods = { "Contests" },
     used = { "CONTESTS" },
     characters = {
-      { battleBy = "RoyalGuard", credit = "Bill", files = { kanto_contests = { walk = "assets/bill.png" } }, front = "bill_front.png", name = "Bill", pal = 3, used = { "CONTESTS" }, walk = "bill.png", walkBy = "RoyalGuard" },
       { battleBy = "RoyalGuard", credit = "Colress", files = { kanto_contests = { walk = "assets/colress.png" } }, front = "colress_front.png", name = "Colress", pal = 1, used = { "CONTESTS" }, walk = "colress.png", walkBy = "RoyalGuard" },
       { battleBy = "RoyalGuard", credit = "Hugh", files = { kanto_contests = { walk = "assets/hugh.png", walkColour = true } }, front = "hugh_front.png", name = "Hugh", pal = 1, used = { "CONTESTS" }, walk = "hugh.png", walkBy = "RoyalGuard" },
       { battleBy = "RoyalGuard", credit = "Lorelei", files = { kanto_contests = { walk = "assets/lorelei.png", walkColour = true } }, front = "lorelei_front.png", name = "Lorelei", pal = 0, used = { "CONTESTS" }, walk = "lorelei.png", walkBy = "RoyalGuard" },
