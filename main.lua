@@ -6031,17 +6031,32 @@ local function kcGold(mod, VERSION)
           pages[#pages + 1] = ("It is wearing a\n%s."):format(worn.name)
         end
         local earned = kcEligibleScarf(game.save, mon)
+        local gifted
         if earned then
-          local ok, _, why = mod.exports.giveScarf(game.save, earned.category)
+          local ok, id, why = mod.exports.giveScarf(game.save, earned.category)
           if ok and why == "given" then
-            pages[#pages + 1] = ("You earned the\n%s!"):format(earned.name)
-            pages[#pages + 1] = "Give it to a\nPOKeMON to wear."
+            gifted = id
           elseif not ok then
             pages[#pages + 1] = ("A %s is\nyours..."):format(earned.name)
             pages[#pages + 1] = "But your PACK is\nfull. Come back!"
           end
         end
-        world:showText(table.concat(pages, "\f"))
+        if not gifted then
+          world:showText(table.concat(pages, "\f"))
+          return
+        end
+        -- 0.37.54 (REQUESTS 662; decision 2026-11-07, gifts play the
+        -- vanilla jingle): the earned line ends in Crystal's item jingle
+        -- through the shared helper (lib/gift_jingle.lua, a byte copy of
+        -- exchange/shared/gift_jingle.lua). The scarf is already in the
+        -- bag, so Gift.say, not Gift.give. Wording unchanged.
+        world:showText(table.concat(pages, "\f"), function()
+          local Gift = assert(load(assert(mod:read("lib/gift_jingle.lua")),
+            "@" .. mod.id .. "/lib/gift_jingle.lua"))()
+          Gift.say(mod, gifted, ("You earned the\n%s!"):format(earned.name), {
+            onDone = function() world:showText("Give it to a\nPOKeMON to wear.") end,
+          })
+        end, nil, nil, nil, true)
       end)
     end)
   end
@@ -6436,7 +6451,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.53"
+  local VERSION = "0.37.54"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -6553,6 +6568,7 @@ return function(mod)
     save.inventory = save.inventory or {}
     if kcHasScarf(save, row) then return true, row.id, "owned" end
     local data = mod.game and mod.game.data
+    -- gift_jingle: exempt (adds only; the Gold appraiser says the line with Gift.say, REQUESTS 662)
     if not Bag.add(save, row.id, 1, data) then
       return false, row.id, "bag_full"
     end

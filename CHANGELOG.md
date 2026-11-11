@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.53
+## 0.37.54
 
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current
 game update. A recent game update tightened how added Pokemon describe
@@ -11,7 +11,14 @@ are as they were in 0.37.42. Barry, Cynthia and Steven have new looks
 (Bani's art), the credits screen is redesigned, the Contest Hall draws
 properly next to Johto Expanded, the contest audience now turns to talk
 to you, Honchkrow and Mismagius have new party icons, you can meet May
-at the Ruins of Alph, and longer text shows the "more" arrow (below).
+at the Ruins of Alph, longer text shows the "more" arrow, and earning a
+scarf plays the game's item jingle (below).
+
+New in 0.37.54: **earning a scarf from the appraiser plays the game's
+item jingle**, the way Crystal does when it hands you an item. The
+words are the same.
+
+## 0.37.53
 
 New in 0.37.53: text that runs over several boxes now shows the blinking
 arrow while it waits for A, as Crystal does (REQUESTS 769). No other
