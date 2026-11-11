@@ -2,10 +2,6 @@
 
 ## 0.37.53
 
-Text that runs over several boxes now shows the blinking arrow while it waits for A, as Crystal does (REQUESTS 769). No other change. Made by the Checker on the developer's word, 2026-11-10: "just fix it".
-
-## 0.37.52
-
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current
 game update. A recent game update tightened how added Pokemon describe
 their Pokedex height and weight. Honchkrow and Mismagius still used the
@@ -14,8 +10,15 @@ now hand the game the new format. Their Pokedex pages and the contests
 are as they were in 0.37.42. Barry, Cynthia and Steven have new looks
 (Bani's art), the credits screen is redesigned, the Contest Hall draws
 properly next to Johto Expanded, the contest audience now turns to talk
-to you, Honchkrow and Mismagius have new party icons, and you can meet
-May at the Ruins of Alph (below).
+to you, Honchkrow and Mismagius have new party icons, you can meet May
+at the Ruins of Alph, and longer text shows the "more" arrow (below).
+
+New in 0.37.53: text that runs over several boxes now shows the blinking
+arrow while it waits for A, as Crystal does (REQUESTS 769). No other
+change. Made by the Checker on the developer's word, 2026-11-10: "just
+fix it".
+
+## 0.37.52
 
 New in 0.37.52: **the credits screen is redesigned.** Each artist gets a
 page with the characters they drew, shown walking. Press A on a
