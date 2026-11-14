@@ -6460,8 +6460,10 @@ local function kcGold(mod, VERSION)
       "Can you help me\nread my map?",
     }, function()
       -- Fix 1: reading the map is something you do (sheet 43).
+      -- flavor: the check's short note (publish gate, 18 letters or
+      -- fewer); not in sheet 43, so TODO/CONFIRM.
       local trace = { action = "TRACE IT", stat = "exploration", gate = 15, kind = "stat",
-        reply = "Trace the road\nsouth for her." }
+        flavor = "Read her map.", reply = "Trace the road\nsouth for her." }
       local sign = { action = "FIND", label = "FIND SIGN", reply = "Let's find a\nsignpost." }
       local leave = { kind = "leave", reply = "Sorry, I can't." }
       menu(world, { trace, sign, leave }, sign, leave, function(row, check)
