@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.54
+## 0.37.55
 
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current
 game update. A recent game update tightened how added Pokemon describe
@@ -14,6 +14,16 @@ to you, Honchkrow and Mismagius have new party icons, you can meet May
 at the Ruins of Alph, longer text shows the "more" arrow, earning a
 scarf plays the game's item jingle, and Bill in the crowd is the game's
 own Bill (below).
+
+New in 0.37.55: **meeting May at the Ruins of Alph gives you something
+to do.** When she asks for help with her map, you can trace the road for
+her (an Exploration check) or take her to a signpost. Trace it wrong and
+she sets off the wrong way; find her again and try the signpost. She
+then asks to see one of your POKeMON and says what kind of contest move
+its first move is. Showing her is what starts your bond with her now.
+Her talk about contest rules is shorter.
+
+## 0.37.54
 
 New in 0.37.54:
 

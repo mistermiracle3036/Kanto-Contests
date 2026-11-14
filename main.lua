@@ -6282,10 +6282,26 @@ local function kcGold(mod, VERSION)
   -- so this adds ONE local (the talk handler) and keeps the rest inside.
   local talkMayRuins = (function()
   local MAY_MAP = "RUINS_OF_ALPH_OUTSIDE"
-  local MAY_CELL = { x = 11, y = 19 }   -- TODO/CONFIRM on device: by the ROUTE 32 gate path
+  -- Where she stands in each state (0.37.55, REQUESTS 883). TODO/CONFIRM
+  -- on device: start by the ROUTE 32 gate path; the wall cell is under the
+  -- old RUINS wall with the chamber door (y 13); the sign cell is beside
+  -- the RUINS signpost (bg event 12,16), facing it.
+  local MAY_CELLS = {
+    start = { x = 11, y = 19, face = FACE_DOWN },
+    wall  = { x = 12, y = 14, face = FACE_UP },
+    sign  = { x = 11, y = 16, face = FACE_RIGHT },
+  }
+  local FACE_WORD = { [FACE_DOWN] = "down", [FACE_UP] = "up",
+                      [FACE_LEFT] = "left", [FACE_RIGHT] = "right" }
   local MAY_FACT = "kanto_contests:may:ruins"
   local mayHelpedThisVisit = false
+  -- kcMayRuins: nil (not met here) / "wall" (sent north by a failed TRACE
+  -- IT) / "sign" (waiting at the signpost) / "helped". kcMayShown: true
+  -- once the player has shown her a POKeMON -- the bond is paid for that.
   local function mayState() return mod.save and mod.save:get("kcMayRuins") or nil end
+  local function setMayState(v) if mod.save then mod.save:set("kcMayRuins", v) end end
+  local function mayShown() return mod.save and mod.save:get("kcMayShown") == true end
+  local function cellFor(state) return MAY_CELLS[state] or MAY_CELLS.start end
   -- Has the player met May in Elm's lab? Crystal Cutscene's
   -- starterLabMet(key) (contract starter-lab-met, REQUESTS 594, name
   -- approved by the developer; shipped in crystal_cutscene 0.110.79).
@@ -6312,17 +6328,127 @@ local function kcGold(mod, VERSION)
     end
     return own and own.stranger
   end
-  local function showPages(world, pages, onDone)
-    world:showText(table.concat(pages, "\f"), onDone)
+  -- more = true when onDone shows more text or a menu: the last page then
+  -- shows Crystal's "more" arrow too (REQUESTS 769/775).
+  local function showPages(world, pages, onDone, more)
+    world:showText(table.concat(pages, "\f"), onDone, nil, nil, nil, more == true)
   end
-  local function talk(world)
-    if mayState() == "helped" then
+  local function tjApi()
+    local h = mod.find and mod.find("trainer_journey")
+    local tj = h and h.exports and (h.exports.trainer_journey or h.exports)
+    return (type(tj) == "table" and type(tj.openCheckMenu) == "function") and tj or nil
+  end
+  -- A menu of rows through Trainer Journey's shared check UI; without it,
+  -- a plain YES/NO picks `yesRow` or `noRow`.
+  local function menu(world, rows, yesRow, noRow, choose)
+    local tj = tjApi()
+    if tj then
+      local ok = pcall(tj.openCheckMenu, { game = mod.game, owner = mod.id,
+        speaker = "MAY", rows = rows,
+        onChoose = function(row, check) choose(row, check) end })
+      if ok then return end
+    end
+    world:askYesNo(function(yes) choose(yes and yesRow or noRow, nil) end)
+  end
+  -- Walk her to another state's cell (World:beginMovement, as the stage
+  -- cast walks), then face its way. She is the runtime object we spawned.
+  local function walkMay(world, npc, toState, done)
+    local to = cellFor(toState)
+    local id = objectIdOf(npc)
+    local function arrive()
+      if npc and npc.scriptFace then pcall(npc.scriptFace, npc, FACE_WORD[to.face]) end
+      if done then done() end
+    end
+    if not (id and npc.cellX and npc.cellY) then return arrive() end
+    local dx, dy = to.x - npc.cellX, to.y - npc.cellY
+    if dx == 0 and dy == 0 then return arrive() end
+    local ok = pcall(world.beginMovement, world, id, walkBytes(dx, dy, dy < 0), arrive)
+    if not ok then arrive() end
+  end
+  -- Her verdict on your lead's first move, by Kanto Contests' own move
+  -- table (KC_CONTEST_MOVES). A move not in the table reads as COOL --
+  -- TODO/CONFIRM.
+  local SHOW_LINE = {
+    COOL   = "Ooh, that's a COOL\nmove! Sharp!",
+    BEAUTY = "That's a BEAUTY\nmove. So pretty!",
+    CUTE   = "A CUTE move! The\ncrowd melts!",
+    SMART  = "That's SMART. The\nJUDGE loves those.",
+    TOUGH  = "TOUGH! It doesn't\neven flinch!",
+  }
+  local function leadMon(world)
+    local _, party = partyOf(world)
+    for _, mon in ipairs(party) do
+      if type(mon) == "table" and not mon.isEgg then return mon end
+    end
+  end
+  local function firstMoveCategory(mon)
+    local okM, Mon = pcall(require, "src.battle.gen2.Mon")
+    local moves = okM and Mon.partyMoves and Mon.partyMoves(mon) or mon.moves or {}
+    local first = moves[1]
+    local id = type(first) == "table" and first.id or first
+    local row = id and KC_CONTEST_MOVES[id]
+    return (row and SHOW_LINE[row.cat]) and row.cat or "COOL"
+  end
+  local function finish(world)
+    showPages(world, {
+      "Five turns of\nappeals. A JUDGE",
+      "and the crowd\ngive you hearts.",
+      "Come watch, or\nenter yourself!",
+      "See you in\nGOLDENROD!",
+    }, function()
+      setMayState("helped")
+      mayHelpedThisVisit = true
+    end)
+  end
+  -- Fix 2: the bond is paid for showing her a POKeMON. Your lead steps
+  -- out as its picture and cry beside her (the stage's own presentation,
+  -- World:showPokePic / playCry) -- TODO/CONFIRM as "steps out".
+  local function askToSee(world, after)
+    showPages(world, { "Wait. Show me one\nof yours! Please?" }, function()
+      local show = { kind = "yes", action = "SHOW", reply = "Go on, show her." }
+      -- not kind "leave": a leave row may close the menu without a pick,
+      -- and "Maybe later." must still run her closing pages
+      local later = { action = "LATER", reply = "Maybe later." }
+      menu(world, { show, later }, show, later, function(row)
+        local mon = row == show and leadMon(world)
+        if not mon then return after() end
+        local index = speciesIndexOf(mon.species)
+        if index then pcall(world.showPokePic, world, index); pcall(world.playCry, world, index) end
+        world:showText(SHOW_LINE[firstMoveCategory(mon)], function()
+          world.pokePic = nil
+          if mod.save then mod.save:set("kcMayShown", true) end
+          after()
+        end, nil, nil, nil, true)
+      end)
+    end, true)
+  end
+  local function routeThenShow(world)
+    showPages(world, {
+      "Here. We're at\nthe RUINS, right?",
+      "The map shows a\nroad south...",
+      "ROUTE 32, then a\ncave. UNION CAVE!",
+      "Past the cave is\nAZALEA TOWN.",
+      "And GOLDENROD is\nthrough the woods.",
+      "Thanks! Two sets\nof eyes did it.",
+      "Have you seen a\nPOKeMON CONTEST?",
+    }, function() askToSee(world, function() finish(world) end) end, true)
+  end
+  local function talk(world, npc)
+    local state = mayState()
+    if state == "helped" then
+      if not mayShown() then return askToSee(world, function() end) end
       -- dialogue-ok: 15 / 17
       world:showText("South, through\nthe cave! Got it!")
       return
     end
-    -- In the lab she already met the player: a stranger tier still greets,
-    -- because the lab scene records no bond (REQUESTS 594).
+    if state == "sign" then
+      return showPages(world, { "A sign! Read it\nwith me?" }, function() routeThenShow(world) end, true)
+    end
+    if state == "wall" then
+      return showPages(world, { "That was a wall.\nA very old wall.", "Signs, this time?" },
+        function() setMayState("sign"); walkMay(world, npc, "sign") end)
+    end
+    -- Her lab greeting follows the bond tier and the lab signal (594).
     local hello = introLine("may", { stranger = mayMetInLab()
       and "Oh! You were at\nPROF.ELM's lab!"
       or "Hi! I'm MAY. I\nlove CONTESTS!" })
@@ -6333,55 +6459,49 @@ local function kcGold(mod, VERSION)
       "I think I took a\nwrong turn.",
       "Can you help me\nread my map?",
     }, function()
-      world:askYesNo(function(yes)
-        if not yes then
-          world:showText("Oh, OK! I'll\nfigure it out.")
-          return
+      -- Fix 1: reading the map is something you do (sheet 43).
+      local trace = { action = "TRACE IT", stat = "exploration", gate = 15, kind = "stat",
+        reply = "Trace the road\nsouth for her." }
+      local sign = { action = "FIND", label = "FIND SIGN", reply = "Let's find a\nsignpost." }
+      local leave = { kind = "leave", reply = "Sorry, I can't." }
+      menu(world, { trace, sign, leave }, sign, leave, function(row, check)
+        if row == trace then
+          if (check and check.passed) or row.passed == true then return routeThenShow(world) end
+          return world:showText("North? OK! Thanks!", function()
+            setMayState("wall"); walkMay(world, npc, "wall")
+          end)
+        elseif row == sign then
+          setMayState("sign"); walkMay(world, npc, "sign")
         end
-        showPages(world, {
-          "Here. We're at\nthe RUINS, right?",
-          "The map shows a\nroad south...",
-          "ROUTE 32, then a\ncave. UNION CAVE!",
-          "Past the cave is\nAZALEA TOWN.",
-          "And GOLDENROD is\nthrough the woods.",
-          "Thanks! Two sets\nof eyes did it.",
-          "Have you seen a\nPOKeMON CONTEST?",
-          "You pick COOL,\nBEAUTY, CUTE,",
-          "SMART or TOUGH,\nthen you perform!",
-          "Five turns of\nappeals. A JUDGE",
-          "and the crowd\ngive you hearts.",
-          "Any POKeMON with\na move can enter.",
-          "Everyone starts\nat NORMAL rank.",
-          "Win, and higher\nranks open up!",
-          "Come watch, or\nenter yourself!",
-          "See you in\nGOLDENROD!",
-        }, function()
-          if mod.save then mod.save:set("kcMayRuins", "helped") end
-          mayHelpedThisVisit = true
-        end)
       end)
-    end)
+    end, true)
   end
   -- She stays put for the rest of this visit (her repeat line above), and
   -- is gone the next time the player comes to the RUINS. Runtime objects
   -- stay in the map's list for the session, so removal is explicit.
+  -- On every entry she stands at her state's cell (a walk earlier in the
+  -- session leaves a runtime object whose def still names the old cell, so
+  -- a stale one is removed and respawned).
   local function ensureMayRuins(world, mapId)
     if mapId ~= MAY_MAP then mayHelpedThisVisit = false; return end
-    local npcs = (world and world.npcs) or {}
-    if mayState() == "helped" and not mayHelpedThisVisit then
-      local ids = {}
-      for _, npc in ipairs(npcs) do
-        local d = npc.def
-        if d and d.kcMayRuins and d.runtime and d.index then
+    local state = mayState()
+    local gone = state == "helped" and not mayHelpedThisVisit
+    local cell = cellFor(state)
+    local ids, keep = {}, false
+    for _, npc in ipairs((world and world.npcs) or {}) do
+      local d = npc.def
+      if d and d.kcMayRuins and d.runtime and d.index then
+        if gone or d.x ~= cell.x or d.y ~= cell.y then
           ids[#ids + 1] = mapId .. "_obj_" .. d.index
+        else
+          keep = true
         end
       end
-      for _, id in ipairs(ids) do pcall(mod.world.removeNpc, mod.world, id) end
-      return
     end
-    if mayState() ~= "helped" and not markerExists(world, "kcMayRuins") then
+    for _, id in ipairs(ids) do pcall(mod.world.removeNpc, mod.world, id) end
+    if not gone and not keep then
       spawnMarked(MAY_MAP, { name = "KC_MAY_RUINS", sprite = "SPRITE_KC_MAY",
-        x = MAY_CELL.x, y = MAY_CELL.y, movement = FACE_DOWN }, "kcMayRuins")
+        x = cell.x, y = cell.y, movement = cell.face }, "kcMayRuins")
     end
   end
   mod.events:on("map.entered", function(ev)
@@ -6390,9 +6510,12 @@ local function kcGold(mod, VERSION)
   end)
   -- Trainer Journey's affinity facts (contract affinity-facts-kanto-contests,
   -- exchange/CONTRACTS.md): one `chapter` = one half star, the id unique
-  -- forever, written only once she has been helped.
+  -- forever, written only once the player has shown her a POKeMON (sheet
+  -- 43, fix 2). A save from 0.37.51-0.37.54 that was paid for "helped"
+  -- keeps its star: Trainer Journey stores the fact id and never takes a
+  -- point back.
   mod.exports.getAffinityEvents = function()
-    if mayState() ~= "helped" then return {} end
+    if not mayShown() then return {} end
     return { { id = MAY_FACT, schema = 1, character = "may", kind = "chapter" } }
   end
   return talk
@@ -6454,7 +6577,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.54"
+  local VERSION = "0.37.55"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
