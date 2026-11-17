@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.58
+## 0.37.59
 
 **Updating from 0.37.42?** Here is everything since the last release.
 
@@ -31,10 +31,17 @@
   own party icons.
 - **A new credits screen.** Each artist has a page with the characters
   they drew, shown walking; press A on one to see their portrait and which
-  mods use them.
+  mods use them. Art from Polished Crystal, including Honchkrow and
+  Mismagius, shows its pictures too.
 - **The Contest Hall draws properly next to Johto Expanded** in Goldenrod.
 - **Small things:** longer text shows the blinking "more" arrow, and
   earning a scarf plays the game's item jingle.
+
+New in 0.37.59: in the credits, Polished Crystal's art (Honchkrow,
+Mismagius and the trainers drawn for it) shows its pictures, like every
+other artist's page.
+
+## 0.37.58
 
 New in 0.37.58: with WoobleDex, Fantina gives WoobleDex's Dusk Stone,
 and a POKeMON's picture as it is introduced on stage (and when you show
