@@ -29,10 +29,12 @@
 - **New looks.** Barry, Cynthia and Steven have new art by Bani. Bill in
   the crowd is Crystal's own Bill. Honchkrow and Mismagius use the game's
   own party icons.
-- **A new credits screen.** Each artist has a page with the characters
-  they drew, shown walking; press A on one to see their portrait and which
-  mods use them. Art from Polished Crystal, including Honchkrow and
-  Mismagius, shows its pictures too.
+- **A new credits screen** (START > CREDITS). It shows one artist a page,
+  with each character's walking sprite. Press A on a character to see its
+  battle portrait, who drew the walking sprite and who drew the portrait
+  ("CRYSTAL" where the game's own art is used), and which mods use it.
+  Polished Crystal's art and the added POKeMON show their pictures too,
+  the POKeMON in their own colours.
 - **The Contest Hall draws properly next to Johto Expanded** in Goldenrod.
 - **Small things:** longer text shows the blinking "more" arrow, and
   earning a scarf plays the game's item jingle.
