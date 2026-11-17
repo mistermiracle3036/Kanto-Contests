@@ -63,9 +63,9 @@ return {
     used = { "CONTESTS" },
     characters = {
       { battleBy = "bloodless", credit = "Buck", files = { kanto_contests = { walk = "assets/buck.png" } }, front = "buck_front.png", name = "Buck", pal = 0, used = { "CONTESTS" }, walk = "buck.png", walkBy = "bloodless" },
-      { battleBy = "bloodless", credit = "Honchkrow", files = { kanto_contests = { front = "assets/honchkrow_front.png" } }, front = "honchkrow_front.png", name = "Honchkrow", used = { "CONTESTS" } },
+      { battleBy = "bloodless", credit = "Honchkrow", files = { kanto_contests = { front = "assets/honchkrow_front.png" } }, front = "honchkrow_front.png", monColors = { { 255, 255, 255 }, { 247, 181, 25 }, { 66, 74, 165 }, { 0, 0, 0 } }, name = "Honchkrow", used = { "CONTESTS" } },
       { battleBy = "bloodless", credit = "Maylene", files = { kanto_contests = { walk = "assets/maylene.png" } }, front = "maylene_front.png", name = "Maylene", pal = 0, used = { "CONTESTS" }, walk = "maylene.png", walkBy = "bloodless" },
-      { battleBy = "bloodless, SoupPotato", credit = "Mismagius", files = { kanto_contests = { front = "assets/mismagius_front.png" } }, front = "mismagius_front.png", name = "Mismagius", used = { "CONTESTS" } },
+      { battleBy = "bloodless, SoupPotato", credit = "Mismagius", files = { kanto_contests = { front = "assets/mismagius_front.png" } }, front = "mismagius_front.png", monColors = { { 255, 255, 255 }, { 230, 41, 140 }, { 66, 49, 99 }, { 0, 0, 0 } }, name = "Mismagius", used = { "CONTESTS" } },
       { battleBy = "bloodless", credit = "Veteran M", files = { kanto_contests = { walk = "assets/veteran_m.png", walkColour = true } }, front = "veteran_m_front.png", name = "Veteran M", pal = 1, used = { "CONTESTS" }, walk = "veteran_m.png", walkBy = "bloodless" },
     },
     source = "sprites/REGISTRY.json" },
@@ -266,7 +266,7 @@ return {
     mods = { "Contests" },
     used = { "CONTESTS" },
     characters = {
-      { battleBy = "bloodless, SoupPotato", credit = "Mismagius", files = { kanto_contests = { front = "assets/mismagius_front.png" } }, front = "mismagius_front.png", name = "Mismagius", used = { "CONTESTS" } },
+      { battleBy = "bloodless, SoupPotato", credit = "Mismagius", files = { kanto_contests = { front = "assets/mismagius_front.png" } }, front = "mismagius_front.png", monColors = { { 255, 255, 255 }, { 230, 41, 140 }, { 66, 49, 99 }, { 0, 0, 0 } }, name = "Mismagius", used = { "CONTESTS" } },
     },
     source = "sprites/REGISTRY.json" },
   { artist = "TeamHistoryWaffles",

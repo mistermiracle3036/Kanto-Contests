@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.59
+## 0.37.60
 
 **Updating from 0.37.42?** Here is everything since the last release.
 
@@ -38,6 +38,11 @@
 - **The Contest Hall draws properly next to Johto Expanded** in Goldenrod.
 - **Small things:** longer text shows the blinking "more" arrow, and
   earning a scarf plays the game's item jingle.
+
+New in 0.37.60: in the credits, Honchkrow and Mismagius show in their own
+colours (gold and blue, pink and purple) instead of orange.
+
+## 0.37.59
 
 New in 0.37.59: in the credits, Polished Crystal's art (Honchkrow,
 Mismagius and the trainers drawn for it) shows its pictures, like every
