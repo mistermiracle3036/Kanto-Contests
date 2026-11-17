@@ -12,6 +12,8 @@ Download the mod ZIP from [Releases](../../releases/latest), then choose launche
 
 No other mod is required. Use a current engine; the manifest keeps an old lower bound for compatibility, but the Johto circuit has only been tested on recent releases.
 
+**Works with WoobleDex.** With WoobleDex installed, Contests uses its Honchkrow and Mismagius by default and adds its own only for a species WoobleDex does not supply; Fantina's Dusk Stone follows the same choice and WoobleDex's own Dusk Stone is left alone. The *Bundled evolutions* option (AUTO / ON / OFF, below) changes this.
+
 ## The circuit
 
 Each hall runs one rank. You climb by travelling, and a hall takes your entry once the Pokémon you bring has the wins it asks for in that category.

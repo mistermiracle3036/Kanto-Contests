@@ -1,13 +1,47 @@
 # Changelog
 
+## 0.37.57
+
+**Updating from 0.37.42?** Here is everything since the last release.
+
+- **Kanto Contests loads again on the current game update.** A game update
+  changed how added Pokemon describe their Pokedex height and weight.
+  Honchkrow and Mismagius still used the old way, so the game refused the
+  whole mod. They use the new way now, and their Pokedex pages read as
+  before.
+- **Works with WoobleDex.** The *Bundled evolutions* setting now has three
+  choices. **AUTO** (the new default) uses WoobleDex's Honchkrow and
+  Mismagius when you have it, and ours only for a species it does not
+  supply. **ON** always uses ours. **OFF** uses neither of ours. If you had
+  set it to on or off before, that choice is kept. Fully quit and relaunch
+  after changing it. Fantina's Dusk Stone evolves into whichever Honchkrow
+  or Mismagius you are using; WoobleDex's own Dusk Stone works as it always
+  has. Any Honchkrow or Mismagius of ours you already have is kept safe,
+  including in WoobleDex's extra PC boxes, and comes back when ours are
+  turned on again.
+- **Meet May at the Ruins of Alph.** She is lost on her way to the
+  Goldenrod contest. Help her find the way (trace the road or find a
+  signpost), show her one of your POKeMON, and she explains contests. With
+  Trainer Journey, showing her starts your bond with her.
+- **The contest audience turns to talk to you**, then turns back to watch
+  the stage.
+- **New looks.** Barry, Cynthia and Steven have new art by Bani. Bill in
+  the crowd is Crystal's own Bill. Honchkrow and Mismagius use the game's
+  own party icons.
+- **A new credits screen.** Each artist has a page with the characters
+  they drew, shown walking; press A on one to see their portrait and which
+  mods use them.
+- **The Contest Hall draws properly next to Johto Expanded** in Goldenrod.
+- **Small things:** longer text shows the blinking "more" arrow, and
+  earning a scarf plays the game's item jingle.
+
+New in 0.37.57: a safety fallback for the PC box count, so keeping your
+Honchkrow and Mismagius safe can never fail. Nothing else changes.
+
 ## 0.37.56
 
-Private compatibility review build; not a public release.
-
-**Updating from 0.37.42?** Includes the loading fix, updated character art
-and credits, Contest Hall compatibility, audience interactions, party icons,
-May's Ruins of Alph encounter and map activity, text arrows, scarf jingle,
-and Bill corrections described in 0.37.55 below.
+Review build for WoobleDex compatibility, never released; its changes
+are in the 0.37.57 summary above.
 
 - Bundled evolutions now defaults to Auto: use WoobleDex's Honchkrow and
   Mismagius when available, with bundled fallbacks for missing species.

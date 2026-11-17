@@ -221,7 +221,12 @@ return function(mod, ownedIds)
   local function isGen2() return true end
   -- WoobleDex's Bigger PC raises this engine field to 40. Recovery must
   -- visit the same live boxes as the PC, including bundled mons in 15-40.
-  local function boxCount() return require("src.core.gen2.Boxes").NUM_BOXES end
+  -- 0.37.57 (REQUESTS 977 note 2): fall back to Crystal's own 14 if the
+  -- module or the field is ever missing, so recovery can never break.
+  local function boxCount()
+    local ok, Boxes = pcall(require, "src.core.gen2.Boxes")
+    return (ok and type(Boxes) == "table" and tonumber(Boxes.NUM_BOXES)) or 14
+  end
   -- The guard owns only our two namespaced species. Other providers keep
   -- their own recovery policy, even when their content is disabled.
   local function isCustomSpecies(def)
