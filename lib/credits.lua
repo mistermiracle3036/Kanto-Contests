@@ -17,7 +17,12 @@
 -- sprites those mods registered. Art that is not installed shows the name alone.
 -- v5 (2026-11-17, REQUESTS 979): Pokemon fronts take their species' colours
 -- (monColors); art credits too long for the top area go under the double rule.
-local LIB_VERSION = 5
+-- v6 (2026-11-17, developer: "also menu description clipping"): the START
+-- menu's description box is 10 columns (start_menu.asm ClearBox, StartMenu.lua)
+-- and "Artists and" is 11, so it ran into the menu frame. Two lines of at most
+-- 9, like Crystal's own ("Trainer's", "Return to"); the newest copy sets it.
+local LIB_VERSION = 6
+local DESC = { "Who made", "the art" }
 local ROW_ID = "credits:book"
 local CRYSTAL = "CRYSTAL"
 local Credits = {}
@@ -603,11 +608,13 @@ function Credits.attach(mod, initialEntries)
     end
     if not row then
       row = { id = ROW_ID, label = "CREDITS",
-        desc = { "Artists and", "their work" }, creditsEntries = {} }
+        desc = { DESC[1], DESC[2] }, creditsEntries = {} }
       rows[#rows + 1] = row
     end
     if not row.creditsLib or row.creditsLib < LIB_VERSION then
       row.creditsLib = LIB_VERSION
+      -- an older copy may have made the row with its own (too wide) wording
+      row.desc = { DESC[1], DESC[2] }
       row.onSelect = function()
         local top = game.stack:top()
         if top and top.items and top.onClose then top:close() end
