@@ -4643,7 +4643,12 @@ local function kcGold(mod, VERSION)
       end,
       function(next_)
         if index then
-          world:showPokePic(index)
+          -- lib/mon_pic.lua: asks a sprite provider first (REQUESTS 978)
+          local okP = pcall(function()
+            assert(load(assert(mod:read("lib/mon_pic.lua")), "@" .. mod.id .. "/lib/mon_pic.lua"))()(
+              world, index, { species = species })
+          end)
+          if not okP then world:showPokePic(index) end
           world:playCry(index)
         end
         world:showText(("%s's\n%s!"):format(who, species), next_)
@@ -4744,7 +4749,13 @@ local function kcGold(mod, VERSION)
       local myName = monLabel(game, mine)
       local myIndex = mine and speciesIndexOf(mine.species)
       if myIndex then
-        world:showPokePic(myIndex)
+        -- lib/mon_pic.lua: a WoobleDex species' real picture, not the
+        -- grey "?" ball (REQUESTS 978, the developer's screenshot)
+        local okP = pcall(function()
+          assert(load(assert(mod:read("lib/mon_pic.lua")), "@" .. mod.id .. "/lib/mon_pic.lua"))()(
+            world, myIndex, mine)
+        end)
+        if not okP then world:showPokePic(myIndex) end
         world:playCry(myIndex)
       end
       world:showText(("%s\nand %s!"):format(name, myName), function()
@@ -6413,7 +6424,14 @@ local function kcGold(mod, VERSION)
         local mon = row == show and leadMon(world)
         if not mon then return after() end
         local index = speciesIndexOf(mon.species)
-        if index then pcall(world.showPokePic, world, index); pcall(world.playCry, world, index) end
+        if index then
+          local okP = pcall(function()
+            assert(load(assert(mod:read("lib/mon_pic.lua")), "@" .. mod.id .. "/lib/mon_pic.lua"))()(
+              world, index, mon)
+          end)
+          if not okP then pcall(world.showPokePic, world, index) end
+          pcall(world.playCry, world, index)
+        end
         world:showText(SHOW_LINE[firstMoveCategory(mon)], function()
           world.pokePic = nil
           if mod.save then mod.save:set("kcMayShown", true) end
@@ -6579,7 +6597,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.57"
+  local VERSION = "0.37.58"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },

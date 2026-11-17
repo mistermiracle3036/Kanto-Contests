@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.57
+## 0.37.58
 
 **Updating from 0.37.42?** Here is everything since the last release.
 
@@ -14,9 +14,10 @@
   Mismagius when you have it, and ours only for a species it does not
   supply. **ON** always uses ours. **OFF** uses neither of ours. If you had
   set it to on or off before, that choice is kept. Fully quit and relaunch
-  after changing it. Fantina's Dusk Stone evolves into whichever Honchkrow
-  or Mismagius you are using; WoobleDex's own Dusk Stone works as it always
-  has. Any Honchkrow or Mismagius of ours you already have is kept safe,
+  after changing it. With WoobleDex, Fantina gives you WoobleDex's own Dusk
+  Stone, so there is only one kind in your bag (on ON she gives ours).
+  Your POKeMON's picture when it walks on stage is its WoobleDex art.
+  Any Honchkrow or Mismagius of ours you already have is kept safe,
   including in WoobleDex's extra PC boxes, and comes back when ours are
   turned on again.
 - **Meet May at the Ruins of Alph.** She is lost on her way to the
@@ -34,6 +35,12 @@
 - **The Contest Hall draws properly next to Johto Expanded** in Goldenrod.
 - **Small things:** longer text shows the blinking "more" arrow, and
   earning a scarf plays the game's item jingle.
+
+New in 0.37.58: with WoobleDex, Fantina gives WoobleDex's Dusk Stone,
+and a POKeMON's picture as it is introduced on stage (and when you show
+May yours) is its WoobleDex art instead of a grey ball with a "?".
+
+## 0.37.57
 
 New in 0.37.57: a safety fallback for the PC box count, so keeping your
 Honchkrow and Mismagius safe can never fail. Nothing else changes.

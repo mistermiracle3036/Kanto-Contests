@@ -24,7 +24,7 @@ Win a MASTER contest with Fantina as an opponent. She is guaranteed until that f
 
 Bundled evolutions defaults to Auto: WoobleDex supplies HONCHKROW and MISMAGIUS when available, and Contests supplies each missing species. On explicitly selects our bundled versions. Off loads neither bundled species and uses WoobleDex, or a uniquely named target from another pack. Existing saved On/Off choices are preserved; select Auto to adopt the new default. Fully quit and relaunch after changing.
 
-Fantina still gives the separate contest Dusk Stone (`KC_DUSK_STONE`). It follows this setting for Murkrow and Misdreavus. WoobleDex's shop stone (`DUSK_STONE`) keeps WoobleDex's own evolutions and other supported species. Neither mod overwrites the other's item.
+When WoobleDex supplies both HONCHKROW and MISMAGIUS and the setting is Auto or Off, Fantina gives WoobleDex's own Dusk Stone (`DUSK_STONE`), so you only ever see one kind. On On, or without WoobleDex, she gives the contest Dusk Stone (`KC_DUSK_STONE`), which evolves into our bundled species. A contest Dusk Stone you already have keeps working. Neither mod overwrites the other's item.
 
 Existing bundled Pokémon are protected separately when their species is not loaded, including in WoobleDex's expanded PC boxes. Set Bundled evolutions to On and relaunch to restore them. They are never automatically converted into another pack's IDs. With On, both providers' species can coexist and WoobleSpawns can select both; Auto avoids those duplicates when WoobleDex supplies both species.
 </details>

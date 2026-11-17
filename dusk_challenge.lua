@@ -113,9 +113,22 @@ return function(mod)
     local s=state(save)
     return s.won and s.pending and not s.given and mod.options:get("dusk_stone_reward")~=false
   end
+  -- 0.37.58 (REQUESTS 978, developer 2026-11-17: "fantina give wooble
+  -- dusk tone"): with WoobleDex supplying BOTH species, she gives its own
+  -- DUSK_STONE, so a player only ever sees one kind. ON keeps ours, because
+  -- ON means our species and WoobleDex's stone evolves into its own
+  -- (TODO/CONFIRM through the Desk). An old KC_DUSK_STONE still works.
+  function api.giftItem(data)
+    local pokemon = data and data.pokemon or {}
+    if mode ~= true and data and data.items and data.items.DUSK_STONE
+        and woobleTarget(pokemon,"HONCHKROW") and woobleTarget(pokemon,"MISMAGIUS") then
+      return "DUSK_STONE"
+    end
+    return ID
+  end
   function api.give(save,data)
     if not api.pending(save) then return false,"not_pending" end
-    if not require("src.inventory.Bag").add(save,ID,1,data) then return false,"bag_full" end
+    if not require("src.inventory.Bag").add(save,api.giftItem(data),1,data) then return false,"bag_full" end
     local s=state(save)
     s.given,s.pending=true,false
     return true
