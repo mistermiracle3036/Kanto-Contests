@@ -6,15 +6,36 @@ return function(mod)
     return assert(load(assert(mod:read(name)), "@kanto_contests/"..name))()
   end
   local support = module("species_support.lua")(mod, speciesIds)
-  local bundled = mod.options:get("expanded_species") ~= false
+  local mode = mod.options:get("expanded_species")
+  local owned = {}
+  -- Resolve the provider's identity, never a display name or a virtual dex.
+  -- Loader.find excludes disabled/failed mods. The optional dependency makes
+  -- these exports available before we decide which fallback species to load.
+  local function woobleTarget(pokemon, name)
+    local dex = mod.find("national_dex_gen3")
+    local ex = dex and dex.exports
+    if not (ex and type(ex.slotOf)=="function" and type(ex.idOfSlot)=="function") then return nil end
+    local slot = ex.slotOf(name)
+    local id = slot and ex.idOfSlot(slot)
+    if id and pokemon[id] and not speciesIds[id] then return id end
+  end
+  local registered = {}
+  for _,name in ipairs({"HONCHKROW","MISMAGIUS"}) do
+    local dex = mod.content.pokemon
+    local pokemon = setmetatable({}, {__index=function(_,id) return dex:get(id) end})
+    registered["KC_"..name] = mode ~= false and
+      (mode == true or not woobleTarget(pokemon,name))
+  end
   local api = { item=ID, sprite="SPRITE_KC_FANTINA", support=support }
   -- Blaklyte's commissioned walker, identical to Indigo Conference 1.1.55:
   -- source purple and the updated Crystal skin tone, with transparent background.
   mod.content.sprites:register(api.sprite,{id=api.sprite,
     image=mod.assets:path("assets/fantina.png"),frames=6,walker=true,
     spriteType="WALKING_SPRITE",palette="PAL_OW_PINK",paletteId=4,trueColor=true})
-  if bundled then
+  do
     for _,row in ipairs(module("dusk_species.lua")) do
+      if registered[row.id] then
+      owned[#owned+1]=row.id
       local slug,base=row.slug,row.cryBase
       row.slug,row.cryBase=nil,nil
       mod.content.cries:register(row.id,{base=base})
@@ -28,13 +49,17 @@ return function(mod)
       -- maps the species to that species' icon.
       row.iconFallback=base
       support.register(row)
+      end
     end
   end
   function api.target(data, base)
     local name=({MURKROW="HONCHKROW",MISDREAVUS="MISMAGIUS"})[base]
     if not name then return nil end
     local pokemon=data and data.pokemon or {}
-    if bundled and pokemon["KC_"..name] then return "KC_"..name end
+    if mode == true and pokemon["KC_"..name] then return "KC_"..name end
+    local preferred = woobleTarget(pokemon,name)
+    if preferred then return preferred end
+    if registered["KC_"..name] and pokemon["KC_"..name] then return "KC_"..name end
     -- With our species switched off, a compatible pack can supply the target.
     -- Never overwrite its records or guess between multiple matching species.
     local match
@@ -57,9 +82,11 @@ return function(mod)
       end
       return {used=true,evolution={method="EVOLVE_ITEM",item=ID,into=target}}
     end})
-  if bundled then
+  do
     for base,target in pairs({MURKROW="KC_HONCHKROW",MISDREAVUS="KC_MISMAGIUS"}) do
+      if registered[target] then
       mod.content.pokemon:patch(base,{evolutions={__append={{method="EVOLVE_ITEM",item=ID,into=target}}}})
+      end
     end
   end
   local function state(save)
@@ -93,7 +120,7 @@ return function(mod)
     s.given,s.pending=true,false
     return true
   end
-  api.owns={pokemon=bundled and {"KC_HONCHKROW","KC_MISMAGIUS"} or {},items={ID},
+  api.owns={pokemon=owned,items={ID},
     saveFields={"kcFantinaChallenge"}}
   return api
 end

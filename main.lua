@@ -6579,7 +6579,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.55"
+  local VERSION = "0.37.56"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -6616,7 +6616,8 @@ return function(mod)
 
   mod.options:define({
     { key = "dusk_stone_reward", type = "toggle", label = "Dusk Stone reward", default = true },
-    { key = "expanded_species", type = "toggle", label = "Bundled evolutions", default = true },
+    { key = "expanded_species", type = "choice", label = "Bundled evolutions",
+      choices = {{"AUTO", "auto"}, {"ON", true}, {"OFF", false}}, default = "auto" },
     -- 0.34.19: how the crowd's hearts pop in the first round. AROUND ROOM
     -- walks them round the seats one at a time with a ding each; ALL AT
     -- ONCE is exactly 0.34.18 (a quick stagger under the applause). The

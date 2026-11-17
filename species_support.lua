@@ -219,7 +219,9 @@ end
 
 return function(mod, ownedIds)
   local function isGen2() return true end
-  local function boxCount() return 14 end
+  -- WoobleDex's Bigger PC raises this engine field to 40. Recovery must
+  -- visit the same live boxes as the PC, including bundled mons in 15-40.
+  local function boxCount() return require("src.core.gen2.Boxes").NUM_BOXES end
   -- The guard owns only our two namespaced species. Other providers keep
   -- their own recovery policy, even when their content is disabled.
   local function isCustomSpecies(def)

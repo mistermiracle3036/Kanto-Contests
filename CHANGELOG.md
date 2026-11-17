@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.37.56
+
+Private compatibility review build; not a public release.
+
+**Updating from 0.37.42?** Includes the loading fix, updated character art
+and credits, Contest Hall compatibility, audience interactions, party icons,
+May's Ruins of Alph encounter and map activity, text arrows, scarf jingle,
+and Bill corrections described in 0.37.55 below.
+
+- Bundled evolutions now defaults to Auto: use WoobleDex's Honchkrow and
+  Mismagius when available, with bundled fallbacks for missing species.
+  On still explicitly selects ours; Off uses external packs only. Saved
+  On/Off choices retain their meaning.
+- Fantina's separate Dusk Stone follows that choice without changing
+  WoobleDex's shop stone or its evolution rules.
+- Contest appeal pictures now request sprite-provider art, including
+  WoobleSpritePack's animated back pictures.
+- Protection for existing bundled Pokemon follows the live PC box count,
+  including WoobleDex's boxes 15-40. No saved Pokemon IDs are converted.
+
 ## 0.37.55
 
 **Updating from 0.37.42?** Kanto Contests **loads again** on the current

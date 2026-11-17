@@ -22,7 +22,11 @@ Win a MASTER contest with Fantina as an opponent. She is guaranteed until that f
 
 <details><summary>Spoilers: can I use another dex expansion for the MASTER challenge's Pokémon?</summary>
 
-Turn Bundled evolutions off, then fully quit and relaunch. No bundled species or evolution patches load. The Dusk Stone recognizes a uniquely named HONCHKROW or MISMAGIUS supplied by another pack; unsupported or ambiguous targets do not consume it. Existing bundled Pokémon are protected separately until you reenable their species. They are not automatically converted into the other pack's IDs.
+Bundled evolutions defaults to Auto: WoobleDex supplies HONCHKROW and MISMAGIUS when available, and Contests supplies each missing species. On explicitly selects our bundled versions. Off loads neither bundled species and uses WoobleDex, or a uniquely named target from another pack. Existing saved On/Off choices are preserved; select Auto to adopt the new default. Fully quit and relaunch after changing.
+
+Fantina still gives the separate contest Dusk Stone (`KC_DUSK_STONE`). It follows this setting for Murkrow and Misdreavus. WoobleDex's shop stone (`DUSK_STONE`) keeps WoobleDex's own evolutions and other supported species. Neither mod overwrites the other's item.
+
+Existing bundled Pokémon are protected separately when their species is not loaded, including in WoobleDex's expanded PC boxes. Set Bundled evolutions to On and relaunch to restore them. They are never automatically converted into another pack's IDs. With On, both providers' species can coexist and WoobleSpawns can select both; Auto avoids those duplicates when WoobleDex supplies both species.
 </details>
 
 <details><summary>An NPC faces me, but nothing happens.</summary>
