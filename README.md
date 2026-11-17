@@ -12,6 +12,8 @@ Download the mod ZIP from [Releases](../../releases/latest), then choose launche
 
 No other mod is required. Use a current engine; the manifest keeps an old lower bound for compatibility, but the Johto circuit has only been tested on recent releases.
 
+**Works with WoobleDex.** With WoobleDex installed, Contests uses its Honchkrow and Mismagius by default and adds its own only for a species WoobleDex does not supply. Fantina then gives WoobleDex's own Dusk Stone, so there is only one kind, and a POKeMON introduced on stage shows its WoobleDex art. The *Bundled evolutions* option (AUTO / ON / OFF, below) changes this.
+
 ## The circuit
 
 Each hall runs one rank. You climb by travelling, and a hall takes your entry once the Pokémon you bring has the wins it asks for in that category.
@@ -119,7 +121,7 @@ In the launcher under MODS → Contests → OPTIONS.
 | Option | Default | Effect |
 |---|---|---|
 | Dusk Stone reward | On | Award the stone for the first MASTER win against her. Off before that win completes the challenge without it. |
-| Bundled evolutions | On | Register HONCHKROW and MISMAGIUS. Turn off to use another dex expansion's, then fully quit and relaunch. |
+| Bundled evolutions | Auto | Prefer WoobleDex's HONCHKROW and MISMAGIUS when provided; otherwise load our fallback for each missing species. On explicitly uses ours; Off uses external packs only. Fully quit and relaunch after changing. |
 
 What each does to a save, and what happens if the mod is removed, is in [docs/MASTER_CHALLENGE.md](docs/MASTER_CHALLENGE.md).
 </details>

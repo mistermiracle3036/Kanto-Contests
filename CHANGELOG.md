@@ -1,5 +1,201 @@
 # Changelog
 
+## 0.37.62
+
+**Updating from 0.37.42?** Here is everything since the last release.
+
+- **Kanto Contests loads again on the current game update.** A game update
+  changed how added Pokemon describe their Pokedex height and weight.
+  Honchkrow and Mismagius still used the old way, so the game refused the
+  whole mod. They use the new way now, and their Pokedex pages read as
+  before.
+- **Works with WoobleDex.** The *Bundled evolutions* setting now has three
+  choices. **AUTO** (the new default) uses WoobleDex's Honchkrow and
+  Mismagius when you have it, and ours only for a species it does not
+  supply. **ON** always uses ours. **OFF** uses neither of ours. If you had
+  set it to on or off before, that choice is kept. Fully quit and relaunch
+  after changing it. With WoobleDex, Fantina gives you WoobleDex's own Dusk
+  Stone, so there is only one kind in your bag (on ON she gives ours).
+  Your POKeMON's picture when it walks on stage is its WoobleDex art.
+  Any Honchkrow or Mismagius of ours you already have is kept safe,
+  including in WoobleDex's extra PC boxes, and comes back when ours are
+  turned on again.
+- **Meet May at the Ruins of Alph.** She is lost on her way to the
+  Goldenrod contest. Help her find the way (trace the road or find a
+  signpost), show her one of your POKeMON, and she explains contests. With
+  Trainer Journey, showing her starts your bond with her.
+- **The contest audience turns to talk to you**, then turns back to watch
+  the stage.
+- **New looks.** Barry, Cynthia and Steven have new art by Bani. Bill in
+  the crowd is Crystal's own Bill. Honchkrow and Mismagius use the game's
+  own party icons.
+- **A new credits screen** (START > CREDITS). It shows one artist a page,
+  with each character's walking sprite. Press A on a character to see its
+  battle portrait, who drew the walking sprite and who drew the portrait
+  ("CRYSTAL" where the game's own art is used), and which mods use it.
+  Polished Crystal's art and the added POKeMON show their pictures too,
+  the POKeMON in their own colours.
+- **The Contest Hall draws properly next to Johto Expanded** in Goldenrod.
+- **Small things:** longer text shows the blinking "more" arrow, and
+  earning a scarf plays the game's item jingle.
+
+New in 0.37.62: the credits screen's final version. Every POKeMON and
+character picture shows in its own colours, whichever mods you have
+installed; the START menu's CREDITS description fits its box; and Eusine's
+portrait is Crystal's own.
+
+## 0.37.61
+
+New in 0.37.61: the CREDITS description in the START menu no longer runs
+into the menu.
+
+## 0.37.60
+
+New in 0.37.60: in the credits, Honchkrow and Mismagius show in their own
+colours (gold and blue, pink and purple) instead of orange.
+
+## 0.37.59
+
+New in 0.37.59: in the credits, Polished Crystal's art (Honchkrow,
+Mismagius and the trainers drawn for it) shows its pictures, like every
+other artist's page.
+
+## 0.37.58
+
+New in 0.37.58: with WoobleDex, Fantina gives WoobleDex's Dusk Stone,
+and a POKeMON's picture as it is introduced on stage (and when you show
+May yours) is its WoobleDex art instead of a grey ball with a "?".
+
+## 0.37.57
+
+New in 0.37.57: a safety fallback for the PC box count, so keeping your
+Honchkrow and Mismagius safe can never fail. Nothing else changes.
+
+## 0.37.56
+
+Review build for WoobleDex compatibility, never released; its changes
+are in the 0.37.57 summary above.
+
+- Bundled evolutions now defaults to Auto: use WoobleDex's Honchkrow and
+  Mismagius when available, with bundled fallbacks for missing species.
+  On still explicitly selects ours; Off uses external packs only. Saved
+  On/Off choices retain their meaning.
+- Fantina's separate Dusk Stone follows that choice without changing
+  WoobleDex's shop stone or its evolution rules.
+- Contest appeal pictures now request sprite-provider art, including
+  WoobleSpritePack's animated back pictures.
+- Protection for existing bundled Pokemon follows the live PC box count,
+  including WoobleDex's boxes 15-40. No saved Pokemon IDs are converted.
+
+## 0.37.55
+
+**Updating from 0.37.42?** Kanto Contests **loads again** on the current
+game update. A recent game update tightened how added Pokemon describe
+their Pokedex height and weight. Honchkrow and Mismagius still used the
+old format, so the game refused the whole mod and none of it ran. They
+now hand the game the new format. Their Pokedex pages and the contests
+are as they were in 0.37.42. Barry, Cynthia and Steven have new looks
+(Bani's art), the credits screen is redesigned, the Contest Hall draws
+properly next to Johto Expanded, the contest audience now turns to talk
+to you, Honchkrow and Mismagius have new party icons, you can meet May
+at the Ruins of Alph, longer text shows the "more" arrow, earning a
+scarf plays the game's item jingle, and Bill in the crowd is the game's
+own Bill (below).
+
+New in 0.37.55: **meeting May at the Ruins of Alph gives you something
+to do.** When she asks for help with her map, you can trace the road for
+her (an Exploration check) or take her to a signpost. Trace it wrong and
+she sets off the wrong way; find her again and try the signpost. She
+then asks to see one of your POKeMON and says what kind of contest move
+its first move is. Showing her is what starts your bond with her now.
+Her talk about contest rules is shorter.
+
+## 0.37.54
+
+New in 0.37.54:
+
+- **Earning a scarf from the appraiser plays the game's item jingle**,
+  the way Crystal does when it hands you an item. The words are the same.
+- **Bill in the contest crowd is Crystal's own Bill** again, not the
+  custom drawing the mod used to carry.
+
+## 0.37.53
+
+New in 0.37.53: text that runs over several boxes now shows the blinking
+arrow while it waits for A, as Crystal does (REQUESTS 769). No other
+change. Made by the Checker on the developer's word, 2026-11-10: "just
+fix it".
+
+## 0.37.52
+
+New in 0.37.52: **the credits screen is redesigned.** Each artist gets a
+page with the characters they drew, shown walking. Press A on a
+character to see their portrait and which mods use them. May now greets
+you at the Ruins only if you met her in Elm's lab.
+
+## 0.37.51
+
+New in 0.37.51: **May is at the Ruins of Alph.** She is on her way to
+the Goldenrod contest and has taken a wrong turn. Help her read her map,
+and she will tell you how contests work. With Trainer Journey installed,
+helping her is the start of your bond with her.
+
+## 0.37.50
+
+New in 0.37.50: **Honchkrow and Mismagius use the game's own party
+icons**: Honchkrow the bird icon Murkrow uses, Mismagius the ghost icon
+Misdreavus uses. Their old icons came without a named artist, so they
+are gone from the download.
+
+## 0.37.49
+
+New in 0.37.49: **the contest audience turns to face you when you talk to
+them**, then turns back to watch the stage (or the friend they came with)
+once you are done. Before, they kept their eyes on the stage the whole
+time.
+
+## 0.37.48
+
+New in 0.37.48: **the Contest Hall in Goldenrod draws correctly when Johto
+Expanded is also installed.** With both mods, the top-right corner of
+Goldenrod showed pieces of a hotel sign and a grey roof, with parts of
+the hall missing. The hall now looks exactly as it does with Kanto
+Contests on its own.
+
+## 0.37.47
+
+New in 0.37.47:
+
+- **Barry, Cynthia and Steven have new art** by Bani. Barry now wears
+  green, Cynthia a black coat, and Steven has his silver hair.
+- **The credits screen has a new layout**: People, Pokemon and Other
+  sections, one name per row. Press A on a name to see what that artist
+  made and which mods use it, and B to go back. Bani is now credited for
+  Barry, Cynthia and Steven.
+
+## 0.37.46
+
+New in 0.37.46: nothing you will notice. A piece of leftover code for the
+old Goldenrod street attendant, who was retired when the Contest Hall got
+its own door, has been removed. Nothing ever ran it, so the game behaves
+exactly as in 0.37.45.
+
+## 0.37.45
+
+New in 0.37.45: nothing you will notice. A code note now lists the five
+Master-rank Trophy Case keys, so the project's trophy checker can see
+them. The game behaves exactly as in 0.37.44.
+
+## 0.37.44
+
+New in 0.37.44: the download no longer carries a developer-only sprite
+checking script. Nothing in the game changes.
+
+## 0.37.43
+
+Not released. Its build still carried that developer script and was
+withdrawn; 0.37.44 is the same fix.
+
 ## 0.37.42
 
 New in 0.37.42: **four crowd sprites are removed** -- the Chef, Officer

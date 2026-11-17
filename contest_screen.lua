@@ -554,6 +554,7 @@ function S:mods()
   m.GbcPalette = try("src.render.GbcPalette")
   m.View = try("src.ui.gen2.BattleAnimView")
   m.BattleState = try("src.ui.gen2.BattleState")
+  m.Runtime = try("src.mods.Runtime")
   self._mods = m
   return m
 end
@@ -640,6 +641,14 @@ function S:drawPerformer()
   if not def then return end
   local m = self:mods()
   local image = self:image(def.spriteBack)
+  -- WoobleSpritePack exposes animated back art through this engine hook.
+  -- Its natural-size contract also covers species with placeholder PNGs.
+  local providerArt = false
+  if m.Runtime and m.Runtime.wantsHook("battle.mon_pic") then
+    local pic = m.Runtime.call("battle.mon_pic", function(img) return img end, image,
+      {mon=mon,species=mon.species,side="back",natural=true,shiny=mon.shiny})
+    if pic and pic ~= image then image,providerArt=pic,true end
+  end
   if not image then return end
   local G = love.graphics
   local slide, shade, hidden = 0, nil, false
@@ -653,6 +662,7 @@ function S:drawPerformer()
   local w, h = image:getDimensions()
   local scale = tonumber(def.battleScaleBack) or 1
   local box = 6 * 8
+  if providerArt then scale = math.min(1, box / math.max(w,h)) end
   local px = 2 * 8 + math.floor((box - w * scale) / 2) + slide
   local py = 6 * 8 + (box - h * scale)
   local colors = m.Palettes and data.gen2Palettes
@@ -660,7 +670,7 @@ function S:drawPerformer()
   if shade and m.View and colors then colors = m.View.shadeColors(colors, shade) end
   G.setColor(1, 1, 1, 1)
   local function body() G.draw(image, px, py, 0, scale, scale) end
-  if colors and not def.trueColor and m.GbcPalette and m.GbcPalette.available() then
+  if colors and not providerArt and not def.trueColor and m.GbcPalette and m.GbcPalette.available() then
     m.GbcPalette.with(colors, body)
   else
     body()

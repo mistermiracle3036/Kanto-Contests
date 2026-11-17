@@ -1,7 +1,35 @@
 -- Embeddable credits screen. Copy this file unchanged into each mod.
 -- Increment on every library change, including drawing/layout changes.
-local LIB_VERSION = 2
+-- v3 (2026-10-12): sections (PEOPLE / POKEMON / OTHER, LEFT/RIGHT) list one
+-- name per row; A opens that artist's page (made, commissioned, in). Entry
+-- fields `sections` and `commissions` are additive: v2 copies ignore them.
+-- v4 (2026-11-10, REQUESTS 680; developer's pick "B and can it include Battle
+-- portrait and maybe all of the mods they are used in if you click on the
+-- sprite"): one ARTIST a page, their name large and each character on its own
+-- row with its walking sprite; LEFT/RIGHT turns artists, UP/DOWN moves, A opens
+-- the CHARACTER page (battle portrait, who made the walker and who made the
+-- portrait -- CRYSTAL where the game's own art is used -- and USED IN, the mods
+-- that ship it), B goes back. Entry fields `used` and `characters` are additive
+-- (exchange/credits_table.py writes them): v3 copies ignore them, and an entry
+-- without them still lists its works by name. No button hints on screen.
+-- Art is never shipped here: it is read from the mods that ship it, found by
+-- the paths the generator recorded (mods/<id>/<path>) or by file name among the
+-- sprites those mods registered. Art that is not installed shows the name alone.
+-- v5 (2026-11-17, REQUESTS 979): Pokemon fronts take their species' colours
+-- (monColors); art credits too long for the top area go under the double rule.
+-- v6 (2026-11-17, developer: "also menu description clipping"): the START
+-- menu's description box is 10 columns (start_menu.asm ClearBox, StartMenu.lua)
+-- and "Artists and" is 11, so it ran into the menu frame. Two lines of at most
+-- 9, like Crystal's own ("Trainer's", "Return to"); the newest copy sets it.
+-- v7 (2026-11-17, developer: "fix needs to work for all mods any version of
+-- what is enabled and not"): colours no longer depend on any mod's credits
+-- data. Coloured-or-grey is read from the pixels; a Pokemon picture takes the
+-- species' battle colours from the game's own tables; a walker takes its
+-- registered palette; with nothing known, greys -- never another palette.
+local LIB_VERSION = 7
+local DESC = { "Who made", "the art" }
 local ROW_ID = "credits:book"
+local CRYSTAL = "CRYSTAL"
 local Credits = {}
 
 function Credits.attach(mod, initialEntries)
@@ -9,7 +37,6 @@ function Credits.attach(mod, initialEntries)
   local registered, registrationOrder = {}, {}
   local contributions = setmetatable({}, { __mode = "k" })
   local syncRow
-  local VISIBLE, TOP, STEP = 10, 24, 10
 
   local function optionalString(value)
     return type(value) == "string" and value ~= "" and value or nil
@@ -25,13 +52,77 @@ function Credits.attach(mod, initialEntries)
       end
     end
   end
+  -- A character record (credits_table.py): name, credit (the exact credit
+  -- text, e.g. "Lass (RBY) (as Suzie)"), walk / front file names, pal,
+  -- walkBy / battleBy ("CRYSTAL" = the game's own art), battleClass, used
+  -- (short mod names) and files = { [modId] = { walk = path, front = path } }.
+  local function copyCharacter(c)
+    if type(c) ~= "table" or not optionalString(c.credit) then return nil end
+    local copy = { credit = c.credit, name = optionalString(c.name) or c.credit,
+      walk = optionalString(c.walk), front = optionalString(c.front),
+      walkBy = optionalString(c.walkBy), battleBy = optionalString(c.battleBy),
+      battleClass = optionalString(c.battleClass),
+      pal = type(c.pal) == "number" and c.pal or nil, used = {}, files = {} }
+    union(copy.used, c.used)
+    -- a four-grey Pokemon front's own colours (white, light, dark, black from
+    -- its species definition; credits_table.py, REQUESTS 979)
+    if type(c.monColors) == "table" and #c.monColors == 4 then
+      local colors = {}
+      for i, rgb in ipairs(c.monColors) do
+        if type(rgb) ~= "table" or type(rgb[1]) ~= "number" or type(rgb[2]) ~= "number"
+          or type(rgb[3]) ~= "number" then colors = nil; break end
+        colors[i] = { rgb[1], rgb[2], rgb[3] }
+      end
+      copy.monColors = colors
+    end
+    if type(c.files) == "table" then
+      for id, f in pairs(c.files) do
+        if optionalString(id) and type(f) == "table" then
+          copy.files[id] = { walk = optionalString(f.walk), front = optionalString(f.front),
+            walkColour = f.walkColour == true, frontColour = f.frontColour == true }
+        end
+      end
+    end
+    return copy
+  end
+  local function mergeCharacters(target, values)
+    if type(values) ~= "table" then return end
+    for _, c in ipairs(values) do
+      local copy = copyCharacter(c)
+      if copy then
+        local existing = target[copy.credit]
+        if existing then
+          union(existing.used, copy.used)
+          for id, f in pairs(copy.files) do existing.files[id] = existing.files[id] or f end
+          for _, k in ipairs({ "walk", "front", "walkBy", "battleBy", "battleClass", "pal", "monColors" }) do
+            if existing[k] == nil then existing[k] = copy[k] end
+          end
+        else
+          target[copy.credit] = copy
+        end
+      end
+    end
+  end
+  local function characterList(map)
+    local list = {}
+    for _, c in pairs(map) do list[#list + 1] = c end
+    table.sort(list, function(a, b) return a.credit < b.credit end)
+    return list
+  end
   local function copyEntry(entry)
     if type(entry) ~= "table" or not optionalString(entry.artist)
       or not entry.artist:find("%S") then return nil end
-    local result = { artist = entry.artist, works = {}, mods = {},
-      source = optionalString(entry.source), note = optionalString(entry.note) }
+    local result = { artist = entry.artist, works = {}, mods = {}, commissions = {},
+      sections = {}, used = {}, source = optionalString(entry.source),
+      note = optionalString(entry.note) }
     union(result.works, entry.works)
     union(result.mods, entry.mods)
+    union(result.commissions, entry.commissions)
+    union(result.sections, entry.sections)
+    union(result.used, entry.used)
+    local map = {}
+    mergeCharacters(map, entry.characters)
+    result.characters = characterList(map)
     return result
   end
 
@@ -64,22 +155,26 @@ function Credits.attach(mod, initialEntries)
     return true
   end
   local function mergedEntries(rawEntries)
-    local entries, byArtist = {}, {}
-    local function add(list)
-      for _, entry in ipairs(list) do
-        local existing = byArtist[entry.artist]
-        if existing then
-          union(existing.works, entry.works)
-          union(existing.mods, entry.mods)
-          existing.source = existing.source or entry.source
-          existing.note = existing.note or entry.note
-        else
-          local copy = copyEntry(entry)
-          entries[#entries + 1], byArtist[copy.artist] = copy, copy
-        end
+    local entries, byArtist, chars = {}, {}, {}
+    for _, entry in ipairs(copyEntries(rawEntries)) do
+      local existing = byArtist[entry.artist]
+      if existing then
+        union(existing.works, entry.works)
+        union(existing.mods, entry.mods)
+        union(existing.commissions, entry.commissions)
+        union(existing.sections, entry.sections)
+        union(existing.used, entry.used)
+        existing.source = existing.source or entry.source
+        existing.note = existing.note or entry.note
+      else
+        entries[#entries + 1], byArtist[entry.artist] = entry, entry
+        chars[entry] = {}
       end
+      mergeCharacters(chars[byArtist[entry.artist]], entry.characters)
     end
-    add(copyEntries(rawEntries))
+    for _, entry in ipairs(entries) do
+      entry.charactersBy = chars[entry]
+    end
     table.sort(entries, function(a, b)
       local al, bl = a.artist:lower(), b.artist:lower()
       if al == bl then return a.artist < b.artist end
@@ -95,80 +190,475 @@ function Credits.attach(mod, initialEntries)
     end
     return table.concat(out)
   end
-  local function prefix(text)
+  local function prefixFitting(text, width)
     local spans = Font.split(text)
-    local count = math.min(18, Font.spansFitting(spans, 144))
+    local count = Font.spansFitting(spans, width)
     return count > 0 and spans[count].to or 0
   end
-  local function wrap(rows, text, artistIndex)
+  local function fit(text, width)
+    text = display(text)
+    return text:sub(1, prefixFitting(text, width or 144))
+  end
+  local function wrap(text, width)
+    local lines = {}
     text = display(text):match("^%s*(.-)%s*$")
     while #text > 0 do
-      local cut = prefix(text)
+      local cut = prefixFitting(text, width)
       -- A custom glyph wider than the whole panel cannot supply a line.
       if cut == 0 then break end
       if cut < #text then
         local space = text:sub(1, cut + 1):match("^.*() ")
         if space and space > 1 then cut = space - 1 end
       end
-      rows[#rows + 1] = { text = text:sub(1, cut), artist = artistIndex }
+      lines[#lines + 1] = text:sub(1, cut)
       text = text:sub(cut + 1):gsub("^%s+", "")
     end
+    return lines
   end
-  local function buildRows(entries)
-    local rows = {}
-    for i, entry in ipairs(entries) do
-      if i > 1 then rows[#rows + 1] = { rule = true, artist = i } end
-      wrap(rows, entry.artist, i)
-      if #entry.works > 0 then wrap(rows, table.concat(entry.works, ", "), i) end
-      if #entry.mods > 0 then wrap(rows, "IN: " .. table.concat(entry.mods, ", "), i) end
-      if entry.note then wrap(rows, entry.note, i) end
+
+  -- ---- art: read from the mods that ship it, never from this mod ----------
+  -- Mods are siblings of this one (mod.path is "mods/<id>"). Every image goes
+  -- through the engine's own loader, src.render.Assets.image -- the one
+  -- SpriteRenderer uses for every mod-registered walker and BattleState for
+  -- every mod trainer front, by these same mods/<id>/<path> paths, on the
+  -- phone. NEVER hand a path to love.graphics.newImage / love.image.newImageData
+  -- here: on the phone love.filesystem cannot see mod files (REQUESTS 129;
+  -- tests/no_love_path_loads.lua). v7: whether a file is coloured is read from
+  -- its pixels through Assets.imageData (SpriteRenderer's own OBJ-palette bake
+  -- reads mod sprites the same way on the phone), so a mod's data from any
+  -- version, with or without the generator's flags, draws the same.
+  local function engine(name)
+    local ok, module = pcall(require, name)
+    return ok and module or nil
+  end
+  local base = (type(mod.path) == "string" and mod.path:match("^(.*/)[^/]*$")) or "mods/"
+  local images, reported = {}, {}
+  local function report(message)
+    if reported[message] then return end
+    reported[message] = true
+    local Runtime = engine("src.mods.Runtime")
+    if Runtime and Runtime.reportError then pcall(Runtime.reportError, mod.id, "CREDITS ART\n" .. message) end
+  end
+  local function image(path)
+    if images[path] == nil then
+      local Assets = engine("src.render.Assets")
+      local ok, img = false, nil
+      if Assets and Assets.image then ok, img = pcall(Assets.image, path) end
+      images[path] = ok and img or false
+      if not (ok and img) then report(tostring(path) .. "\n" .. tostring(img)) end
     end
-    return rows
+    return images[path] or nil
   end
-  local function open(game, rawEntries)
-    local entries = mergedEntries(rawEntries)
-    local rows = buildRows(entries)
-    local pages = math.max(1, math.ceil(#rows / VISIBLE))
-    local state = { isOpaque = true, offset = 0 }
-    function state:update(_dt)
-      local input = game.input
-      if input:wasPressed("b") then game.stack:pop()
-      elseif input:wasPressed("up") then self.offset = math.max(0, self.offset - 1)
-      elseif input:wasPressed("down") then
-        self.offset = math.min((pages - 1) * VISIBLE, self.offset + 1)
+  -- Coloured art is drawn as it is; four-grey art goes through a palette.
+  -- Decided from the file's own pixels (cached), else the generator's flag.
+  local colourArt = {}
+  local function isColour(path, flag)
+    if colourArt[path] == nil then
+      local Assets = engine("src.render.Assets")
+      local ok, found = false, nil
+      if Assets and Assets.imageData then
+        ok, found = pcall(function()
+          local d = Assets.imageData(path)
+          local w, h = d:getWidth(), d:getHeight()
+          for y = 0, h - 1 do
+            for x = 0, w - 1 do
+              local r, g, b, a = d:getPixel(x, y)
+              if a > 0 and (math.abs(r - g) > 0.03 or math.abs(g - b) > 0.03) then return true end
+            end
+          end
+          return false
+        end)
+      end
+      if ok then colourArt[path] = found else colourArt[path] = flag == true end
+    end
+    return colourArt[path]
+  end
+  local function installed(id)
+    if type(mod.find) ~= "function" then return true end
+    local ok, found = pcall(mod.find, id)
+    return ok and found ~= nil
+  end
+  local function shipped(c, role)
+    local ids = {}
+    for id in pairs(c.files) do ids[#ids + 1] = id end
+    table.sort(ids)
+    for _, id in ipairs(ids) do
+      local f = c.files[id]
+      local rel = f[role]
+      if rel and installed(id) then
+        local path = base .. id .. "/" .. rel
+        if image(path) then return path, isColour(path, f[role .. "Colour"]) end
       end
     end
-    -- Trainer Journey's rule/rightText/header idiom, using public surfaces:
-    -- ModUI exposes Font and Theme, but does not expose Gen 2 Chrome.
+  end
+  local function paletted(colors, colour, body)
+    local Gbc = engine("src.render.GbcPalette")
+    if colors and Gbc and not (colour and Gbc.mode == "gbc") and Gbc.available() then
+      Gbc.with(colors, body)
+    else
+      body()
+    end
+  end
+
+  local function open(game, rawEntries)
+    local entries = mergedEntries(rawEntries)
+    local data = game.data or {}
+    local Palettes = engine("src.world.gen2.Palettes")
+    local SpriteRenderer = engine("src.render.SpriteRenderer")
+    -- file name -> a registered sprite drawing that file, so art a mod moved
+    -- since the table was generated is still found
+    local registeredByFile, registeredPalette
+    local registeredByPath = {}
+    local function registeredSprite(file)
+      if not registeredByFile then
+        registeredByFile = {}
+        for _, def in pairs(data.gen2Sprites or {}) do
+          local ok, path = pcall(SpriteRenderer and SpriteRenderer.imagePath or error, def)
+          if ok and type(path) == "string" then
+            local name = path:match("([^/]+)$")
+            if name and path:sub(1, #base) == base and not registeredByFile[name] then
+              registeredByFile[name] = { path = path, colour = def.trueColor == true, def = def }
+            end
+            if path:sub(1, #base) == base then registeredByPath[path] = def end
+          end
+        end
+      end
+      local found = registeredByFile[file]
+      if found then return found.path, isColour(found.path, found.colour) end
+    end
+    -- The palette the game itself gives a sprite: the registered sprite's own
+    -- palette, read from its def the way the overworld reads it.
+    function registeredPalette(path)
+      if not registeredByFile then registeredSprite("") end
+      local def = registeredByPath[path]
+      if not (def and Palettes and data.gen2Palettes) then return nil end
+      if def.paletteId == nil and def.palette == nil then return nil end
+      local ok, colors = pcall(Palettes.spritePalette, data.gen2Palettes, "DAY", def)
+      return ok and colors or nil
+    end
+    -- The colours the game gives a Pokemon's battle picture: the species whose
+    -- spriteFront is this file (or whose name is this one), through
+    -- Palettes.monColors, as the battle draws it. Independent of what any
+    -- mod's credits data carries, so data from any version draws right.
+    local speciesByFile, speciesByName
+    local function speciesColors(path, name)
+      if not speciesByFile then
+        speciesByFile, speciesByName = {}, {}
+        for id, mon in pairs(data.pokemon or {}) do
+          if type(mon) == "table" then
+            if type(mon.spriteFront) == "string" then
+              speciesByFile[mon.spriteFront] = speciesByFile[mon.spriteFront] or id
+              local file = mon.spriteFront:match("([^/]+)$")
+              if file then speciesByFile[file] = speciesByFile[file] or id end
+            end
+            if type(mon.name) == "string" then
+              speciesByName[mon.name:upper()] = speciesByName[mon.name:upper()] or id
+            end
+          end
+        end
+      end
+      local id = (path and (speciesByFile[path] or speciesByFile[path:match("([^/]+)$") or ""]))
+        or (name and speciesByName[name:upper()])
+      if not (id and Palettes and Palettes.monColors and data.gen2Palettes) then return nil end
+      local ok, colors = pcall(Palettes.monColors, data.gen2Palettes, id)
+      return ok and colors or nil
+    end
+    -- OBJ colour 0 is transparent on the hardware; on this white page it is
+    -- white (the palette's own entry 0 drew a tinted square behind the sprite)
+    local function whiteZero(colors)
+      if type(colors) ~= "table" or not colors[1] then return nil end
+      local copy = { { 255, 255, 255 } }
+      for i = 2, #colors do copy[i] = colors[i] end
+      return copy
+    end
+    local function objColors(pal)
+      if pal == nil or not (Palettes and data.gen2Palettes) then return nil end
+      local ok, colors = pcall(Palettes.spritePalette, data.gen2Palettes, "DAY", { paletteId = pal })
+      return ok and whiteZero(colors) or nil
+    end
+    local function walkerPath(c)
+      if not c.walk then return nil end
+      local path, colour = shipped(c, "walk")
+      if path then return path, colour end
+      return registeredSprite(c.walk)
+    end
+    local function drawWalker(c, x, y)
+      local path, colour = walkerPath(c)
+      local img = path and image(path)
+      if not img then return false end
+      local quad = love.graphics.newQuad(0, 0, 16, 16, img:getDimensions())
+      love.graphics.setColor(1, 1, 1, 1)
+      -- the registered palette (registry), else the palette the mod registered
+      -- the sprite with; with neither, the greys as drawn -- never a guess
+      local colors = not colour and (objColors(c.pal) or whiteZero(registeredPalette(path))) or nil
+      paletted(colors, colour, function()
+        love.graphics.draw(img, quad, x, y)
+      end)
+      love.graphics.setColor(0, 0, 0, 1)
+      return true
+    end
+    local function drawPortrait(c, x, y)
+      local path, colors, colour
+      if c.battleBy == CRYSTAL and c.battleClass then
+        -- the battle intro's own lookup (BattleState.trainerArt) and colours
+        local hud = data.gen2MenuGfx and data.gen2MenuGfx.battleHud
+        path = hud and hud.trainerPics and hud.trainerPics[c.battleClass]
+        if Palettes and Palettes.trainerColors then
+          colors = Palettes.trainerColors(data.gen2Palettes, c.battleClass)
+        end
+        colour = false
+      elseif c.front then
+        path, colour = shipped(c, "front")
+        -- A four-grey Pokemon front takes the colours the game's battle gives
+        -- that species (found at run time, so any mod's data of any version
+        -- draws right), else the data's monColors. A four-grey trainer portrait
+        -- has no class palette of its own, so it takes its character's
+        -- registered overworld colours (TODO/CONFIRM). With none of those it
+        -- is drawn in its greys: never a palette that belongs to something else.
+        if not colour then
+          colors = speciesColors(path, c.name) or c.monColors or objColors(c.pal)
+        end
+      end
+      local img = path and image(path)
+      if not img then return false end
+      love.graphics.setColor(1, 1, 1, 1)
+      paletted(colors, colour, function() love.graphics.draw(img, x, y) end)
+      love.graphics.setColor(0, 0, 0, 1)
+      return true
+    end
+
+    -- One artist's rows: each work (a character when the generator recorded
+    -- one), then what was commissioned from them, then any required credit
+    -- line, verbatim. Only works and commissions can be opened.
+    local function rowsFor(entry)
+      local rows = {}
+      local by = entry.charactersBy or {}
+      local function add(work)
+        local c = by[work]
+        rows[#rows + 1] = { text = c and c.name or work, work = work, character = c }
+      end
+      -- Several embedded copies each add their slice, so sort what is shown
+      -- by the name on the row.
+      local function sorted(list)
+        local copy = {}
+        for i, w in ipairs(list) do copy[i] = w end
+        table.sort(copy, function(a, b)
+          local an = (by[a] and by[a].name or a):lower()
+          local bn = (by[b] and by[b].name or b):lower()
+          if an == bn then return a < b end
+          return an < bn
+        end)
+        return copy
+      end
+      -- "via <pack>: a, b, c" (art that came through a pack) is a heading and
+      -- one row per item, so no credited word is cut off at the row's edge
+      local plain, packs = {}, {}
+      for _, work in ipairs(entry.works) do
+        local pack, items = work:match("^(via [^:]+):%s*(.+)$")
+        if pack then packs[#packs + 1] = { pack = pack, items = items } else plain[#plain + 1] = work end
+      end
+      for _, work in ipairs(sorted(plain)) do add(work) end
+      for _, p in ipairs(packs) do
+        for _, line in ipairs(wrap(p.pack .. ":", 144)) do rows[#rows + 1] = { text = line, heading = true } end
+        for item in p.items:gmatch("[^,]+") do add((item:gsub("^%s+", ""):gsub("%s+$", ""))) end
+      end
+      if #entry.commissions > 0 then
+        rows[#rows + 1] = { text = "COMMISSIONED/", heading = true }
+        for _, work in ipairs(sorted(entry.commissions)) do add(work) end
+      end
+      for _, row in ipairs(rows) do
+        if row.character and row.character.walk then rows.walkers = true end
+      end
+      if entry.note then
+        for _, line in ipairs(wrap(entry.note, 144)) do rows[#rows + 1] = { text = line, heading = true } end
+      end
+      return rows
+    end
+    local pages = {}
+    for i, entry in ipairs(entries) do
+      pages[i] = { entry = entry, rows = rowsFor(entry), cursor = 1, top = 1 }
+      local first = 1
+      while pages[i].rows[first] and pages[i].rows[first].heading do first = first + 1 end
+      pages[i].cursor = pages[i].rows[first] and first or 1
+    end
+    local VISIBLE, ROW_TOP, ROW_STEP = 6, 40, 16
+    local NAME_X = 32 -- the name column on a page with walkers (16x16 at x 8)
+    local USED_VISIBLE = 8
+    local state = { isOpaque = true, artist = 1, detail = nil, usedTop = 0 }
+
+    local function selectable(row) return row and not row.heading end
+    local function move(page, delta)
+      local i = page.cursor + delta
+      while page.rows[i] and not selectable(page.rows[i]) do i = i + delta end
+      if not selectable(page.rows[i]) then return end
+      page.cursor = i
+      if page.cursor < page.top then page.top = page.cursor end
+      if page.cursor >= page.top + VISIBLE then page.top = page.cursor - VISIBLE + 1 end
+      -- keep a heading above the first row in view when scrolling back up
+      while page.top > 1 and page.rows[page.top - 1].heading and page.cursor - (page.top - 1) < VISIBLE do
+        page.top = page.top - 1
+      end
+    end
+    local function detailFor(page)
+      local row = page.rows[page.cursor]
+      if not selectable(row) then return nil end
+      local c = row.character
+      local used = {}
+      if c and #c.used > 0 then union(used, c.used)
+      elseif #page.entry.used > 0 then union(used, page.entry.used)
+      else
+        for _, m in ipairs(page.entry.mods) do used[#used + 1] = m:upper() end
+      end
+      -- copies merge in hook order, so sort what is shown
+      table.sort(used)
+      return { row = row, character = c, artist = page.entry.artist, used = used }
+    end
+
+    function state:update(_dt)
+      local input = game.input
+      if self.detail then
+        local rows = math.ceil(#self.detail.used / 2)
+        if input:wasPressed("b") then self.detail, self.usedTop = nil, 0
+        elseif input:wasPressed("up") then self.usedTop = math.max(0, self.usedTop - 1)
+        elseif input:wasPressed("down") then
+          self.usedTop = math.min(math.max(0, rows - self.detail.usedRows), self.usedTop + 1)
+        end
+        return
+      end
+      local page = pages[self.artist]
+      if input:wasPressed("b") then game.stack:pop()
+      elseif not page then return
+      elseif input:wasPressed("left") and #pages > 1 then self.artist = (self.artist - 2) % #pages + 1
+      elseif input:wasPressed("right") and #pages > 1 then self.artist = self.artist % #pages + 1
+      elseif input:wasPressed("up") then move(page, -1)
+      elseif input:wasPressed("down") then move(page, 1)
+      elseif input:wasPressed("a") then
+        self.detail, self.usedTop = detailFor(page), 0
+      end
+    end
+
     local function rule(y)
       love.graphics.setColor(0, 0, 0, 1)
-      love.graphics.rectangle("fill", 4, y, 152, 1)
+      love.graphics.rectangle("fill", 0, y, 160, 1)
     end
     local function rightText(text, y)
-      Font.draw(text, 156 - Font.width(text), y)
+      Font.draw(text, 160 - 8 - Font.width(text), y)
+    end
+    local function big(text, x, y)
+      love.graphics.push()
+      love.graphics.translate(x, y)
+      love.graphics.scale(2, 2)
+      Font.draw(text, 0, 0)
+      love.graphics.pop()
+    end
+    local function drawArtist()
+      local page = pages[state.artist]
+      Font.draw("ARTIST", 8, 4)
+      if not page then return end
+      rightText(tostring(state.artist) .. "/" .. #pages, 4)
+      -- The name as written (attribution stays exact); 2x when it fits,
+      -- else the ordinary size on the same line.
+      local name = display(page.entry.artist)
+      if Font.width(name) * 2 <= 144 then big(name, 8, 14)
+      else
+        local lines = wrap(name, 144)
+        for i = 1, math.min(2, #lines) do Font.draw(lines[i], 8, 14 + (i - 1) * 8 + (#lines == 1 and 4 or 0)) end
+      end
+      rule(34)
+      for i = 1, VISIBLE do
+        local index = page.top + i - 1
+        local row = page.rows[index]
+        if row then
+          local y = ROW_TOP + (i - 1) * ROW_STEP
+          if row.heading then
+            Font.draw(fit(row.text, 144), 8, y)
+          else
+            if index == page.cursor then Font.drawCode(mod.ui.Theme.cursor, 0, y) end
+            local textX = page.rows.walkers and NAME_X or 8
+            if row.character and row.character.walk then drawWalker(row.character, 8, y - 4) end
+            Font.draw(fit(row.text, math.min(144, 160 - textX)), textX, y)
+          end
+        end
+      end
+      if page.top + VISIBLE <= #page.rows then
+        Font.drawCode(mod.ui.Theme.moreArrow or 0xEE, 152, ROW_TOP + (VISIBLE - 1) * ROW_STEP + 8)
+      end
+    end
+    local function drawDetail()
+      local d = state.detail
+      local c = d.character
+      local name = (c and c.name or d.row.work):upper()
+      local hasPortrait = c and drawPortrait(c, 4, 4)
+      local x = hasPortrait and 64 or 8
+      local width = 160 - 8 - x
+      -- a work with no character record is shown in full (up to five lines)
+      local nameLines = wrap(c and name or d.row.work, width)
+      local y = 8
+      for i = 1, math.min(c and 2 or 5, #nameLines) do Font.draw(nameLines[i], x, y); y = y + 8 end
+      y = y + 8
+      local lineX = x
+      if c and c.walk and drawWalker(c, x, y) then lineX = x + 20 end
+      local lineW = 160 - 8 - lineX
+      local credits = {}
+      if c and (c.walkBy or c.battleBy) then
+        if c.walkBy then credits[#credits + 1] = { "WALK/", c.walkBy } end
+        if c.battleBy then credits[#credits + 1] = { "BATTLE/", c.battleBy } end
+      else
+        credits[1] = { "ART/", d.artist }
+      end
+      -- Beside the portrait when every line fits above the rule (rows y..56);
+      -- otherwise ("Fo0xerz, devamped by Rangi42") all of them go under the
+      -- double rule at full width, so no credited word is cut.
+      local need = 0
+      for i, cr in ipairs(credits) do need = need + 1 + #wrap(cr[2], lineW) + (i > 1 and 1 or 0) end
+      local below = y + need * 8 > 64
+      if not below then
+        for _, cr in ipairs(credits) do
+          Font.draw(cr[1], lineX, y); y = y + 8
+          for _, line in ipairs(wrap(cr[2], lineW)) do Font.draw(line, lineX, y); y = y + 8 end
+          y = y + 8
+        end
+      end
+      rule(64); rule(66)
+      y = 72
+      if below then
+        for _, cr in ipairs(credits) do
+          for _, line in ipairs(wrap(cr[1] .. " " .. cr[2], 144)) do Font.draw(line, 8, y); y = y + 8 end
+        end
+        y = y + 8
+      end
+      -- The exact credit text when it is not the name: a stand-in sheet is
+      -- credited as the sheet the artist drew ("Lass (RBY) (as Suzie)").
+      if c and d.row.work:upper() ~= name then
+        for _, line in ipairs(wrap(d.row.work, 144)) do Font.draw(line, 8, y); y = y + 8 end
+        y = y + 8
+      end
+      Font.draw("USED IN/", 8, y)
+      -- mods two a row, two rows apart; one row apart when space is short
+      local step = (y + 16 + 8 <= 144) and 16 or 8
+      y = math.min(y + step, 136)
+      local rows = math.max(1, math.floor((136 - y) / 16) + 1)
+      if step == 8 then rows = 1 end
+      d.usedRows = math.min(rows, USED_VISIBLE / 2)
+      for r = 1, d.usedRows do
+        for col = 1, 2 do
+          local m = d.used[(state.usedTop + r - 1) * 2 + col]
+          if m then Font.draw(fit(m, 72), col == 1 and 8 or 88, y + (r - 1) * 16) end
+        end
+      end
+      if (state.usedTop + d.usedRows) * 2 < #d.used then
+        Font.drawCode(mod.ui.Theme.moreArrow or 0xEE, 152, y + (d.usedRows - 1) * 16)
+      end
     end
     function state:draw()
       love.graphics.setColor(1, 1, 1, 1)
       love.graphics.rectangle("fill", 0, 0, 160, 144)
       love.graphics.setColor(0, 0, 0, 1)
-      Font.draw("CREDITS", 4, 4)
-      rightText(tostring(math.floor(self.offset / VISIBLE) + 1) .. "/" .. pages, 4)
-      rule(17)
-      for i = 1, VISIBLE do
-        local row = rows[self.offset + i]
-        if row then
-          local y = TOP + (i - 1) * STEP
-          if row.rule then rule(y + 4) else Font.draw(row.text, 12, y) end
-        end
-      end
-      Font.drawCode(mod.ui.Theme.cursor, 4, TOP)
-      rule(127)
-      Font.draw("B:CLOSE", 4, 136)
-      local current = rows[self.offset + 1]
-      rightText(tostring(current and current.artist or 0) .. "/" .. #entries, 136)
+      if self.detail then drawDetail() else drawArtist() end
       love.graphics.setColor(1, 1, 1, 1)
     end
     game.stack:push(state)
+    return state
   end
   -- Each row owns one flat shared list. Remember only our contribution's
   -- object identities, so re-running a hook or runtime registration replaces
@@ -199,11 +689,13 @@ function Credits.attach(mod, initialEntries)
     end
     if not row then
       row = { id = ROW_ID, label = "CREDITS",
-        desc = { "Artists and", "their work" }, creditsEntries = {} }
+        desc = { DESC[1], DESC[2] }, creditsEntries = {} }
       rows[#rows + 1] = row
     end
     if not row.creditsLib or row.creditsLib < LIB_VERSION then
       row.creditsLib = LIB_VERSION
+      -- an older copy may have made the row with its own (too wide) wording
+      row.desc = { DESC[1], DESC[2] }
       row.onSelect = function()
         local top = game.stack:top()
         if top and top.items and top.onClose then top:close() end

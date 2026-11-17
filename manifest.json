@@ -1,7 +1,7 @@
 {
   "id": "kanto_contests",
   "name": "Contests",
-  "version": "0.37.42",
+  "version": "0.37.62",
   "api": 2,
   "games": [
     "gen1",
@@ -18,7 +18,7 @@
     "engine_internals"
   ],
   "dependencies": [],
-  "optional_dependencies": [],
+  "optional_dependencies": ["national_dex_gen3"],
   "conflicts": [],
   "description": "Five contest categories, four Johto ranks, PokeSnacks, scarves and rival coordinators. Challenge Fantina at MASTER rank and earn a Dusk Stone. Includes optional Honchkrow and Mismagius support; no species-framework dependency.",
   "assets_transforms": "transforms.lua"

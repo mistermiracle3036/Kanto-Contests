@@ -1971,9 +1971,8 @@ local function kcGold(mod, VERSION)
     { id = "SPRITE_KC_ARIANA", image = "assets/ariana.png", palette = "PAL_OW_RED", paletteId = 0, trueColor = true },
     { id = "SPRITE_KC_ASH", image = "assets/ash.png", palette = "PAL_OW_BLUE", paletteId = 1 },
     { id = "SPRITE_KC_BALLGUY", image = "assets/ballguy.png", palette = "PAL_OW_RED", paletteId = 0 },
-    { id = "SPRITE_KC_BARRY", image = "assets/barry.png", palette = "PAL_OW_BROWN", paletteId = 3 },
+    { id = "SPRITE_KC_BARRY", image = "assets/barry.png", palette = "PAL_OW_GREEN", paletteId = 2 },
     { id = "SPRITE_KC_BEA", image = "assets/bea.png", palette = "PAL_OW_PINK", paletteId = 4 },
-    { id = "SPRITE_KC_BILL", image = "assets/bill.png", palette = "PAL_OW_BROWN", paletteId = 3 },
     { id = "SPRITE_KC_BREEDER", image = "assets/breeder.png", palette = "PAL_OW_GREEN", paletteId = 2 },
     { id = "SPRITE_KC_BRENDAN", image = "assets/brendan.png", palette = "PAL_OW_RED", paletteId = 0 },
     { id = "SPRITE_KC_COLRESS", image = "assets/colress.png", palette = "PAL_OW_BLUE", paletteId = 1 },
@@ -2886,24 +2885,6 @@ local function kcGold(mod, VERSION)
     return true
   end
 
-  local function ensureGoldenrodAttendant(world)
-    if markerExists(world, "kcAttendant") then return end
-    local x, y, how = pickCell(world)
-    if not x then
-      mod.log:warn("contest attendant NOT placed: %s", how)
-      return
-    end
-    entranceCell.x, entranceCell.y = x, y
-    local def = {
-      name = "KC_GOLDENROD_ATTENDANT",
-      sprite = KCG.sprite, x = x, y = y,
-      movement = KCG.movement,
-    }
-    local ok = spawnMarked(KCG.map, def, "kcAttendant")
-    mod.log:info("contest attendant at %s %d,%d (%s) placed=%s",
-                 KCG.map, x, y, how, tostring(ok))
-  end
-
   local function ensureRoomActors(world, def)
     for _, row in ipairs(def.actors or {}) do
       if not markerExists(world, row.marker) then
@@ -3303,7 +3284,11 @@ local function kcGold(mod, VERSION)
     -- vanilla SPRITE_ROCKET with a hair palette once the cast lists can
     -- alias a name onto a vanilla sprite (NOTES.md backlog).
     "KC_BREEDER", "KC_EUSINE", "KC_LOOKER",
-    "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BALLGUY", "KC_BILL",
+    -- BILL is Crystal's own four-way walker since 0.37.54 (REQUESTS 689,
+    -- developer's Desk pick 2026-11-10 "Use Crystal's for both"); the
+    -- custom KC_BILL sheet is gone. Its sheet default (RED) is the colour
+    -- vanilla places him in, so spawnMarked needs no palette entry.
+    "KC_RANGER", "KC_SANTA", "KC_NURSE_JOY", "KC_BALLGUY", "BILL",
     "KC_INGO", "KC_AGATHA", "KC_ARCHER", "KC_ARIANA", "KC_GIOVANNI",
     "KC_PROTON", "KC_RUIN_MANIAC",
     -- the trainer classes and DJ Mary from the Polished Crystal set
@@ -3326,7 +3311,7 @@ local function kcGold(mod, VERSION)
     { "GRAMPS", "GRANNY" },
     { "RED", "BLUE" }, { "OAK", "ELM" }, { "KURT", "DAISY" },
     { "MISTY", "BROCK" },
-    { "KC_ASH", "KC_MAY" }, { "KC_BILL", "KC_LOOKER" },
+    { "KC_ASH", "KC_MAY" }, { "BILL", "KC_LOOKER" },
   }
 
   -- Larry. The ONLY non-vanilla sprite in the cast, and the developer
@@ -3422,7 +3407,7 @@ local function kcGold(mod, VERSION)
       KC_ROSA = 3,
       KC_STADIUM_GIRL = 2,
       KC_BALLGUY = 4,
-      KC_BILL = 3,
+      BILL = 3,
     },
     ECRUTEAK = {
       MORTY = 4,
@@ -4658,7 +4643,12 @@ local function kcGold(mod, VERSION)
       end,
       function(next_)
         if index then
-          world:showPokePic(index)
+          -- lib/mon_pic.lua: asks a sprite provider first (REQUESTS 978)
+          local okP = pcall(function()
+            assert(load(assert(mod:read("lib/mon_pic.lua")), "@" .. mod.id .. "/lib/mon_pic.lua"))()(
+              world, index, { species = species })
+          end)
+          if not okP then world:showPokePic(index) end
           world:playCry(index)
         end
         world:showText(("%s's\n%s!"):format(who, species), next_)
@@ -4759,7 +4749,13 @@ local function kcGold(mod, VERSION)
       local myName = monLabel(game, mine)
       local myIndex = mine and speciesIndexOf(mine.species)
       if myIndex then
-        world:showPokePic(myIndex)
+        -- lib/mon_pic.lua: a WoobleDex species' real picture, not the
+        -- grey "?" ball (REQUESTS 978, the developer's screenshot)
+        local okP = pcall(function()
+          assert(load(assert(mod:read("lib/mon_pic.lua")), "@" .. mod.id .. "/lib/mon_pic.lua"))()(
+            world, myIndex, mine)
+        end)
+        if not okP then world:showPokePic(myIndex) end
         world:playCry(myIndex)
       end
       world:showText(("%s\nand %s!"):format(name, myName), function()
@@ -4785,7 +4781,7 @@ local function kcGold(mod, VERSION)
             world:showText(("%s scores\n%d hearts!"):format(name, myHearts), next_)
           end)
         end)
-      end)
+      end, nil, nil, nil, true)
     end
     -- ...then back to the line. The judging is not something the player
     -- walks over and asks for -- everyone has presented, so everyone
@@ -4897,7 +4893,13 @@ local function kcGold(mod, VERSION)
   local function ensureGoldenrodFacade()
     local data = mod.game and mod.game.data
     local tsets = data and (data.gen2Tilesets or data.tilesets)
-    local ts = tsets and tsets.TILESET_JOHTO_MODERN
+    -- 0.37.48 (REQUESTS 401): append to the tileset the LIVE map uses, not
+    -- TILESET_JOHTO_MODERN by name. Johto Expanded 0.3.3+ retiles Goldenrod
+    -- to JOHTO_EXPANDED_GOLDENROD_TILES (blocks 0-127 the same, its hotel
+    -- and TV station at 128+), so our stamped ids landed on its blocks and
+    -- past its end: the HOTEL sign and grey roof on the developer's phone.
+    local gdef = data and data.gen2Maps and data.gen2Maps.GOLDENROD_CITY
+    local ts = tsets and tsets[(gdef and gdef.tileset) or "TILESET_JOHTO_MODERN"]
     -- gen2Tilesets is populated at GAME construction (Game2.lua:949),
     -- which happens AFTER mods load. 0.16.0 read tileset data at load
     -- time, got nothing, and shipped grey rooms; map.entered is late
@@ -5199,7 +5201,11 @@ local function kcGold(mod, VERSION)
     local tsets = data and (data.gen2Tilesets or data.tilesets)
     -- the STREET's tileset: the town's map tileset, which the (block,
     -- quadrant) pairs index and the composed blocks are appended to
-    local tsId = street.tileset or "TILESET_JOHTO"
+    -- 0.37.48 (REQUESTS 401): the live map def's tileset first, so a mod
+    -- that retiles the town (Johto Expanded on Goldenrod) gets our blocks
+    -- in the set it actually draws with. street.tileset is the fallback.
+    local mdef = data and data.gen2Maps and data.gen2Maps[street.map]
+    local tsId = (mdef and mdef.tileset) or street.tileset or "TILESET_JOHTO"
     local ts = tsets and tsets[tsId]
     -- as with Goldenrod: gen2Tilesets exists only after the Game is
     -- built, which is why this runs on map.entered and not at load
@@ -5312,9 +5318,9 @@ local function kcGold(mod, VERSION)
         -- The street attendant is GONE. She existed to walk the player in
         -- when the hall had no building; now it has a door at 35,4 and an
         -- NPC standing outside offering the same thing is just clutter.
-        -- ensureGoldenrodAttendant is left defined but unused rather than
-        -- deleted, because the Gen 1 arm still has its own attendant and
-        -- ripping the shared helper out would touch that too.
+        -- Its spawn helper, ensureGoldenrodAttendant, was removed in
+        -- 0.37.46 (REQUESTS 273): it was local to this Gold arm and had no
+        -- caller; the Gen 1 arm's attendant is its own code.
       elseif STREET_OF[mapId] then
         ensureStreetFacade(STREET_OF[mapId])
         clearCianwoodFacadeRock(world)
@@ -5714,6 +5720,7 @@ local function kcGold(mod, VERSION)
             game.save.trophyUnlocks = game.save.trophyUnlocks or {}
             game.save.trophyUnlocks["kanto_contests:debut"] = true
             if rank == "MASTER" then
+              -- @trophy-keys: kanto_contests:master_cool kanto_contests:master_beauty kanto_contests:master_cute kanto_contests:master_smart kanto_contests:master_tough
               game.save.trophyUnlocks["kanto_contests:master_" .. tostring(kind):lower()] = true
             end
           end
@@ -5865,7 +5872,7 @@ local function kcGold(mod, VERSION)
                 mod.log:warn("contest stage warp failed: %s", tostring(err))
                 world:showText("KC error: stage\nentrance failed")
               end
-        end)
+        end, nil, nil, nil, true)
           end -- proceed
           -- NO RANK MENU any more (0.34.41): this hall runs one rank, so
           -- the only question is whether this POKeMON has earned it. The
@@ -5903,7 +5910,7 @@ local function kcGold(mod, VERSION)
             world:showText(("This hall runs\n%s rank."):format(want),
               function()
                 world:showText(("Earn %d wins in\nthis category."):format(need))
-              end)
+              end, nil, nil, nil, true)
           end
       end)
           end)
@@ -6038,17 +6045,32 @@ local function kcGold(mod, VERSION)
           pages[#pages + 1] = ("It is wearing a\n%s."):format(worn.name)
         end
         local earned = kcEligibleScarf(game.save, mon)
+        local gifted
         if earned then
-          local ok, _, why = mod.exports.giveScarf(game.save, earned.category)
+          local ok, id, why = mod.exports.giveScarf(game.save, earned.category)
           if ok and why == "given" then
-            pages[#pages + 1] = ("You earned the\n%s!"):format(earned.name)
-            pages[#pages + 1] = "Give it to a\nPOKeMON to wear."
+            gifted = id
           elseif not ok then
             pages[#pages + 1] = ("A %s is\nyours..."):format(earned.name)
             pages[#pages + 1] = "But your PACK is\nfull. Come back!"
           end
         end
-        world:showText(table.concat(pages, "\f"))
+        if not gifted then
+          world:showText(table.concat(pages, "\f"))
+          return
+        end
+        -- 0.37.54 (REQUESTS 662; decision 2026-11-07, gifts play the
+        -- vanilla jingle): the earned line ends in Crystal's item jingle
+        -- through the shared helper (lib/gift_jingle.lua, a byte copy of
+        -- exchange/shared/gift_jingle.lua). The scarf is already in the
+        -- bag, so Gift.say, not Gift.give. Wording unchanged.
+        world:showText(table.concat(pages, "\f"), function()
+          local Gift = assert(load(assert(mod:read("lib/gift_jingle.lua")),
+            "@" .. mod.id .. "/lib/gift_jingle.lua"))()
+          Gift.say(mod, gifted, ("You earned the\n%s!"):format(earned.name), {
+            onDone = function() world:showText("Give it to a\nPOKeMON to wear.") end,
+          })
+        end, nil, nil, nil, true)
       end)
     end)
   end
@@ -6083,7 +6105,7 @@ local function kcGold(mod, VERSION)
       elseif why=="bag_full" then
         world:showText("Your PACK is full.\nI will keep it.\fMake room, then\nvisit this hall.",done)
       elseif done then done() end
-    end)
+    end, nil, nil, nil, true)
   end
   mod.events:on("map.entered",function() rewardVisit=nil; rewardBusy=false end)
   -- After the gift she LEAVES: walks to the lobby's exit carpet (the
@@ -6248,13 +6270,276 @@ local function kcGold(mod, VERSION)
     return FALLBACK_LINE
   end
 
-  local function talkCast(world, npc)
+  local function talkCast(world, npc, onDone)
     if npc.def.kcFantina then
-      world:showText("Shall we\nshare the stage?\fAny category!\nShow me your best!")
+      world:showText("Shall we\nshare the stage?\fAny category!\nShow me your best!", onDone)
       return
     end
-    world:showText(lineFor(world, npc))
+    world:showText(lineFor(world, npc), onDone)
   end
+
+  -- ---------------------------------------------------------------
+  -- MAY AT THE RUINS OF ALPH (0.37.51, REQUESTS 593; developer's work
+  -- order 2026-11-08: "loose we can update designs and definitely
+  -- dialogue"). After meeting May in Elm's lab (Crystal Cutscene's starter
+  -- lab), the player finds her outside the RUINS, lost on her way to
+  -- GOLDENROD's contest. Helping her read her OWN map (the player is never
+  -- assumed to know the route) leads into her explaining contests as this
+  -- mod runs them: five categories, five turns, a judge and a crowd, NORMAL
+  -- rank first, any POKeMON that knows a move. Her first bond is a Trainer
+  -- Journey fact (mod.exports.getAffinityEvents below): TJ asks every
+  -- active mod for it (REQUESTS 282), so TJ owns the star and its notice.
+  -- Built inside its own function: kcGold is at Lua's 200-local ceiling,
+  -- so this adds ONE local (the talk handler) and keeps the rest inside.
+  local talkMayRuins = (function()
+  local MAY_MAP = "RUINS_OF_ALPH_OUTSIDE"
+  -- Where she stands in each state (0.37.55, REQUESTS 883). TODO/CONFIRM
+  -- on device: start by the ROUTE 32 gate path; the wall cell is under the
+  -- old RUINS wall with the chamber door (y 13); the sign cell is beside
+  -- the RUINS signpost (bg event 12,16), facing it.
+  local MAY_CELLS = {
+    start = { x = 11, y = 19, face = FACE_DOWN },
+    wall  = { x = 12, y = 14, face = FACE_UP },
+    sign  = { x = 11, y = 16, face = FACE_RIGHT },
+  }
+  local FACE_WORD = { [FACE_DOWN] = "down", [FACE_UP] = "up",
+                      [FACE_LEFT] = "left", [FACE_RIGHT] = "right" }
+  local MAY_FACT = "kanto_contests:may:ruins"
+  local mayHelpedThisVisit = false
+  -- kcMayRuins: nil (not met here) / "wall" (sent north by a failed TRACE
+  -- IT) / "sign" (waiting at the signpost) / "helped". kcMayShown: true
+  -- once the player has shown her a POKeMON -- the bond is paid for that.
+  local function mayState() return mod.save and mod.save:get("kcMayRuins") or nil end
+  local function setMayState(v) if mod.save then mod.save:set("kcMayRuins", v) end end
+  local function mayShown() return mod.save and mod.save:get("kcMayShown") == true end
+  local function cellFor(state) return MAY_CELLS[state] or MAY_CELLS.start end
+  -- Has the player met May in Elm's lab? Crystal Cutscene's
+  -- starterLabMet(key) (contract starter-lab-met, REQUESTS 594, name
+  -- approved by the developer; shipped in crystal_cutscene 0.110.79).
+  -- Read ungated: no export means not met, and she introduces herself.
+  local function mayMetInLab()
+    local h = mod.find and mod.find("crystal_cutscene")
+    local cc = h and h.exports and (h.exports.crystal_cutscene or h.exports)
+    if type(cc) == "table" and cc.starter_lab_met_version == 1
+        and type(cc.starterLabMet) == "function" then
+      local ok, met = pcall(cc.starterLabMet, "may")
+      return ok and met == true
+    end
+    return false
+  end
+  -- Trainer Journey's bond-tier tag (AUTHOR_API "Introductions follow the
+  -- bond"; names PROPOSED, REQUESTS 584). Read ungated; our own stranger
+  -- line is the fallback, so without Trainer Journey she still speaks.
+  local function introLine(key, own)
+    local h = mod.find and mod.find("trainer_journey")
+    local tj = h and h.exports and (h.exports.trainer_journey or h.exports)
+    if tj and tj.bond_tier_version == 1 and type(tj.intro) == "function" then
+      local ok, line = pcall(tj.intro, key, own)
+      if ok and line then return line end
+    end
+    return own and own.stranger
+  end
+  -- more = true when onDone shows more text or a menu: the last page then
+  -- shows Crystal's "more" arrow too (REQUESTS 769/775).
+  local function showPages(world, pages, onDone, more)
+    world:showText(table.concat(pages, "\f"), onDone, nil, nil, nil, more == true)
+  end
+  local function tjApi()
+    local h = mod.find and mod.find("trainer_journey")
+    local tj = h and h.exports and (h.exports.trainer_journey or h.exports)
+    return (type(tj) == "table" and type(tj.openCheckMenu) == "function") and tj or nil
+  end
+  -- A menu of rows through Trainer Journey's shared check UI; without it,
+  -- a plain YES/NO picks `yesRow` or `noRow`.
+  local function menu(world, rows, yesRow, noRow, choose)
+    local tj = tjApi()
+    if tj then
+      local ok = pcall(tj.openCheckMenu, { game = mod.game, owner = mod.id,
+        speaker = "MAY", rows = rows,
+        onChoose = function(row, check) choose(row, check) end })
+      if ok then return end
+    end
+    world:askYesNo(function(yes) choose(yes and yesRow or noRow, nil) end)
+  end
+  -- Walk her to another state's cell (World:beginMovement, as the stage
+  -- cast walks), then face its way. She is the runtime object we spawned.
+  local function walkMay(world, npc, toState, done)
+    local to = cellFor(toState)
+    local id = objectIdOf(npc)
+    local function arrive()
+      if npc and npc.scriptFace then pcall(npc.scriptFace, npc, FACE_WORD[to.face]) end
+      if done then done() end
+    end
+    if not (id and npc.cellX and npc.cellY) then return arrive() end
+    local dx, dy = to.x - npc.cellX, to.y - npc.cellY
+    if dx == 0 and dy == 0 then return arrive() end
+    local ok = pcall(world.beginMovement, world, id, walkBytes(dx, dy, dy < 0), arrive)
+    if not ok then arrive() end
+  end
+  -- Her verdict on your lead's first move, by Kanto Contests' own move
+  -- table (KC_CONTEST_MOVES). A move not in the table reads as COOL --
+  -- TODO/CONFIRM.
+  local SHOW_LINE = {
+    COOL   = "Ooh, that's a COOL\nmove! Sharp!",
+    BEAUTY = "That's a BEAUTY\nmove. So pretty!",
+    CUTE   = "A CUTE move! The\ncrowd melts!",
+    SMART  = "That's SMART. The\nJUDGE loves those.",
+    TOUGH  = "TOUGH! It doesn't\neven flinch!",
+  }
+  local function leadMon(world)
+    local _, party = partyOf(world)
+    for _, mon in ipairs(party) do
+      if type(mon) == "table" and not mon.isEgg then return mon end
+    end
+  end
+  local function firstMoveCategory(mon)
+    local okM, Mon = pcall(require, "src.battle.gen2.Mon")
+    local moves = okM and Mon.partyMoves and Mon.partyMoves(mon) or mon.moves or {}
+    local first = moves[1]
+    local id = type(first) == "table" and first.id or first
+    local row = id and KC_CONTEST_MOVES[id]
+    return (row and SHOW_LINE[row.cat]) and row.cat or "COOL"
+  end
+  local function finish(world)
+    showPages(world, {
+      "Five turns of\nappeals. A JUDGE",
+      "and the crowd\ngive you hearts.",
+      "Come watch, or\nenter yourself!",
+      "See you in\nGOLDENROD!",
+    }, function()
+      setMayState("helped")
+      mayHelpedThisVisit = true
+    end)
+  end
+  -- Fix 2: the bond is paid for showing her a POKeMON. Your lead steps
+  -- out as its picture and cry beside her (the stage's own presentation,
+  -- World:showPokePic / playCry) -- TODO/CONFIRM as "steps out".
+  local function askToSee(world, after)
+    showPages(world, { "Wait. Show me one\nof yours! Please?" }, function()
+      local show = { kind = "yes", action = "SHOW", reply = "Go on, show her." }
+      -- not kind "leave": a leave row may close the menu without a pick,
+      -- and "Maybe later." must still run her closing pages
+      local later = { action = "LATER", reply = "Maybe later." }
+      menu(world, { show, later }, show, later, function(row)
+        local mon = row == show and leadMon(world)
+        if not mon then return after() end
+        local index = speciesIndexOf(mon.species)
+        if index then
+          local okP = pcall(function()
+            assert(load(assert(mod:read("lib/mon_pic.lua")), "@" .. mod.id .. "/lib/mon_pic.lua"))()(
+              world, index, mon)
+          end)
+          if not okP then pcall(world.showPokePic, world, index) end
+          pcall(world.playCry, world, index)
+        end
+        world:showText(SHOW_LINE[firstMoveCategory(mon)], function()
+          world.pokePic = nil
+          if mod.save then mod.save:set("kcMayShown", true) end
+          after()
+        end, nil, nil, nil, true)
+      end)
+    end, true)
+  end
+  local function routeThenShow(world)
+    showPages(world, {
+      "Here. We're at\nthe RUINS, right?",
+      "The map shows a\nroad south...",
+      "ROUTE 32, then a\ncave. UNION CAVE!",
+      "Past the cave is\nAZALEA TOWN.",
+      "And GOLDENROD is\nthrough the woods.",
+      "Thanks! Two sets\nof eyes did it.",
+      "Have you seen a\nPOKeMON CONTEST?",
+    }, function() askToSee(world, function() finish(world) end) end, true)
+  end
+  local function talk(world, npc)
+    local state = mayState()
+    if state == "helped" then
+      if not mayShown() then return askToSee(world, function() end) end
+      -- dialogue-ok: 15 / 17
+      world:showText("South, through\nthe cave! Got it!")
+      return
+    end
+    if state == "sign" then
+      return showPages(world, { "A sign! Read it\nwith me?" }, function() routeThenShow(world) end, true)
+    end
+    if state == "wall" then
+      return showPages(world, { "That was a wall.\nA very old wall.", "Signs, this time?" },
+        function() setMayState("sign"); walkMay(world, npc, "sign") end)
+    end
+    -- Her lab greeting follows the bond tier and the lab signal (594).
+    local hello = introLine("may", { stranger = mayMetInLab()
+      and "Oh! You were at\nPROF.ELM's lab!"
+      or "Hi! I'm MAY. I\nlove CONTESTS!" })
+    showPages(world, {
+      hello,
+      "I'm trying to get\nto GOLDENROD.",
+      "There's a CONTEST\nthere! But...",
+      "I think I took a\nwrong turn.",
+      "Can you help me\nread my map?",
+    }, function()
+      -- Fix 1: reading the map is something you do (sheet 43).
+      -- flavor: the check's short note (publish gate, 18 letters or
+      -- fewer); not in sheet 43, so TODO/CONFIRM.
+      local trace = { action = "TRACE IT", stat = "exploration", gate = 15, kind = "stat",
+        flavor = "Read her map.", reply = "Trace the road\nsouth for her." }
+      local sign = { action = "FIND", label = "FIND SIGN", reply = "Let's find a\nsignpost." }
+      local leave = { kind = "leave", reply = "Sorry, I can't." }
+      menu(world, { trace, sign, leave }, sign, leave, function(row, check)
+        if row == trace then
+          if (check and check.passed) or row.passed == true then return routeThenShow(world) end
+          return world:showText("North? OK! Thanks!", function()
+            setMayState("wall"); walkMay(world, npc, "wall")
+          end)
+        elseif row == sign then
+          setMayState("sign"); walkMay(world, npc, "sign")
+        end
+      end)
+    end, true)
+  end
+  -- She stays put for the rest of this visit (her repeat line above), and
+  -- is gone the next time the player comes to the RUINS. Runtime objects
+  -- stay in the map's list for the session, so removal is explicit.
+  -- On every entry she stands at her state's cell (a walk earlier in the
+  -- session leaves a runtime object whose def still names the old cell, so
+  -- a stale one is removed and respawned).
+  local function ensureMayRuins(world, mapId)
+    if mapId ~= MAY_MAP then mayHelpedThisVisit = false; return end
+    local state = mayState()
+    local gone = state == "helped" and not mayHelpedThisVisit
+    local cell = cellFor(state)
+    local ids, keep = {}, false
+    for _, npc in ipairs((world and world.npcs) or {}) do
+      local d = npc.def
+      if d and d.kcMayRuins and d.runtime and d.index then
+        if gone or d.x ~= cell.x or d.y ~= cell.y then
+          ids[#ids + 1] = mapId .. "_obj_" .. d.index
+        else
+          keep = true
+        end
+      end
+    end
+    for _, id in ipairs(ids) do pcall(mod.world.removeNpc, mod.world, id) end
+    if not gone and not keep then
+      spawnMarked(MAY_MAP, { name = "KC_MAY_RUINS", sprite = "SPRITE_KC_MAY",
+        x = cell.x, y = cell.y, movement = cell.face }, "kcMayRuins")
+    end
+  end
+  mod.events:on("map.entered", function(ev)
+    local ok, err = pcall(ensureMayRuins, mod.world:overworld(), ev and ev.mapId)
+    if not ok then mod.log:warn("kc may ruins: %s", tostring(err)) end
+  end)
+  -- Trainer Journey's affinity facts (contract affinity-facts-kanto-contests,
+  -- exchange/CONTRACTS.md): one `chapter` = one half star, the id unique
+  -- forever, written only once the player has shown her a POKeMON (sheet
+  -- 43, fix 2). A save from 0.37.51-0.37.54 that was paid for "helped"
+  -- keeps its star: Trainer Journey stores the fact id and never takes a
+  -- point back.
+  mod.exports.getAffinityEvents = function()
+    if not mayShown() then return {} end
+    return { { id = MAY_FACT, schema = 1, character = "may", kind = "chapter" } }
+  end
+  return talk
+  end)()
 
   -- World:interactBody asks this facade's talkTo after resolving an NPC.
   -- Own only the four marker fields above and chain every other actor.
@@ -6274,6 +6559,7 @@ local function kcGold(mod, VERSION)
       or (def.kcRivalPiper and talkPiper)
       or (def.kcRivalRex and talkRex)
       or (def.kcRivalFiona and talkFiona)
+      or (def.kcMayRuins and talkMayRuins)
       or (def.kcAudience and talkAudience)
       or (def.kcCast and talkCast)
     )
@@ -6283,10 +6569,20 @@ local function kcGold(mod, VERSION)
     end
     -- Turn BEFORE the box opens, so the sprite is already looking at the
     -- player on the frame the text appears rather than after it closes.
-    -- Audience keeps watching the stage (or its actual duo partner)
-    -- during conversation rather than staying turned toward the player.
-    if not def.kcAudienceStageFace then faceThePlayer(world, npc) end
-    local ok, err = pcall(handler, world, npc)
+    -- 0.37.49 (REQUESTS 484, developer's pick 2026-11-05: "Turn, then turn
+    -- back"): the stage audience turns to you too, and when the text
+    -- closes it turns back to its resting pose -- the stage, or its duo
+    -- partner -- so the crowd still watches the show. This replaces
+    -- 0.36.9's "keeps watching the stage during conversation".
+    local onDone
+    if def.kcAudienceStageFace then
+      local rest = audienceDirections[def.movement]
+      onDone = function()
+        if rest and npc.scriptFace then pcall(npc.scriptFace, npc, rest) end
+      end
+    end
+    faceThePlayer(world, npc)
+    local ok, err = pcall(handler, world, npc, onDone)
     if not ok then
       mod.log:warn("kc gold talk: %s", tostring(err))
       pcall(function() world:showText("KC error: hall\ninteraction failed") end)
@@ -6301,7 +6597,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.42"
+  local VERSION = "0.37.62"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -6338,7 +6634,8 @@ return function(mod)
 
   mod.options:define({
     { key = "dusk_stone_reward", type = "toggle", label = "Dusk Stone reward", default = true },
-    { key = "expanded_species", type = "toggle", label = "Bundled evolutions", default = true },
+    { key = "expanded_species", type = "choice", label = "Bundled evolutions",
+      choices = {{"AUTO", "auto"}, {"ON", true}, {"OFF", false}}, default = "auto" },
     -- 0.34.19: how the crowd's hearts pop in the first round. AROUND ROOM
     -- walks them round the seats one at a time with a ding each; ALL AT
     -- ONCE is exactly 0.34.18 (a quick stagger under the applause). The
@@ -6418,6 +6715,7 @@ return function(mod)
     save.inventory = save.inventory or {}
     if kcHasScarf(save, row) then return true, row.id, "owned" end
     local data = mod.game and mod.game.data
+    -- gift_jingle: exempt (adds only; the Gold appraiser says the line with Gift.say, REQUESTS 662)
     if not Bag.add(save, row.id, 1, data) then
       return false, row.id, "bag_full"
     end
