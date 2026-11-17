@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.61
+## 0.37.62
 
 **Updating from 0.37.42?** Here is everything since the last release.
 
@@ -38,6 +38,13 @@
 - **The Contest Hall draws properly next to Johto Expanded** in Goldenrod.
 - **Small things:** longer text shows the blinking "more" arrow, and
   earning a scarf plays the game's item jingle.
+
+New in 0.37.62: the credits screen's final version. Every POKeMON and
+character picture shows in its own colours, whichever mods you have
+installed; the START menu's CREDITS description fits its box; and Eusine's
+portrait is Crystal's own.
+
+## 0.37.61
 
 New in 0.37.61: the CREDITS description in the START menu no longer runs
 into the menu.

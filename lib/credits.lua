@@ -21,7 +21,12 @@
 -- menu's description box is 10 columns (start_menu.asm ClearBox, StartMenu.lua)
 -- and "Artists and" is 11, so it ran into the menu frame. Two lines of at most
 -- 9, like Crystal's own ("Trainer's", "Return to"); the newest copy sets it.
-local LIB_VERSION = 6
+-- v7 (2026-11-17, developer: "fix needs to work for all mods any version of
+-- what is enabled and not"): colours no longer depend on any mod's credits
+-- data. Coloured-or-grey is read from the pixels; a Pokemon picture takes the
+-- species' battle colours from the game's own tables; a walker takes its
+-- registered palette; with nothing known, greys -- never another palette.
+local LIB_VERSION = 7
 local DESC = { "Who made", "the art" }
 local ROW_ID = "credits:book"
 local CRYSTAL = "CRYSTAL"
@@ -218,8 +223,10 @@ function Credits.attach(mod, initialEntries)
   -- every mod trainer front, by these same mods/<id>/<path> paths, on the
   -- phone. NEVER hand a path to love.graphics.newImage / love.image.newImageData
   -- here: on the phone love.filesystem cannot see mod files (REQUESTS 129;
-  -- tests/no_love_path_loads.lua). Whether a file is coloured comes from the
-  -- generator (walkColour / frontColour), so no pixel is ever read here.
+  -- tests/no_love_path_loads.lua). v7: whether a file is coloured is read from
+  -- its pixels through Assets.imageData (SpriteRenderer's own OBJ-palette bake
+  -- reads mod sprites the same way on the phone), so a mod's data from any
+  -- version, with or without the generator's flags, draws the same.
   local function engine(name)
     local ok, module = pcall(require, name)
     return ok and module or nil
@@ -242,6 +249,30 @@ function Credits.attach(mod, initialEntries)
     end
     return images[path] or nil
   end
+  -- Coloured art is drawn as it is; four-grey art goes through a palette.
+  -- Decided from the file's own pixels (cached), else the generator's flag.
+  local colourArt = {}
+  local function isColour(path, flag)
+    if colourArt[path] == nil then
+      local Assets = engine("src.render.Assets")
+      local ok, found = false, nil
+      if Assets and Assets.imageData then
+        ok, found = pcall(function()
+          local d = Assets.imageData(path)
+          local w, h = d:getWidth(), d:getHeight()
+          for y = 0, h - 1 do
+            for x = 0, w - 1 do
+              local r, g, b, a = d:getPixel(x, y)
+              if a > 0 and (math.abs(r - g) > 0.03 or math.abs(g - b) > 0.03) then return true end
+            end
+          end
+          return false
+        end)
+      end
+      if ok then colourArt[path] = found else colourArt[path] = flag == true end
+    end
+    return colourArt[path]
+  end
   local function installed(id)
     if type(mod.find) ~= "function" then return true end
     local ok, found = pcall(mod.find, id)
@@ -256,7 +287,7 @@ function Credits.attach(mod, initialEntries)
       local rel = f[role]
       if rel and installed(id) then
         local path = base .. id .. "/" .. rel
-        if image(path) then return path, f[role .. "Colour"] == true end
+        if image(path) then return path, isColour(path, f[role .. "Colour"]) end
       end
     end
   end
@@ -276,7 +307,8 @@ function Credits.attach(mod, initialEntries)
     local SpriteRenderer = engine("src.render.SpriteRenderer")
     -- file name -> a registered sprite drawing that file, so art a mod moved
     -- since the table was generated is still found
-    local registeredByFile
+    local registeredByFile, registeredPalette
+    local registeredByPath = {}
     local function registeredSprite(file)
       if not registeredByFile then
         registeredByFile = {}
@@ -285,23 +317,64 @@ function Credits.attach(mod, initialEntries)
           if ok and type(path) == "string" then
             local name = path:match("([^/]+)$")
             if name and path:sub(1, #base) == base and not registeredByFile[name] then
-              registeredByFile[name] = { path = path, colour = def.trueColor == true }
+              registeredByFile[name] = { path = path, colour = def.trueColor == true, def = def }
             end
+            if path:sub(1, #base) == base then registeredByPath[path] = def end
           end
         end
       end
       local found = registeredByFile[file]
-      if found then return found.path, found.colour end
+      if found then return found.path, isColour(found.path, found.colour) end
     end
-    local function objColors(pal)
-      if not (Palettes and data.gen2Palettes) then return nil end
-      local ok, colors = pcall(Palettes.spritePalette, data.gen2Palettes, "DAY", { paletteId = pal or 0 })
-      if not (ok and type(colors) == "table" and colors[1]) then return nil end
-      -- OBJ colour 0 is transparent on the hardware; on this white page it is
-      -- white (the palette's own entry 0 drew a tinted square behind the sprite)
+    -- The palette the game itself gives a sprite: the registered sprite's own
+    -- palette, read from its def the way the overworld reads it.
+    function registeredPalette(path)
+      if not registeredByFile then registeredSprite("") end
+      local def = registeredByPath[path]
+      if not (def and Palettes and data.gen2Palettes) then return nil end
+      if def.paletteId == nil and def.palette == nil then return nil end
+      local ok, colors = pcall(Palettes.spritePalette, data.gen2Palettes, "DAY", def)
+      return ok and colors or nil
+    end
+    -- The colours the game gives a Pokemon's battle picture: the species whose
+    -- spriteFront is this file (or whose name is this one), through
+    -- Palettes.monColors, as the battle draws it. Independent of what any
+    -- mod's credits data carries, so data from any version draws right.
+    local speciesByFile, speciesByName
+    local function speciesColors(path, name)
+      if not speciesByFile then
+        speciesByFile, speciesByName = {}, {}
+        for id, mon in pairs(data.pokemon or {}) do
+          if type(mon) == "table" then
+            if type(mon.spriteFront) == "string" then
+              speciesByFile[mon.spriteFront] = speciesByFile[mon.spriteFront] or id
+              local file = mon.spriteFront:match("([^/]+)$")
+              if file then speciesByFile[file] = speciesByFile[file] or id end
+            end
+            if type(mon.name) == "string" then
+              speciesByName[mon.name:upper()] = speciesByName[mon.name:upper()] or id
+            end
+          end
+        end
+      end
+      local id = (path and (speciesByFile[path] or speciesByFile[path:match("([^/]+)$") or ""]))
+        or (name and speciesByName[name:upper()])
+      if not (id and Palettes and Palettes.monColors and data.gen2Palettes) then return nil end
+      local ok, colors = pcall(Palettes.monColors, data.gen2Palettes, id)
+      return ok and colors or nil
+    end
+    -- OBJ colour 0 is transparent on the hardware; on this white page it is
+    -- white (the palette's own entry 0 drew a tinted square behind the sprite)
+    local function whiteZero(colors)
+      if type(colors) ~= "table" or not colors[1] then return nil end
       local copy = { { 255, 255, 255 } }
       for i = 2, #colors do copy[i] = colors[i] end
       return copy
+    end
+    local function objColors(pal)
+      if pal == nil or not (Palettes and data.gen2Palettes) then return nil end
+      local ok, colors = pcall(Palettes.spritePalette, data.gen2Palettes, "DAY", { paletteId = pal })
+      return ok and whiteZero(colors) or nil
     end
     local function walkerPath(c)
       if not c.walk then return nil end
@@ -315,7 +388,10 @@ function Credits.attach(mod, initialEntries)
       if not img then return false end
       local quad = love.graphics.newQuad(0, 0, 16, 16, img:getDimensions())
       love.graphics.setColor(1, 1, 1, 1)
-      paletted(not colour and objColors(c.pal) or nil, colour, function()
+      -- the registered palette (registry), else the palette the mod registered
+      -- the sprite with; with neither, the greys as drawn -- never a guess
+      local colors = not colour and (objColors(c.pal) or whiteZero(registeredPalette(path))) or nil
+      paletted(colors, colour, function()
         love.graphics.draw(img, quad, x, y)
       end)
       love.graphics.setColor(0, 0, 0, 1)
@@ -333,10 +409,15 @@ function Credits.attach(mod, initialEntries)
         colour = false
       elseif c.front then
         path, colour = shipped(c, "front")
-        -- A four-grey Pokemon front takes its species' colours; a four-grey
-        -- trainer portrait has no class palette of its own, so it takes its
-        -- character's overworld colours (TODO/CONFIRM).
-        colors = not colour and (c.monColors or objColors(c.pal)) or nil
+        -- A four-grey Pokemon front takes the colours the game's battle gives
+        -- that species (found at run time, so any mod's data of any version
+        -- draws right), else the data's monColors. A four-grey trainer portrait
+        -- has no class palette of its own, so it takes its character's
+        -- registered overworld colours (TODO/CONFIRM). With none of those it
+        -- is drawn in its greys: never a palette that belongs to something else.
+        if not colour then
+          colors = speciesColors(path, c.name) or c.monColors or objColors(c.pal)
+        end
       end
       local img = path and image(path)
       if not img then return false end
