@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.37.63
+
+**Updating from 0.37.62?** Nothing changes in play. The mod's credits
+files now name the right artists:
+
+- Barry, Cynthia and Steven are credited to **Bani**, who drew the art
+  they have used since 0.37.62.
+- Bill is no longer listed as custom art: he is Crystal's own Bill.
+- The notes no longer mention Polished Crystal party icons, which have
+  not shipped since 0.37.50.
+
 ## 0.37.62
 
 **Updating from 0.37.42?** Here is everything since the last release.

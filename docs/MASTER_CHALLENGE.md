@@ -28,7 +28,7 @@ The evolution screen's text pages advance on their own after a moment, without w
 
 ## Honchkrow and Mismagius
 
-Both species are bundled with the mod: stats, types, Pokédex entries, party icons, battle sprites, cries (borrowed from Murkrow and Misdreavus) and a move list. No other download or species framework is needed. This is not a dex expansion: only these two evolutions are added, and neither appears in the wild.
+Both species are bundled with the mod: stats, types, Pokédex entries, battle sprites, party icons and cries (both borrowed from Murkrow and Misdreavus) and a move list. No other download or species framework is needed. This is not a dex expansion: only these two evolutions are added, and neither appears in the wild.
 
 The move lists are what the Gen 2 engine can carry, not the complete modern learnsets. Honchkrow knows Pursuit, Haze and Wing Attack at level 1, learns Swagger at 25 and Perish Song at 55. Mismagius knows Shadow Ball, Flamethrower, Growl, Teleport and Confusion at level 1 and learns nothing later. Moves a pre-evolution learns by level are governed by your game's own data, so a Crystal Murkrow still gets Pursuit at 11. On evolving, the game offers only the moves the new form learns at that exact level, as it does for every evolution, so a Honchkrow made at level 30 learns nothing new on the spot.
 

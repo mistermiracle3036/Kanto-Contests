@@ -8,7 +8,7 @@
   them. Sheets that are visual SUBSTITUTES are credited as the sheet,
   never as bespoke art of the character they stand in for. Art by:
   - **ArtsyAlraune** — breeder
-  - **Bani** — Ash, Eusine, Larry, Leaf, Lear, Looker, Nate, Ranger, Yellow, juliana, lillie, santa
+  - **Bani** — Ash, Barry, Cynthia, Eusine, Larry, Leaf, Lear, Looker, Nate, Ranger, Steven, Yellow, juliana, lillie, santa
   - **Bani (visual substitute)** — duplica, giselle, suzie
   - **Blaklyte** — N, Nurse_Joy, ingo; **fantina** (commissioned, the same
     sheet Indigo Plateau Conference 1.1.55 ships, in her approved colour)
@@ -17,8 +17,8 @@
   - **KIRB/YOSHI** — bea
   - **MOLLY** — brendan, dawn, hilbert, hilda, lyra, michael, rosa, stadium_player, wes
   - **Molly** — Green
-  - **NolanKrawczak** — Barry, May
-  - **RoyalGuard** — Bill, Colress, Hugh, Lorelei, Maxie, Wally
+  - **NolanKrawczak** — May
+  - **RoyalGuard** — Colress, Hugh, Lorelei, Maxie, Wally
   - **Santiago Speedpaints (Rojimenez)** — mina
   - **SirWhibbles** — agatha, archer, ariana, giovanni, proton
   - **TeamHistoryWaffles** — Gloria, Ruin Maniac
@@ -30,7 +30,6 @@
     - **Kuroko Aizawa** — artist, cheryl, engineer
     - **Kuroko Aizawa / JaceDeane** — ivy
     - **bloodless (BloodlessNS)** — buck, maylene, veteran_m
-    - **isamuakai01** — cynthia, steven
     - **SCMidna / Freeline** — marley, mira, riley
     - **Kage** — walker
     - **Pyro** — tamer
@@ -41,7 +40,10 @@
   Twenty-five of these sheets ship in the main colour the developer
   approved for the character (sprites/canonical_color, 2026-09-08). That
   is the same artist's art with one colour applied; the credit is
-  unchanged.
+  unchanged. The same holds for the alternate-colour sheets
+  brendan_blue and brendan_green (MOLLY's Brendan), dawn_winter (MOLLY's
+  Dawn), may_blue and may_green (NolanKrawczak's May), and stadium_boy
+  and stadium_girl (MOLLY's stadium player).
   Every other character in the contest hall — the gym leaders, the
   Elite Four and the ordinary trainers in the seats — is drawn from the
   player's own game and is not redistributed here.
@@ -91,9 +93,9 @@
 
 Honchkrow and Mismagius artwork and data are adapted from Polished Crystal by Rangi42 and contributors: https://github.com/Rangi42/polishedcrystal . Source revision: `79db6f5c5e048bf191ac586a5e2197ce33e7001f`.
 
-Upstream CREDITS.md credits **bloodless (BloodlessNS)** for Honchkrow and **bloodless with SoupPotato** for Mismagius. General sprite/icon contributors include Blue Emerald, solo993, Chamber, Lake, Neslug and Pikachu25; individual icon artists are not identified by that source. Original artwork remains the work of its credited creators and is not relicensed as this mod's original art.
+Upstream CREDITS.md credits **bloodless (BloodlessNS)** for Honchkrow and **bloodless with SoupPotato** for Mismagius. Original artwork remains the work of its credited creators and is not relicensed as this mod's original art. Since 0.37.50 no Polished Crystal party icons ship: Honchkrow and Mismagius use Crystal's own Murkrow and Misdreavus icons.
 
-Files used for each species: `gfx/pokemon/<species>/{front.png,back.png,normal.pal,shiny.pal}`, `data/pokemon/base_stats/<species>.asm`, `data/pokemon/evos_attacks.asm`, and `data/pokemon/dex_entries.asm`. The first front frame is compiled at native 56x56; back sprites remain 48x48 and icons 16x32. Indexed grayscale compilation does not redraw or resize the sprites. Palette channels are converted from RGB5 to RGB8. Faithful base stats are used; later-generation moves absent from the engine and abilities are omitted. Native Murkrow/Misdreavus cries are referenced at runtime, not bundled as audio.
+Files used for each species: `gfx/pokemon/<species>/{front.png,back.png,normal.pal,shiny.pal}`, `data/pokemon/base_stats/<species>.asm`, `data/pokemon/evos_attacks.asm`, and `data/pokemon/dex_entries.asm`. The first front frame is compiled at native 56x56; back sprites remain 48x48. Indexed grayscale compilation does not redraw or resize the sprites. Palette channels are converted from RGB5 to RGB8. Faithful base stats are used; later-generation moves absent from the engine and abilities are omitted. Native Murkrow/Misdreavus cries are referenced at runtime, not bundled as audio.
 
 ## Expanded Species support
 
