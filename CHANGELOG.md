@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.37.64
+
+**Updating from 0.37.62?** Nothing changes in contests. Two small things:
+
+- **Credits in the Pokedex.** With UI Theme set to DEX+WATCH, START >
+  CREDITS now opens inside the Pokedex. Without UI Theme, or on VANILLA,
+  the credits look exactly as before.
+- **Corrected art credits** in the mod's notes (from 0.37.63): Barry,
+  Cynthia and Steven are credited to Bani, and Bill is Crystal's own.
+
+New in this version: the Pokedex-style credits (needs UI Theme 0.1.36 or
+newer; nothing else to install).
+
 ## 0.37.63
 
 **Updating from 0.37.62?** Nothing changes in play. The mod's credits
