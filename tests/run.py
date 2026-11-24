@@ -37,6 +37,8 @@ for name in ['engine_test.lua','contest_screen_test.lua','gen_gate_test.lua']:
 if a.cache:
     for name,extra in [('release_behavior_test.lua',[]),('species_off_test.lua',['off'])]:
         run([a.lua,mod/'tests'/name,mod,a.cache.resolve(),a.game,*extra],retry=True)
+    # 0.37.65 (REQUESTS 1092): restores before the species protector.
+    run([a.lua,mod/'tests'/'restore_order_test.lua',mod.parent,a.cache.resolve()],retry=True)
 else:
     print('ROM-backed integration tests not run: pass --cache for imported game data.')
 print('Requested release checks passed.')

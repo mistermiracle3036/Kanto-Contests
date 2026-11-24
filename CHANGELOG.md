@@ -1,17 +1,25 @@
 # Changelog
 
-## 0.37.64
+## 0.37.65
 
-**Updating from 0.37.62?** Nothing changes in contests. Two small things:
+**Updating from 0.37.62?** Nothing changes in contests. Three small things:
 
 - **Credits in the Pokedex.** With UI Theme set to DEX+WATCH, START >
   CREDITS now opens inside the Pokedex. Without UI Theme, or on VANILLA,
   the credits look exactly as before.
 - **Corrected art credits** in the mod's notes (from 0.37.63): Barry,
   Cynthia and Steven are credited to Bani, and Bill is Crystal's own.
+- **Safer with other species mods.** When the game loads, a POKeMON
+  brought back from an interrupted contest is now always returned to your
+  party before anything checks whether its species is installed, whichever
+  other mods you run.
 
-New in this version: the Pokedex-style credits (needs UI Theme 0.1.36 or
-newer; nothing else to install).
+New in this version: that last point. Nothing to see; it guards your save.
+
+## 0.37.64
+
+Credits library v8: with UI Theme on DEX+WATCH, START > CREDITS opens in
+the Pokedex (needs UI Theme 0.1.36 or newer).
 
 ## 0.37.63
 

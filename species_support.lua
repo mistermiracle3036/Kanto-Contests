@@ -638,6 +638,11 @@ return function(mod, ownedIds)
     end
     return hidden,restored
   end
+  -- Save-restore order (exchange/CONTRACTS.md, REQUESTS 933/1092): restores
+  -- listen at >= 0 (main.lua's contest-party restore is 0); an owner-specific
+  -- species protector listens at -90, so every restore has put its Pokemon
+  -- back before anything is hidden. Events.lua runs higher priorities first.
+  local PROTECT_PRIORITY = -90
   mod.events:on("save.loading",function(ctx)
     local save=ctx and ctx.raw
     if save and save.kcPartyStash then
@@ -645,16 +650,18 @@ return function(mod, ownedIds)
       if mod.exports.restoreContestParty then mod.exports.restoreContestParty(save) end
     end
     api.protect(save,mod.game)
-  end)
+  end,PROTECT_PRIORITY)
+  -- api.reconcile (dex renumbering) is NOT registered here: it stays at
+  -- priority 0, where it always ran, and dusk_challenge.lua registers it, so
+  -- this file (a protector, per restore_order.py) listens below 0 only.
   mod.events:on("game.ready",function(ctx)
     local game=ctx and ctx.game or mod.game
-    api.reconcile(game)
     api.protect(game and game.save,game)
-  end)
+  end,PROTECT_PRIORITY)
   mod.events:on("checkpoint.restored",function(ctx)
     local game=ctx and ctx.game or mod.game
     if game and game.save and game.save.kcPartyStash then game.save.kcContestInterrupted=true end
     api.protect(game and game.save,game)
-  end)
+  end,PROTECT_PRIORITY)
   return api
 end

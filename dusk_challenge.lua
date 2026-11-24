@@ -6,6 +6,11 @@ return function(mod)
     return assert(load(assert(mod:read(name)), "@kanto_contests/"..name))()
   end
   local support = module("species_support.lua")(mod, speciesIds)
+  -- Dex renumbering at priority 0, as before 0.37.65; the protector itself
+  -- listens at -90 inside species_support.lua (REQUESTS 1092).
+  mod.events:on("game.ready", function(ctx)
+    support.reconcile(ctx and ctx.game or mod.game)
+  end)
   local mode = mod.options:get("expanded_species")
   local owned = {}
   -- Resolve the provider's identity, never a display name or a virtual dex.
