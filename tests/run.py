@@ -32,7 +32,7 @@ with tempfile.TemporaryDirectory() as td:
 run([sys.executable,engine/'tools/modkit.py','lint',mod])
 run([sys.executable,mod/'tools/check_sprites.py',mod/'assets'])
 run([sys.executable,mod/'tests/check_dialogue.py',mod/'main.lua',mod/'contest_screen.lua',mod/'dusk_challenge.lua',mod/'cast_lines.lua'])
-for name in ['engine_test.lua','contest_screen_test.lua','gen_gate_test.lua']:
+for name in ['engine_test.lua','contest_screen_test.lua','gen_gate_test.lua','red_win_test.lua']:
     run([a.lua,mod/'tests'/name,mod],retry=True)
 if a.cache:
     for name,extra in [('release_behavior_test.lua',[]),('species_off_test.lua',['off'])]:

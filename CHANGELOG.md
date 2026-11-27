@@ -1,9 +1,22 @@
 # Changelog
 
-## 0.37.66
+## 0.37.67
 
 **Updating from 0.37.62?** Here is everything since the last release.
 
+- **Contests follow Emerald's rules more closely.** A move that guards
+  against startling, or that leaves its user easier to startle, lasts one
+  round instead of the whole contest. A POKeMON too nervous to move no
+  longer lands its move's effect. A POKeMON that uses EXPLOSION can still
+  be startled during the round it explodes in.
+- **May waits for you.** If you tell her "Maybe later." at the RUINS OF
+  ALPH, she stays and asks again the next time you talk to her. If she
+  already left that way on your save, she is back.
+- **On Red, coming 1st on points wins.** A routine that ends with you
+  ahead of every rival now pays the prize and counts toward ribbons, even
+  if the judge's meter was not emptied.
+- **The crowd's roar plays once** when the crowd goes wild, not again on
+  every page.
 - **A contest crash is fixed.** If one rival's move put them last in line
   and another's then moved someone up, the next appeal crashed the game.
 - **Credits in the Pokedex.** With UI Theme set to DEX+WATCH, START >
@@ -31,8 +44,12 @@
 - **Corrected art credits** in the mod's notes: Barry, Cynthia and Steven
   are credited to Bani, and Bill is Crystal's own.
 
-New in this version: the crash fix and the bug fixes above, found by an
-outside code review.
+New in this version: the first four points above (Emerald's rules, May,
+Red's 1st place, the roar).
+
+## 0.37.66
+
+The crash fix and the bug fixes above, found by an outside code review.
 
 ## 0.37.65
 

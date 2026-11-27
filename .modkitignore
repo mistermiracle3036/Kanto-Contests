@@ -1,6 +1,7 @@
 # Exact paths: modkit ignore files do not interpret globs or directory prefixes.
 tests/wooble_compat_test.lua
 tests/restore_order_test.lua
+tests/red_win_test.lua
 tests/wooble_picture_test.lua
 tests/venue_weight_test.lua
 tests/summary_page_test.lua

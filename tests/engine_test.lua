@@ -327,6 +327,48 @@ do
   T.eq(kinds(ev), "no_more", "after EXPLOSION nothing more is allowed")
 end
 
+-- ------------------- 9b. Emerald round rules (REQUESTS 1218, 0.37.67)
+
+do  -- a nervous contestant's move is not made: its jam never lands
+  local s = contest("SMART", lowRng)
+  E.beginTurn(s)
+  E.appeal(s, 1, "SING")                -- low roll: B, C, D all nervous
+  local before = s.c[1].appeal
+  local ev = E.appeal(s, 2, "STOMP")    -- would badly startle A
+  T.eq(s.c[1].appeal, before, "nervous STOMP does not jam the one in front")
+  T.eq(s.c[2].appeal, 0, "nervous contestant scores nothing")
+  T.check(kinds(ev):find("too_nervous"), "too_nervous is narrated")
+  T.eq(s.c[2].prevMove, nil, "a move never made starts no repeat")
+end
+
+do  -- guards and startle-weakness last one round
+  local s = contest("SMART")
+  E.beginTurn(s); E.appeal(s, 1, "BIDE"); E.appeal(s, 2, "TAKE_DOWN"); E.endTurn(s)
+  E.beginTurn(s)
+  T.eq(s.c[1].immune, false, "AVOID_STARTLE wears off at the new round")
+  T.eq(s.c[2].moreEasilyStartled, false, "USER_MORE_EASILY_STARTLED wears off too")
+  local s2 = contest("SMART")
+  E.beginTurn(s2); E.appeal(s2, 1, "HARDEN"); E.endTurn(s2)
+  E.beginTurn(s2)
+  T.eq(s2.c[1].safety, 0, "an unspent AVOID_STARTLE_ONCE wears off too")
+end
+
+do  -- an exploder can be jammed in its own round, not after
+  local s = contest("SMART")
+  E.beginTurn(s)
+  E.appeal(s, 1, "EXPLOSION")           -- 80
+  E.appeal(s, 2, "HEADBUTT")            -- 20 to the one in front
+  T.eq(s.c[1].appeal, 60, "EXPLOSION's user is jammed in its own round")
+  E.endTurn(s)
+  E.beginTurn(s)
+  T.check(s.c[1].order < s.c[3].order, "the exploder appeals before ROCK_SLIDE (else the check is empty)")
+  E.appeal(s, 1, "POUND")               -- no_more: it cannot act
+  E.appeal(s, 2, "POUND")
+  local before = s.c[1].appeal
+  E.appeal(s, 3, "ROCK_SLIDE")          -- 30 to everyone earlier
+  T.eq(s.c[1].appeal, before, "...and out of reach from the next round")
+end
+
 -- -------------------------------------------------- 10. turn order shifts
 
 do

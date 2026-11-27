@@ -245,6 +245,10 @@ function S:narrate(ci, ev)
       -- possible moment (device). wild lights all five and flashes.
       m.applauseLevel = level
       m.wild = wild
+      -- the roar plays once, on the appeal's first page; later pages keep
+      -- the lit meter but do not restart the sound (REQUESTS 1218;
+      -- developer via the Desk, 2026-11-27)
+      if wild and i > before + 1 then m.roared = true end
     end
   end
   -- jams change EARLIER contestants' hearts too

@@ -6457,7 +6457,11 @@ local function kcGold(mod, VERSION)
       -- and "Maybe later." must still run her closing pages
       local later = { action = "LATER", reply = "Maybe later." }
       menu(world, { show, later }, show, later, function(row)
-        local mon = row == show and leadMon(world)
+        -- "Maybe later." ends the talk; she stays and asks again next time
+        -- (talk's "helped" arm), and her closing pages wait for the show
+        -- (REQUESTS 1218; developer via the Desk, 2026-11-27).
+        if row ~= show then setMayState("helped"); return end
+        local mon = leadMon(world)
         if not mon then return after() end
         local index = speciesIndexOf(mon.species)
         if index then
@@ -6490,7 +6494,7 @@ local function kcGold(mod, VERSION)
   local function talk(world, npc)
     local state = mayState()
     if state == "helped" then
-      if not mayShown() then return askToSee(world, function() end) end
+      if not mayShown() then return askToSee(world, function() finish(world) end) end
       -- dialogue-ok: 15 / 17
       world:showText("South, through\nthe cave! Got it!")
       return
@@ -6541,7 +6545,8 @@ local function kcGold(mod, VERSION)
   local function ensureMayRuins(world, mapId)
     if mapId ~= MAY_MAP then mayHelpedThisVisit = false; return end
     local state = mayState()
-    local gone = state == "helped" and not mayHelpedThisVisit
+    -- gone only once she has seen a POKeMON: after "Maybe later." she waits
+    local gone = state == "helped" and not mayHelpedThisVisit and mayShown()
     local cell = cellFor(state)
     local ids, keep = {}, false
     for _, npc in ipairs((world and world.npcs) or {}) do
@@ -6633,7 +6638,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.66"
+  local VERSION = "0.37.67"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -7470,6 +7475,15 @@ return function(mod)
       end
     else
       self:sayNext("The routine is\nover...")
+      -- 1st on points is a WIN (developer via the Desk, 2026-11-27,
+      -- REQUESTS 1218): the same path as an emptied meter above, so the
+      -- prize, contestWins (onFinish) and the ribbon count all follow.
+      if kcPlacement(self) == "1st" then
+        target.mon.hp = 0
+        self:sayNext("You place 1st\nof 4!")
+        self:onFaint(target)
+        return
+      end
       self:sayNext("The judge shakes\nhis head.")
       -- dialogue-ok: %s is a placement, three glyphs
       self:sayNext(("You place %s\nof 4!"):format(kcPlacement(self)))

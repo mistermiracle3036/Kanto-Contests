@@ -140,6 +140,11 @@ function E.beginTurn(s)
     c.jammed = 0
     c.skipping = c.skipNext        -- JAMS_OTHERS_BUT_MISS_ONE_TURN
     c.skipNext = false
+    -- One round only, as Emerald's setStatusesForNextRound clears them
+    -- (engine game3/rse/contest.lua:1564). Kept all contest before 0.37.67
+    -- (REQUESTS 1218; developer via the Desk, 2026-11-27: match Emerald).
+    c.immune, c.safety, c.moreEasilyStartled = false, 0, false
+    c.nervous = false
   end
   s.frozen = nil
   return order
@@ -157,7 +162,11 @@ end
 -- jam actually landed on `ti` (0 if immune / safety / cannot act).
 local function jam(s, ti, amount, ev)
   local t = s.c[ti]
-  if t.immune or t.exploded or t.skipping then return 0 end
+  -- An exploder is out of reach only from the NEXT round (Emerald canUnnerve
+  -- checks noMoreTurns, set at round end); in its own round it can be
+  -- jammed like anyone (REQUESTS 1218).
+  local outOfPlay = t.exploded and (t.explodedTurn or 0) < s.turn
+  if t.immune or outOfPlay or t.skipping then return 0 end
   if t.safety > 0 then
     t.safety = t.safety - 1
     ev[#ev + 1] = { kind = "unaffected", who = ti }
@@ -206,6 +215,7 @@ end
 
 FX.GREAT_APPEAL_BUT_NO_MORE_MOVES = function(s, ci)
   s.c[ci].exploded = true
+  s.c[ci].explodedTurn = s.turn
 end
 
 FX.REPETITION_NOT_BORING = function(s, ci)
@@ -449,6 +459,20 @@ function E.appeal(s, ci, moveId)
   end
   c.currMove = moveId
   ev[#ev + 1] = { kind = "used", who = ci, move = moveId, cat = row.cat }
+
+  -- 0. too nervous: the move is not made at all, so its effect never runs
+  -- and it starts no repeat or combo (Emerald makeNervous clears currMove,
+  -- contest.c:4586). Before 0.37.67 the effect landed first (REQUESTS 1218).
+  if c.nervous then
+    c.nervous = false
+    c.attention = false
+    c.appeal, c.base = 0, 0
+    c.currMove, c.prevMove = nil, nil
+    c.repeated, c.repeatCount = false, 0
+    ev[#ev + 1] = { kind = "too_nervous", who = ci }
+    ev[#ev + 1] = { kind = "scored", who = ci, appeal = 0, hearts = 0 }
+    return ev
+  end
 
   -- 2. repeat check
   c.repeated = (c.prevMove == moveId)
