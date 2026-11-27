@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.37.67
+## 0.37.68
 
 **Updating from 0.37.62?** Here is everything since the last release.
 
@@ -44,8 +44,13 @@
 - **Corrected art credits** in the mod's notes: Barry, Cynthia and Steven
   are credited to Bani, and Bill is Crystal's own.
 
-New in this version: the first four points above (Emerald's rules, May,
-Red's 1st place, the roar).
+New in this version: nothing you can see. Each contest lobby keeps its one
+spectator; two unused entries per lobby are gone from the mod's data.
+
+## 0.37.67
+
+Emerald's rules, May waiting at the RUINS, Red's 1st place, and the roar
+(the first four points above).
 
 ## 0.37.66
 

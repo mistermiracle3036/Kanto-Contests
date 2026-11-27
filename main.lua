@@ -752,12 +752,11 @@ local KC_HALLS = {
           sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
         { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
           sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
+        -- ONE spectator: rows for a second and third never spawned (one
+        -- marker per room) and were removed; one is the approved look
+        -- (developer via the Desk, 2026-11-27, REQUESTS 1218).
         { name = "KC_AUD_1", marker = "kcAudience",
           sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
-        { name = "KC_AUD_2", marker = "kcAudience",
-          sprite = "SPRITE_GRANNY", x = 2, y = 4, movement = 9 },
-        { name = "KC_AUD_3", marker = "kcAudience",
-          sprite = "SPRITE_TWIN", x = 6, y = 6, movement = 7 },
       },
     },
     stage = {
@@ -993,12 +992,9 @@ local KC_HALLS = {
           sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
         { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
           sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
+        -- ONE spectator (see Goldenrod's lobby; REQUESTS 1218).
         { name = "KC_AUD_1", marker = "kcAudience",
           sprite = "SPRITE_GRANNY", x = 1, y = 4, movement = 9 },
-        { name = "KC_AUD_2", marker = "kcAudience",
-          sprite = "SPRITE_POKEFAN_M", x = 2, y = 4, movement = 9 },
-        { name = "KC_AUD_3", marker = "kcAudience",
-          sprite = "SPRITE_TWIN", x = 6, y = 6, movement = 7 },
       },
     },
     stage = {
@@ -1276,12 +1272,11 @@ local KC_HALLS = {
           sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
         { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
           sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
+        -- ONE spectator: rows for a second and third never spawned (one
+        -- marker per room) and were removed; one is the approved look
+        -- (developer via the Desk, 2026-11-27, REQUESTS 1218).
         { name = "KC_AUD_1", marker = "kcAudience",
           sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
-        { name = "KC_AUD_2", marker = "kcAudience",
-          sprite = "SPRITE_GRANNY", x = 2, y = 4, movement = 9 },
-        { name = "KC_AUD_3", marker = "kcAudience",
-          sprite = "SPRITE_TWIN", x = 6, y = 6, movement = 7 },
       },
     },
     stage = {
@@ -1562,12 +1557,11 @@ local KC_HALLS = {
           sprite = "SPRITE_TEACHER", x = 1, y = 7, movement = 9 },
         { name = "KC_HALL_APPRAISER", marker = "kcHallAppraiser",
           sprite = "SPRITE_BEAUTY", x = 8, y = 7, movement = 8 },
+        -- ONE spectator: rows for a second and third never spawned (one
+        -- marker per room) and were removed; one is the approved look
+        -- (developer via the Desk, 2026-11-27, REQUESTS 1218).
         { name = "KC_AUD_1", marker = "kcAudience",
           sprite = "SPRITE_POKEFAN_M", x = 1, y = 4, movement = 9 },
-        { name = "KC_AUD_2", marker = "kcAudience",
-          sprite = "SPRITE_GRANNY", x = 2, y = 4, movement = 9 },
-        { name = "KC_AUD_3", marker = "kcAudience",
-          sprite = "SPRITE_TWIN", x = 6, y = 6, movement = 7 },
       },
     },
     stage = {
@@ -6638,7 +6632,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.67"
+  local VERSION = "0.37.68"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
