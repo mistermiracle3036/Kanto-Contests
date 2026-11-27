@@ -340,6 +340,28 @@ do
   T.eq(order[1], 1, "then the leader on points")
 end
 
+do  -- REQUESTS 1218: a queued slot 3 pushed to 4 must not crash beginTurn
+  local s = contest("SMART")
+  E.beginTurn(s)
+  E.appeal(s, 1, "POUND"); E.appeal(s, 2, "POUND")
+  s.c[3].nextOrder = 3                  -- as NEXT_APPEAL_LATER leaves it
+  E.appeal(s, 3, "POUND")
+  E.appeal(s, 4, "AGILITY")             -- bumps C's queued 3 to 4
+  E.endTurn(s)
+  local ok, order = pcall(E.beginTurn, s)
+  T.check(ok, "beginTurn survives a queued slot past the end: " .. tostring(order))
+  if ok then
+    local seen = {}
+    for slot = 0, E.CONTESTANTS - 1 do
+      if order[slot] then seen[order[slot]] = (seen[order[slot]] or 0) + 1 end
+    end
+    T.check(seen[1] == 1 and seen[2] == 1 and seen[3] == 1 and seen[4] == 1,
+      "every contestant holds exactly one slot 0..3")
+    T.eq(order[0], 4, "the AGILITY user still goes first")
+    T.eq(order[4], nil, "nobody is placed in a fifth slot")
+  end
+end
+
 do  -- ranking by cumulative total from turn 2
   local s = contest("SMART")            -- 40/30/20/10: order 1,2,3,4 on turn 1
   E.beginTurn(s)

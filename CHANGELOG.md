@@ -1,20 +1,42 @@
 # Changelog
 
+## 0.37.66
+
+**Updating from 0.37.62?** Here is everything since the last release.
+
+- **A contest crash is fixed.** If one rival's move put them last in line
+  and another's then moved someone up, the next appeal crashed the game.
+- **Credits in the Pokedex.** With UI Theme set to DEX+WATCH, START >
+  CREDITS opens inside the Pokedex. Without UI Theme, or on VANILLA, the
+  credits look exactly as before.
+- **Bug fixes:**
+  - A POKeMON that is sitting out a turn (after THRASH or EXPLOSION) no
+    longer announces a move it then does not use.
+  - The appraiser no longer gives you a second scarf of a colour you
+    already have in the item PC or on a POKeMON at the Day Care.
+  - Leaving Crystal's Goldenrod hall after loading a save there always
+    puts you back in Goldenrod, even if you visited another town's hall
+    earlier that session.
+  - On Gold and Silver, Goldenrod's street door leads into the Grand Hall
+    once it has opened.
+  - A long rival name no longer pushes "scores N hearts" onto a third row.
+  - A quest's exhibition contest that is not meant to count no longer
+    counts toward ribbons if the quest's line-up fails to load.
+  - Fixes for other mods running alongside: their scripts can no longer
+    find the controls stuck after a contest, and (on Red) their items keep
+    their POKeMON picker.
+- **Safer with other species mods.** When the game loads, a POKeMON
+  brought back from an interrupted contest is always returned to your party
+  before anything checks whether its species is installed.
+- **Corrected art credits** in the mod's notes: Barry, Cynthia and Steven
+  are credited to Bani, and Bill is Crystal's own.
+
+New in this version: the crash fix and the bug fixes above, found by an
+outside code review.
+
 ## 0.37.65
 
-**Updating from 0.37.62?** Nothing changes in contests. Three small things:
-
-- **Credits in the Pokedex.** With UI Theme set to DEX+WATCH, START >
-  CREDITS now opens inside the Pokedex. Without UI Theme, or on VANILLA,
-  the credits look exactly as before.
-- **Corrected art credits** in the mod's notes (from 0.37.63): Barry,
-  Cynthia and Steven are credited to Bani, and Bill is Crystal's own.
-- **Safer with other species mods.** When the game loads, a POKeMON
-  brought back from an interrupted contest is now always returned to your
-  party before anything checks whether its species is installed, whichever
-  other mods you run.
-
-New in this version: that last point. Nothing to see; it guards your save.
+Saves: the bundled-evolutions protector runs after every contest restore.
 
 ## 0.37.64
 

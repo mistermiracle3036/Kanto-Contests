@@ -521,18 +521,29 @@ end
 local function kcHasScarf(save, row)
   if not (save and row) then return false end
   if save.inventory and (save.inventory[row.id] or 0) > 0 then return true end
+  -- Crystal's item PC (save.pcItems, id -> count: gen2/ItemPcMenu.lua) holds
+  -- a deposited scarf too (REQUESTS 1218).
+  if type(save.pcItems) == "table" and (tonumber(save.pcItems[row.id]) or 0) > 0 then return true end
   local function wears(mon)
-    return mon and (mon.item == row.id
+    return type(mon) == "table" and (mon.item == row.id
       or kcScarfCategory(mon) == row.category)
   end
   for _, mon in ipairs(save.party or {}) do
     if wears(mon) then return true end
   end
   for _, box in pairs(save.boxes or {}) do
-    for _, mon in ipairs(box or {}) do
+    for _, mon in ipairs(type(box) == "table" and box or {}) do
       if wears(mon) then return true end
     end
   end
+  -- ...and a holder boarded at the Day Care: the slots the engine's own
+  -- Mon.eachSaveMon walks (gen2/Mon.lua).
+  local dc = save.dayCare
+  if type(dc) == "table" then
+    if dc.man and wears(dc.man.mon) then return true end
+    if dc.lady and wears(dc.lady.mon) then return true end
+  end
+  if type(save.daycare) == "table" and wears(save.daycare.mon) then return true end
   return false
 end
 
@@ -3930,6 +3941,14 @@ local function kcGold(mod, VERSION)
       local kind = pendingContest or (mod.save and mod.save:get("kcPendingKind")) or nil
       stagePlanIgnored = applyCastPlan(world, coordinators, kind)
       stagePlan = (castPlan() and not stagePlanIgnored) and castPlan() or nil
+      -- A plan dropped only for its SLOTS (a bad slot or an unknown sprite)
+      -- still governs this contest: the desk admitted the entrant on it, so
+      -- its record=false must hold (REQUESTS 1218). A plan for another hall
+      -- or category does not. A KCG field: kcGold is at the 200-local cap.
+      local p = castPlan()
+      KCG.stageNoRecord = (p and p.record == false
+        and (stagePlanIgnored == nil or stagePlanIgnored == "slot"
+          or stagePlanIgnored == "sprite")) and true or false
     end
     duskSlot=pinFantina(coordinators, stagePlan)
     for i, cell in ipairs(STAGE_COORD_CELLS) do
@@ -4044,6 +4063,9 @@ local function kcGold(mod, VERSION)
     clearPendingContest()
     pendingRank = nil
     stageReturn = nil
+    -- a loaded save never came in through this session's last door: a stale
+    -- one sent Crystal's Goldenrod exit to another town (REQUESTS 1218)
+    hallReturn = nil
   end)
   mod.exports.restoreContestParty = restoreSavedParty
   mod.events:on("checkpoint.restored", function(ctx)
@@ -4582,9 +4604,12 @@ local function kcGold(mod, VERSION)
       -- the engine freezes the world for a rod cast or a tree shake.
       World._kcOriginals.busy = World._kcOriginals.busy or World.busy
       local baseBusy = World._kcOriginals.busy
-      World.busy = function(world)
+      -- ...passes World:busy(ignoreScriptToken) through: dropping the token
+      -- made a mod script that asks "busy apart from me?" see itself
+      -- (engine World.lua busy/acceptsMenuInput; REQUESTS 1218).
+      World.busy = function(world, ...)
         if kcHoldPlayer then return true end
-        return baseBusy(world)
+        return baseBusy(world, ...)
       end
       World.drawEmote = function(world, s, billboard)
         local heart = world and world.emoteImages and world.emoteImages.heart
@@ -4679,7 +4704,12 @@ local function kcGold(mod, VERSION)
           popHearts(world, hearts)
           waitFrames(heartsHold(hearts), function()
             kcHoldPlayer = false
-            world:showText(("%s scores\n%d hearts!"):format(who, hearts), next_)
+            -- A name over 11 glyphs (STADIUM GIRL, EXTERMINATOR, BRENDAN
+            -- GREEN: 12-13) takes the other split; every shorter name keeps
+            -- the shipped line (REQUESTS 1218).
+            -- dialogue-ok: names over 11 are 13 max; "scores 8 hearts!" is 16
+            local fmt = #tostring(who) > 11 and "%s\nscores %d hearts!" or "%s scores\n%d hearts!"
+            world:showText(fmt:format(who, hearts), next_)
           end)
         end)
       end,
@@ -5254,8 +5284,14 @@ local function kcGold(mod, VERSION)
     if world and world.playSfxNamed then
       pcall(world.playSfxNamed, world, "Sfx_EnterDoor", 31)
     end
-    local ok, err = mod.world:warpTo(street.hall.id,
-      street.hall.arrival.x, street.hall.arrival.y, "up")
+    -- Gold/Silver's Goldenrod door leads into the Grand Hall once it is open,
+    -- as Crystal's door (enterHall, via useTown) already does (REQUESTS 1218).
+    local hall = street.hall
+    if street.town == "GOLDENROD" and grandActive() and goldenrod.grandLobby then
+      hall = goldenrod.grandLobby
+    end
+    local ok, err = mod.world:warpTo(hall.id,
+      hall.arrival.x, hall.arrival.y, "up")
     if not ok then
       mod.log:warn("%s hall warp failed: %s", street.town, tostring(err))
       world:showText("KC error: hall\nentrance failed")
@@ -5695,7 +5731,7 @@ local function kcGold(mod, VERSION)
         -- not count), write the result to the save, then tell listeners
         -- BEFORE the closing line so a scene can start right here
         local plan = stagePlan
-        local record = not (plan and plan.record == false)
+        local record = not ((plan and plan.record == false) or KCG.stageNoRecord)
         local won = place == 1
         if won and record then
           entrant.contestWins = entrant.contestWins or {}
@@ -6597,7 +6633,7 @@ local function kcGold(mod, VERSION)
 end
 
 return function(mod)
-  local VERSION = "0.37.65"
+  local VERSION = "0.37.66"
   mod.exports.version = VERSION
   mod.exports.owns = {
     trainers = { "OPP_KC_JUDGE" },
@@ -6757,7 +6793,20 @@ return function(mod)
   if GameVersion.generation() >= 2 then
     local source = assert(mod:read("dusk_challenge.lua"))
     mod.exports.duskChallenge = assert(load(source, "@kanto_contests/dusk_challenge.lua"))()(mod)
-    mod.exports.owns = mod.exports.duskChallenge.owns
+    -- MERGE the challenge's claims into the declaration above; replacing it
+    -- dropped the maps, tilesets, scarves and monFields (REQUESTS 1218).
+    do
+      local owns, dusk = mod.exports.owns, mod.exports.duskChallenge.owns or {}
+      for key, list in pairs(dusk) do
+        if type(list) == "table" then
+          if owns[key] == nil then
+            owns[key] = list          -- the live list: `pokemon` fills later
+          else
+            for _, v in ipairs(list) do owns[key][#owns[key] + 1] = v end
+          end
+        end
+      end
+    end
     return kcGold(mod, VERSION)
   end
 
@@ -6893,9 +6942,12 @@ return function(mod)
 
   -- Without this the bag would use a snack on nobody: needsTarget is what
   -- makes BagMenu open the party picker first.
-  ItemEffectsM.needsTarget = function(id, itemDef)
+  -- ...and passes the engine's third argument (game.data: registered item
+  -- effects, ItemEffects.lua needsTarget) through, or another mod's item
+  -- lost its party picker (REQUESTS 1218).
+  ItemEffectsM.needsTarget = function(id, itemDef, ...)
     if KC_SNACK_BY_ID[id] or KC_SCARF_BY_ID[id] then return true end
-    return IO_.needsTarget(id, itemDef)
+    return IO_.needsTarget(id, itemDef, ...)
   end
 
   ItemEffectsM.use = function(data, save, itemId, target, battle, moveIndex, ow)

@@ -304,12 +304,16 @@ function S:resolveNext()
   self.performer = ci
   self:cry(ci)
   local nick = self:names(ci)
-  if id then
+  -- A contestant sitting out (after Thrash-likes or Explosion) neither
+  -- announces nor animates a move; E.appeal narrates why (REQUESTS 1218).
+  local st = self.s.c[ci]
+  local sitsOut = st and (st.skipping or st.exploded)
+  if id and not sitsOut then
     -- dialogue-ok: nick is clipped to 10 -> 18; the move to 12 -> 18
     self:say(("%s appeals\nwith %s!"):format(nick, clip(self:moveName(id), 12)))
   end
   local ev = self.E.appeal(self.s, ci, id)
-  self.pendingAnim = id
+  self.pendingAnim = (not sitsOut) and id or nil
   self.pendingEvents = { ci = ci, ev = ev }
   self.phase = "resolve"
 end

@@ -117,7 +117,9 @@ function E.beginTurn(s)
   local taken = {}
   for i, ci in ipairs(idx) do
     local want = s.c[ci].nextOrder
-    if want ~= nil and not order[want] then
+    -- NEXT_APPEAL_EARLIER can push a queued slot 3 to 4 (REQUESTS 1218); a
+    -- slot past the end is no request, so that contestant takes a free one.
+    if want ~= nil and want >= 0 and want < E.CONTESTANTS and not order[want] then
       order[want] = ci; taken[ci] = true
     end
   end
